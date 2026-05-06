@@ -22,3 +22,7 @@ node_modules/
 
 # Cloudflare
 .wrangler/
+
+# Demo recordings — raw videos are local-only, only the final GIF is committed
+.demo/output/
+.demo/playwright-report/

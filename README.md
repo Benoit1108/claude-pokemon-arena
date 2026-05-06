@@ -2,6 +2,10 @@
 
 Web arena for [`claude-pokemon`](https://github.com/Benoit1108/claude-pokemon) — leaderboard, trainer cards, async battles between trainers worldwide.
 
+<!-- Demo GIF generated via .demo/record.mjs + .demo/build-gif.sh — see .demo/README.md -->
+<!-- ![arena demo](.demo/arena-demo.gif) -->
+
+
 This is **Phase 2** of the [claude-pokemon roadmap](https://github.com/Benoit1108/claude-pokemon/blob/main/ROADMAP.md). The CLI raises the Pokémon, this site is where they compete.
 
 ## Stack
