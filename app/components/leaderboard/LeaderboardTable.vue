@@ -20,15 +20,20 @@ defineProps<{
           <tr
             v-for="(entry, i) in entries"
             :key="entry.anon_id"
-            class="border-b surface-border last:border-b-0 surface-card-hover transition"
+            class="border-b surface-border last:border-b-0 surface-card-hover transition cursor-pointer"
+            @click="navigateTo(`/trainer/${entry.anon_id}`)"
           >
             <td class="px-4 py-3 text-2xl w-16 text-center">
               {{ rankPrefix(i + 1) }}
             </td>
             <td class="px-4 py-3">
-              <div class="font-bold text-primary">
+              <NuxtLink
+                :to="`/trainer/${entry.anon_id}`"
+                class="font-bold text-primary hover:text-accent transition"
+                @click.stop
+              >
                 {{ trainerLabel(entry) }}
-              </div>
+              </NuxtLink>
             </td>
             <td class="px-4 py-3 text-right font-bold text-accent tabular-nums">
               {{ fmt(entry.value) }}
