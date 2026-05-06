@@ -4,6 +4,10 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
 
   app: {
+    // GameBoy-dither page transition — subtle scale + saturation/contrast
+    // shift that mimics a pixelated fade between routes. CSS-only, ~250 ms,
+    // 'out-in' mode so the leaving page finishes before the next enters.
+    pageTransition: { name: 'gb-dither', mode: 'out-in' },
     head: {
       title: 'claude-pokemon arena',
       meta: [
