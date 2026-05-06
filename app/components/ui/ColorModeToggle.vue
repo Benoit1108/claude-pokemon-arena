@@ -1,21 +1,26 @@
 <script setup lang="ts">
 const colorMode = useColorMode()
 
+// 4-mode cycle : system → light → dark → retro → system → …
+// 'retro' = GameBoy DMG monochrome palette, mirrors the CLI's retro theme.
+type Mode = 'system' | 'light' | 'dark' | 'retro'
+const order: Mode[] = ['system', 'light', 'dark', 'retro']
+
 function cycle() {
-  // system → light → dark → system → ...
-  const order = ['system', 'light', 'dark'] as const
-  const currentIdx = order.indexOf(colorMode.preference as (typeof order)[number])
+  const currentIdx = order.indexOf(colorMode.preference as Mode)
   const next = order[(currentIdx + 1) % order.length]!
   colorMode.preference = next
 }
 
 const icon = computed(() => {
   if (colorMode.preference === 'system') return '🖥️'
+  if (colorMode.preference === 'retro') return '🎮'
   if (colorMode.value === 'dark') return '🌙'
   return '☀️'
 })
 const label = computed(() => {
   if (colorMode.preference === 'system') return 'system'
+  if (colorMode.preference === 'retro') return 'retro'
   return colorMode.value
 })
 </script>

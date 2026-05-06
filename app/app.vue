@@ -1,3 +1,22 @@
+<script setup lang="ts">
+// Manage the optional 'retro' GameBoy color mode. @nuxtjs/color-mode only
+// natively handles light/dark, so we mirror the user's preference onto a
+// 'retro' class on <html> ourselves when needed. CSS selectors below use
+// :root.retro to apply the DMG palette.
+const colorMode = useColorMode()
+
+if (import.meta.client) {
+  watchEffect(() => {
+    const root = document.documentElement
+    if (colorMode.preference === 'retro') {
+      root.classList.add('retro')
+    } else {
+      root.classList.remove('retro')
+    }
+  })
+}
+</script>
+
 <template>
   <div class="min-h-screen surface-bg text-primary font-mono transition-colors duration-150">
     <!-- Floating theme toggle, top-right -->
@@ -83,5 +102,69 @@
   .gb-dither-leave-active::after {
     display: none;
   }
+}
+
+/*
+ * Retro mode — GameBoy DMG palette monochrome. Mirrors the CLI 'retro'
+ * theme (lib/lib.sh : pokemon_theme_accent + pokemon_ansi_color). The
+ * .retro class is applied on <html> by app.vue when colorMode.preference
+ * === 'retro'. Overrides go through !important because UnoCSS shortcuts
+ * already produce static color classes — pragmatic at the cost of CSS
+ * specificity purity.
+ */
+:root.retro {
+  --gb-bg: #0f380f;
+  --gb-surface: #306230;
+  --gb-surface-hover: #4a8042;
+  --gb-border: #4a8042;
+  --gb-text: #9bbc0f;
+  --gb-text-dim: #8bac0f;
+  --gb-text-mute: #6a8a3a;
+  --gb-accent: #9bbc0f;
+  background-color: var(--gb-bg);
+  color: var(--gb-text);
+}
+:root.retro body {
+  background-color: var(--gb-bg) !important;
+  color: var(--gb-text) !important;
+}
+:root.retro .surface-bg {
+  background-color: var(--gb-bg) !important;
+}
+:root.retro .surface-card {
+  background-color: var(--gb-surface) !important;
+}
+:root.retro .surface-card-hover:hover {
+  background-color: var(--gb-surface-hover) !important;
+}
+:root.retro .surface-border {
+  border-color: var(--gb-border) !important;
+}
+:root.retro .text-primary,
+:root.retro .text-zinc-100,
+:root.retro .text-zinc-900 {
+  color: var(--gb-text) !important;
+}
+:root.retro .text-secondary,
+:root.retro .text-zinc-400,
+:root.retro .text-zinc-600 {
+  color: var(--gb-text-dim) !important;
+}
+:root.retro .text-muted,
+:root.retro .text-zinc-500 {
+  color: var(--gb-text-mute) !important;
+}
+:root.retro .text-accent {
+  color: var(--gb-accent) !important;
+}
+:root.retro .bg-accent {
+  background-color: var(--gb-accent) !important;
+  color: var(--gb-bg) !important;
+}
+:root.retro .ring-accent {
+  --un-ring-color: var(--gb-accent) !important;
+}
+:root.retro code {
+  color: var(--gb-accent) !important;
 }
 </style>
