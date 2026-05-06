@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { BattleResponse } from '~/types/api'
+import { useBattlePlayer } from '~/composables/useBattlePlayer'
+import type { BattleResponse, BattleTurn } from '~/types/api'
 
 const route = useRoute()
 const api = useApi()
@@ -16,6 +17,12 @@ if (error.value && import.meta.server) {
 }
 
 const battle = computed(() => data.value?.battle)
+const turns: BattleTurn[] = data.value?.battle?.turns ?? []
+
+// Single-shot composable invocation — turns is captured at this moment
+// (data is already fetched thanks to await useAsyncData above). Playback
+// is auto-started; gracefully no-ops if turns is empty.
+const player = useBattlePlayer(turns, { autoPlay: true, speed: 1 })
 
 useHead({
   title: () =>
@@ -26,7 +33,7 @@ useHead({
     {
       name: 'description',
       content:
-        'Replay an arena battle in claude-pokemon — turn-by-turn log, type effectiveness, winner.',
+        'Replay an arena battle in claude-pokemon — turn-by-turn animation, type effectiveness, winner.',
     },
   ],
 })
@@ -69,18 +76,34 @@ useHead({
         :challenger="battle.challenger"
         :defender="battle.defender"
         :winner="battle.winner"
+        :current-turn="player.lastTurn.value"
+        :show-final-state="player.isFinished.value"
+      />
+
+      <BattleControls
+        :is-playing="player.isPlaying.value"
+        :is-finished="player.isFinished.value"
+        :speed="player.speed.value"
+        :progress="player.progress.value"
+        :current-turn-idx="player.currentTurnIdx.value"
+        :total-turns="player.totalTurns"
+        @toggle="player.toggle()"
+        @skip-to-end="player.skipToEnd()"
+        @restart="player.restart()"
+        @set-speed="s => player.setSpeed(s)"
       />
 
       <BattleResultBanner
+        v-if="player.isFinished.value"
         :winner="battle.winner"
         :reason="battle.reason"
         :challenger="battle.challenger"
         :defender="battle.defender"
-        :total-turns="battle.turns.length"
+        :total-turns="turns.length"
       />
 
       <BattleLog
-        :turns="battle.turns"
+        :turns="player.visibleTurns.value"
         :challenger="battle.challenger"
         :defender="battle.defender"
       />
