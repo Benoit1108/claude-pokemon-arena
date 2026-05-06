@@ -83,4 +83,31 @@ describe('ApiClient', () => {
 
     await expect(client.aggregate()).rejects.toThrow('network down')
   })
+
+  it('arenaOpponents() defaults limit to 50', async () => {
+    const { client, fetchMock } = makeClient({ opponents: [], total: 0 })
+    await client.arenaOpponents()
+    expect(fetchMock).toHaveBeenCalledWith('/v1/arena/opponents', {
+      baseURL: 'https://example.test',
+      query: { limit: 50 },
+    })
+  })
+
+  it('arenaOpponents() respects custom limit', async () => {
+    const { client, fetchMock } = makeClient({ opponents: [], total: 0 })
+    await client.arenaOpponents(10)
+    expect(fetchMock).toHaveBeenCalledWith('/v1/arena/opponents', {
+      baseURL: 'https://example.test',
+      query: { limit: 10 },
+    })
+  })
+
+  it('arenaBattle() builds the path with the given battle id', async () => {
+    const battleId = 'a'.repeat(32)
+    const { client, fetchMock } = makeClient({ battle: { battle_id: battleId } })
+    await client.arenaBattle(battleId)
+    expect(fetchMock).toHaveBeenCalledWith(`/v1/arena/battle/${battleId}`, {
+      baseURL: 'https://example.test',
+    })
+  })
 })

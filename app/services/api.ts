@@ -3,8 +3,10 @@
 
 import type {
   AggregateResponse,
+  BattleResponse,
   LeaderboardMetric,
   LeaderboardResponse,
+  OpponentsResponse,
   TrainerResponse,
 } from '~/types/api'
 
@@ -38,5 +40,18 @@ export class ApiClient {
 
   trainer(anonId: string): Promise<TrainerResponse> {
     return this.fetcher<TrainerResponse>(`/v1/trainer/${anonId}`, { baseURL: this.baseUrl })
+  }
+
+  arenaOpponents(limit = 50): Promise<OpponentsResponse> {
+    return this.fetcher<OpponentsResponse>('/v1/arena/opponents', {
+      baseURL: this.baseUrl,
+      query: { limit },
+    })
+  }
+
+  arenaBattle(battleId: string): Promise<BattleResponse> {
+    return this.fetcher<BattleResponse>(`/v1/arena/battle/${battleId}`, {
+      baseURL: this.baseUrl,
+    })
   }
 }

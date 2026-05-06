@@ -77,3 +77,55 @@ export interface TrainerResponse {
   client_version: string
   stats: PlayerStats
 }
+
+// ---------------------------------------------------------------------------
+// Arena (Sprint 2.3) — async PvP battles
+// ---------------------------------------------------------------------------
+
+export interface BattleParticipant {
+  anon_id: string
+  display_name: string | null
+  lineage: Lineage
+  level: number
+  is_shiny: boolean
+}
+
+export type BattleSide = 'challenger' | 'defender'
+
+export interface BattleTurn {
+  turn: number
+  actor: BattleSide
+  damage: number
+  effectiveness: number
+  critical: boolean
+  defender_hp_after: number
+}
+
+export interface BattleResult {
+  battle_id: string | null
+  challenger: BattleParticipant
+  defender: BattleParticipant
+  seed: number
+  turns: BattleTurn[]
+  winner: BattleSide | 'draw'
+  reason: 'ko' | 'turn_limit'
+  created_at: string
+}
+
+export interface ArenaOpponent {
+  anon_id: string
+  display_name: string | null
+  lineage: Lineage
+  level: number
+  is_shiny: boolean
+  updated_at: string
+}
+
+export interface OpponentsResponse {
+  opponents: ArenaOpponent[]
+  total: number
+}
+
+export interface BattleResponse {
+  battle: BattleResult
+}
