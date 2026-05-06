@@ -1,0 +1,199 @@
+# Architecture — `claude-pokemon-arena`
+
+> Living document. Captures the _why_ of the directory split, the layered
+> design, and the conventions for adding a feature. ADR-style entries at
+> the bottom for irreversible calls.
+
+## Overview
+
+`claude-pokemon-arena` is the web frontend for the [`claude-pokemon`](https://github.com/Benoit1108/claude-pokemon)
+ecosystem. It consumes the existing Worker API and renders trainer pages,
+the leaderboard, the global pokédex, and (Phase 2.3+) battle replays.
+
+```
+┌────────────────────────────────────────────────────────┐
+│  Nuxt 4 SSR site → Cloudflare Pages (free tier)        │
+│  fetches data from claude-pokemon-api.benoit-dev...    │
+└────────────────────────────────────────────────────────┘
+```
+
+The site is **mostly read-only** today (Sprint 2.1-2.2). Writes (challenge
+a battle, etc.) come in Sprint 2.3 via the same Worker but with
+`arena_secret` Bearer auth.
+
+## Repository layout
+
+```
+claude-pokemon-arena/
+├── app/                           Application source (Nuxt 4 convention).
+│   ├── app.vue                    Root layout with floating theme toggle.
+│   ├── pages/                     File-based routing (each file = one route).
+│   │   ├── index.vue              Homepage : hero + global stats + leaderboard.
+│   │   ├── trainer/[anonId].vue   (Sprint 2.2a) Public trainer card.
+│   │   ├── battle/[id].vue        (Sprint 2.3) Battle replay.
+│   │   └── pokedex.vue            (Sprint 2.2b) 251 Pokémon catalog.
+│   ├── components/                Vue components, organized by domain.
+│   │   ├── ui/                    Generic primitives (toggle, button, ...).
+│   │   ├── leaderboard/           LeaderboardTable + future filters.
+│   │   ├── stats/                 GlobalStatsCards, LineageDistribution.
+│   │   └── trainer/               (Sprint 2.2a) TrainerCard, badge grid.
+│   ├── composables/               Reusable Vue logic.
+│   │   └── useApi.ts              Wraps the API service for SSR + client.
+│   ├── services/                  Pure JS/TS code, no Vue dependency.
+│   │   └── api.ts                 ApiClient class targeting the Worker.
+│   ├── types/                     TypeScript contracts.
+│   │   └── api.ts                 Mirror of api/src/types.ts (worker).
+│   └── utils/                     Pure formatting/lookup helpers.
+│       ├── format.ts              fmt, fmtPct, rankPrefix, trainerLabel.
+│       └── lineage.ts             LINEAGE_EMOJI map.
+├── tests/                         Vitest suites.
+│   ├── unit/                      Pure functions (utils, services).
+│   └── components/                Vue components (with @nuxt/test-utils).
+├── docs/
+│   └── architecture.md            ← this file
+├── public/                        Static assets served as-is.
+├── nuxt.config.ts                 Modules, runtimeConfig, eslint config.
+├── uno.config.ts                  UnoCSS theme + semantic shortcuts.
+├── tsconfig.json, eslint.config.mjs (auto), .prettierrc.json
+└── package.json
+```
+
+## Layered design
+
+```
+Pages          (file-based routes, thin : data fetch + compose components)
+    ↓
+Components     (presentation, props-driven, no direct API calls)
+    ↓
+Composables    (Vue-specific logic : useApi, useColorMode wrappers)
+    ↓
+Services       (pure JS classes : ApiClient — no Vue, no SSR concerns)
+    ↓
+Utils + Types  (pure functions and TypeScript contracts)
+```
+
+### Why this split
+
+- **Single Responsibility (S in SOLID)** : pages compose, components present,
+  services fetch, utils transform. No cross-mixing.
+- **Dependency Inversion (D in SOLID)** : pages don't `fetch` directly ;
+  they call `useApi()` which depends on a service abstraction. The service
+  takes a `fetchImpl` parameter — trivial to mock in tests.
+- **Testability** : utils are pure → fast Vitest unit tests. Services take
+  an injectable fetcher → mockable. Components use Testing Library Vue +
+  `@nuxt/test-utils`.
+
+## Theming foundation
+
+The site supports **dark / light / system** modes via `@nuxtjs/color-mode`
+applied as a class (`.dark` / `.light`) on `<html>`.
+
+UnoCSS uses `dark: 'class'` strategy, so `dark:bg-...` variants only fire
+when the class is present.
+
+**Semantic shortcuts** (in `uno.config.ts`) abstract surface/text colors :
+
+```ts
+shortcuts: {
+  'surface-bg':       'bg-zinc-50 dark:bg-[#0d1117]',
+  'surface-card':     'bg-white dark:bg-[#161b22]',
+  'text-primary':     'text-zinc-900 dark:text-zinc-100',
+  'text-accent':      'text-gold-soft dark:text-gold',
+  // ...
+}
+```
+
+**Convention** : never hard-code Tailwind colors (`bg-zinc-900`,
+`text-white`) in components. Use `surface-*` / `text-*` shortcuts. New
+themes → add them once in shortcuts, every component adapts.
+
+Lineage colors (fire = orange, water = blue, etc.) are Pokémon identity —
+they don't adapt to theme.
+
+## Conventions
+
+### Adding a page
+
+1. Create `app/pages/<name>.vue`.
+2. Use `useAsyncData` for SSR-friendly fetches.
+3. Compose presentational components from `app/components/`. Don't put
+   markup logic inline.
+4. Type the data : import contracts from `~/types/api`.
+5. (Optional) add E2E test in `tests/e2e/<name>.spec.ts` (Playwright).
+
+### Adding a component
+
+1. Decide the domain : `ui/` (generic), `leaderboard/`, `stats/`, `trainer/`.
+2. Create `<DomainName>.vue` with `<script setup lang="ts">`.
+3. Use `defineProps<{...}>()` with TypeScript types — don't use `props` runtime declaration.
+4. Use semantic shortcuts (`surface-card`, `text-primary`, ...) for styling.
+5. Add unit test in `tests/components/<Name>.test.ts` if logic-heavy.
+
+### Adding a composable
+
+1. Create `app/composables/use<Name>.ts`.
+2. Auto-imported by Nuxt — no need to import in components.
+3. If wrapping an external dep, prefer to inject it via a service (see
+   `useApi` calling `ApiClient`).
+
+### Adding API integration
+
+1. Add types to `app/types/api.ts` (mirror `api/src/types.ts` worker-side).
+2. Add method to `ApiClient` in `app/services/api.ts`.
+3. Use `useApi().<method>()` from a page or composable.
+4. Add a test in `tests/unit/services/api.test.ts` with mocked `fetchImpl`.
+
+## CI / Dev workflow
+
+```bash
+# Local development
+npm run dev              # Nuxt dev server with HMR
+npm run lint             # ESLint logic + Vue rules
+npm run lint:fix         # auto-fix
+npm run typecheck        # vue-tsc strict mode
+npm run format           # Prettier (formatting source of truth)
+npm run format:check     # CI-style check
+npm run build            # Production build (NITRO_PRESET=cloudflare-pages for CF)
+```
+
+GitHub Actions runs `lint + typecheck + format:check + build` on every
+push to `main` and on every PR. CF Pages auto-deploys on push to `main`.
+
+## Decisions log (ADRs)
+
+### ADR-001 : Nuxt 4 over alternatives
+
+**2026-05-06.** Considered SvelteKit (lighter), Astro (content-first),
+Next.js (React ecosystem). Chose Nuxt 4 for : (a) Vue's gentler learning
+curve for solo dev, (b) auto-imports reduce ceremony at this scale,
+(c) seamless CF Pages integration via Nitro `cloudflare-pages` preset,
+(d) file-based routing is enough for our 4-5 pages.
+
+### ADR-002 : UnoCSS over Tailwind
+
+**2026-05-06.** Tailwind v4 is great but heavier at build. UnoCSS
+`preset-wind4` gives the same DX (Tailwind syntax) with smaller bundle
+and faster dev rebuilds. Theme/shortcut customization is more flexible
+(programmatic config in `uno.config.ts`).
+
+### ADR-003 : Class-based dark mode (not media query only)
+
+**2026-05-06.** `prefers-color-scheme` respects OS preference but doesn't
+let users override per-tab. Class-based mode (via `@nuxtjs/color-mode`)
+gives users explicit control via the toggle, with `system` as the default
+that honors OS prefs. Best of both worlds.
+
+### ADR-004 : SSR with hydration, not pure SSG
+
+**2026-05-06.** SSG would require rebuild on every leaderboard change.
+SSR fetches the API on each request (CF Pages edge-runs the Nitro server),
+giving fresh data without rebuilds. Trade-off : CF Pages SSR cold-start
+(~50ms) vs static-cache simplicity. We pay the cold-start to keep data live.
+
+### ADR-005 : Tests deferred until next sprint
+
+**2026-05-06.** Étape 1 ships ESLint + Prettier + structure now. Vitest
+
+- test fixtures come in Étape 2 (next session). The architecture is
+  designed test-friendly (pure utils, injectable services) so retrofit is
+  cheap.

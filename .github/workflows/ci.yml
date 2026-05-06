@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-typecheck:
+    name: ESLint + TypeScript + Prettier
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: ESLint
+        run: npm run lint
+      - name: TypeScript typecheck
+        run: npm run typecheck
+      - name: Prettier check
+        run: npm run format:check
+
+  build:
+    name: Nuxt build (cloudflare-pages preset)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Build for Cloudflare Pages
+        env:
+          NITRO_PRESET: cloudflare-pages
+        run: npm run build
+      - name: Verify dist output
+        run: |
+          test -d dist || (echo "::error::dist/ not generated" && exit 1)
+          test -f dist/_redirects || echo "::warning::dist/_redirects missing"
+          ls -la dist/ | head -20

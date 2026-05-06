@@ -1,14 +1,31 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: '2026-05-06',
+  modules: ['@unocss/nuxt', '@nuxtjs/color-mode', '@nuxt/eslint'],
   devtools: { enabled: true },
 
-  modules: ['@unocss/nuxt', '@nuxtjs/color-mode'],
+  app: {
+    head: {
+      title: 'claude-pokemon arena',
+      meta: [
+        { charset: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        {
+          name: 'description',
+          content:
+            "Web arena for claude-pokemon — leaderboard, trainer cards, async battles between trainers raised in Claude Code's statusline.",
+        },
+        { name: 'theme-color', content: '#0d1117', media: '(prefers-color-scheme: dark)' },
+        { name: 'theme-color', content: '#fafafa', media: '(prefers-color-scheme: light)' },
+        { property: 'og:title', content: 'claude-pokemon arena' },
+        { property: 'og:type', content: 'website' },
+      ],
+    },
+  },
 
   colorMode: {
-    preference: 'system',     // honor OS preference by default
-    fallback: 'dark',         // fallback when prefers-color-scheme is unavailable
-    classSuffix: '',          // produces class="dark" or class="light" on <html>
+    preference: 'system', // honor OS preference by default
+    fallback: 'dark', // fallback when prefers-color-scheme is unavailable
+    classSuffix: '', // produces class="dark" or class="light" on <html>
     storageKey: 'arena-color-mode',
   },
 
@@ -19,21 +36,7 @@ export default defineNuxtConfig({
       apiBase: 'https://claude-pokemon-api.benoit-dev.workers.dev',
     },
   },
-
-  app: {
-    head: {
-      title: 'claude-pokemon arena',
-      meta: [
-        { charset: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'description', content: 'Web arena for claude-pokemon — leaderboard, trainer cards, async battles between trainers raised in Claude Code\'s statusline.' },
-        { name: 'theme-color', content: '#0d1117', media: '(prefers-color-scheme: dark)' },
-        { name: 'theme-color', content: '#fafafa', media: '(prefers-color-scheme: light)' },
-        { property: 'og:title', content: 'claude-pokemon arena' },
-        { property: 'og:type', content: 'website' },
-      ],
-    },
-  },
+  compatibilityDate: '2026-05-06',
 
   // Cloudflare Pages preset. Falls back to node-server in `npm run dev`.
   nitro: {
@@ -43,4 +46,18 @@ export default defineNuxtConfig({
   typescript: {
     strict: true,
   },
+
+  // ESLint config : focus on logic + Vue rules. Formatting is delegated to
+  // Prettier (single source of truth via .prettierrc.json) — stylistic disabled
+  // here to avoid double-formatting conflicts.
+  eslint: {
+    config: {
+      stylistic: false,
+    },
+  },
+
+  // Flatten subdirectory prefixes — components are organized in folders for
+  // human readability but used by their bare name : <LeaderboardTable />,
+  // not <LeaderboardLeaderboardTable />.
+  components: [{ path: '~/components', pathPrefix: false }],
 })

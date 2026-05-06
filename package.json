@@ -10,16 +10,24 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "nuxt typecheck",
+    "format": "prettier --write '**/*.{vue,ts,js,json,md}'",
+    "format:check": "prettier --check '**/*.{vue,ts,js,json,md}'"
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.0.0",
     "@nuxtjs/color-mode": "^4.0.0",
     "@unocss/nuxt": "^66.0.0",
     "@unocss/preset-wind4": "^66.0.0",
+    "eslint": "^9.0.0",
     "nuxt": "^4.0.0",
+    "prettier": "^3.3.0",
     "typescript": "^5.5.0",
     "vue": "^3.5.0",
-    "vue-router": "^4.5.0"
+    "vue-router": "^4.5.0",
+    "vue-tsc": "^2.0.0"
   }
 }
