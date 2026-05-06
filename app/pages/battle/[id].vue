@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useBattlePlayer } from '~/composables/useBattlePlayer'
+import { useSoundEffects } from '~/composables/useSoundEffects'
 import type { BattleResponse, BattleTurn } from '~/types/api'
 
 const route = useRoute()
@@ -23,6 +24,25 @@ const turns: BattleTurn[] = data.value?.battle?.turns ?? []
 // (data is already fetched thanks to await useAsyncData above). Playback
 // is auto-started; gracefully no-ops if turns is empty.
 const player = useBattlePlayer(turns, { autoPlay: true, speed: 1 })
+const sfx = useSoundEffects()
+
+// Watch the player and trigger SFX. Each new revealed turn → hit / crit /
+// super-effective. When the battle ends → win or defeat (challenger-centric
+// for sound choice : page is read by anyone but the dramatic sound matches
+// the visible winner banner).
+watch(player.lastTurn, turn => {
+  if (!turn) return
+  if (turn.critical) sfx.playCritical()
+  else if (turn.effectiveness >= 2) sfx.playSuperEffective()
+  else sfx.playHit()
+})
+
+watch(player.isFinished, finished => {
+  if (!finished || !battle.value) return
+  if (battle.value.winner === 'draw') sfx.playDraw()
+  else if (battle.value.winner === 'challenger') sfx.playWin()
+  else sfx.playDefeat()
+})
 
 useHead({
   title: () =>
@@ -87,10 +107,12 @@ useHead({
         :progress="player.progress.value"
         :current-turn-idx="player.currentTurnIdx.value"
         :total-turns="player.totalTurns"
+        :sound-enabled="sfx.enabled.value"
         @toggle="player.toggle()"
         @skip-to-end="player.skipToEnd()"
         @restart="player.restart()"
         @set-speed="s => player.setSpeed(s)"
+        @toggle-sound="sfx.toggle()"
       />
 
       <BattleResultBanner

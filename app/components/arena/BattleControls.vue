@@ -8,6 +8,7 @@ defineProps<{
   progress: number
   totalTurns: number
   currentTurnIdx: number
+  soundEnabled: boolean
 }>()
 
 const emit = defineEmits<{
@@ -15,6 +16,7 @@ const emit = defineEmits<{
   skipToEnd: []
   restart: []
   setSpeed: [speed: PlaybackSpeed]
+  toggleSound: []
 }>()
 
 const speeds: PlaybackSpeed[] = [0.5, 1, 2, 4]
@@ -49,6 +51,16 @@ const speeds: PlaybackSpeed[] = [0.5, 1, 2, 4]
         @click="emit('restart')"
       >
         ⏮ Restart
+      </button>
+
+      <button
+        type="button"
+        class="px-3 py-1.5 text-sm border surface-border rounded-md surface-card-hover transition"
+        :class="soundEnabled ? 'text-accent' : 'text-muted'"
+        :title="soundEnabled ? 'Sound on (click to mute)' : 'Sound off (click to enable)'"
+        @click="emit('toggleSound')"
+      >
+        {{ soundEnabled ? '🔊' : '🔇' }}
       </button>
 
       <div class="flex items-center gap-1.5 ml-auto">
