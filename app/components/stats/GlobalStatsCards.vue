@@ -3,7 +3,7 @@ import { fmt, fmtPct } from '~/utils/format'
 import type { AggregateResponse } from '~/types/api'
 
 defineProps<{
-  aggregate: AggregateResponse | null
+  aggregate: AggregateResponse | null | undefined
 }>()
 </script>
 

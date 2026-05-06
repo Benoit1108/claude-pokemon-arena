@@ -5,7 +5,7 @@ function cycle() {
   // system → light → dark → system → ...
   const order = ['system', 'light', 'dark'] as const
   const currentIdx = order.indexOf(colorMode.preference as (typeof order)[number])
-  const next = order[(currentIdx + 1) % order.length]
+  const next = order[(currentIdx + 1) % order.length]!
   colorMode.preference = next
 }
 
