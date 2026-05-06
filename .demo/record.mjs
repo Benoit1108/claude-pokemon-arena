@@ -1,22 +1,25 @@
 // Playwright-driven recording of a scripted browser session demonstrating
-// the arena features. Mocks the Worker API responses so the demo doesn't
-// depend on live state (no need to deploy + seed a real battle).
+// the arena features. Spins up a tiny HTTP mock server so both Nuxt SSR
+// and client-side fetches return demo-friendly data — no need to seed
+// the real Worker KV.
 //
 // Usage :
-//   1. npm i -D playwright
+//   1. npm i -D playwright ffmpeg-static
 //   2. npx playwright install chromium
-//   3. NUXT_PUBLIC_API_BASE=http://mock.local npm run dev   (in another terminal)
+//   3. NUXT_PUBLIC_API_BASE=http://localhost:8910 npm run dev   (other terminal)
 //   4. node .demo/record.mjs
-//   5. bash .demo/build-gif.sh                              (requires ffmpeg)
+//   5. bash .demo/build-gif.sh
 //
-// Output : .demo/output/*.webm → .demo/output/arena-demo.gif
+// Output : .demo/output/*.webm → .demo/arena-demo.gif
 
 import { chromium } from 'playwright'
+import { createServer } from 'node:http'
 import { mkdirSync, existsSync, rmSync } from 'node:fs'
 import path from 'node:path'
 
 const VIEWPORT = { width: 960, height: 600 }
 const BASE_URL = process.env.DEMO_BASE_URL ?? 'http://localhost:3000'
+const MOCK_PORT = parseInt(process.env.DEMO_MOCK_PORT ?? '8910', 10)
 const OUTPUT_DIR = path.join(process.cwd(), '.demo', 'output')
 
 // Reset the output dir on each run so old recordings don't pile up.
@@ -117,7 +120,6 @@ const defender = {
   is_shiny: false,
 }
 
-// 8-turn battle ending in challenger victory (fire vs grass = ×2 boost).
 const mockBattle = {
   battle: {
     battle_id: 'd'.repeat(32),
@@ -161,6 +163,48 @@ const mockTrainer = {
   },
 }
 
+// ── Mock HTTP server ──────────────────────────────────────────────────────
+const mockServer = createServer((req, res) => {
+  const url = req.url ?? ''
+  res.setHeader('content-type', 'application/json')
+  res.setHeader('access-control-allow-origin', '*')
+  res.setHeader('access-control-allow-methods', 'GET, POST, DELETE, OPTIONS')
+  res.setHeader('access-control-allow-headers', 'content-type, authorization')
+  if (req.method === 'OPTIONS') {
+    res.statusCode = 204
+    return res.end()
+  }
+  let body
+  if (url.startsWith('/v1/aggregate')) body = mockAggregate
+  else if (url.startsWith('/v1/leaderboard')) body = mockLeaderboard
+  else if (url.startsWith('/v1/arena/opponents')) body = mockOpponents
+  else if (url.startsWith('/v1/arena/battle/')) body = mockBattle
+  else if (url.startsWith('/v1/trainer/')) body = mockTrainer
+  else if (url.startsWith('/v1/health')) body = { status: 'ok', schema_version: 1 }
+  else {
+    res.statusCode = 404
+    return res.end(JSON.stringify({ error: 'not_found', path: url }))
+  }
+  res.end(JSON.stringify(body))
+})
+
+await new Promise(resolve => mockServer.listen(MOCK_PORT, resolve))
+console.log(`✓ Mock API server : http://localhost:${MOCK_PORT}`)
+
+// Sanity check : Nuxt must already be running with NUXT_PUBLIC_API_BASE
+// pointing at our mock. We can't easily detect this, but if the homepage
+// returns real prod data the user will see it in the GIF.
+try {
+  const probe = await fetch(BASE_URL).then(r => r.status).catch(() => 0)
+  if (probe !== 200) throw new Error(`Nuxt dev server not reachable at ${BASE_URL}`)
+} catch (e) {
+  mockServer.close()
+  console.error(`❌ ${e.message}`)
+  console.error(`   Start the dev server first :`)
+  console.error(`   NUXT_PUBLIC_API_BASE=http://localhost:${MOCK_PORT} npm run dev`)
+  process.exit(1)
+}
+
 // ── Recording ─────────────────────────────────────────────────────────────
 const browser = await chromium.launch({ headless: true })
 const context = await browser.newContext({
@@ -168,23 +212,15 @@ const context = await browser.newContext({
   recordVideo: { dir: OUTPUT_DIR, size: VIEWPORT },
   colorScheme: 'dark',
 })
-
-// Intercept all Worker API calls and return mocks.
-await context.route('**/v1/aggregate', r => r.fulfill({ json: mockAggregate }))
-await context.route('**/v1/leaderboard*', r => r.fulfill({ json: mockLeaderboard }))
-await context.route('**/v1/arena/opponents*', r => r.fulfill({ json: mockOpponents }))
-await context.route('**/v1/arena/battle/*', r => r.fulfill({ json: mockBattle }))
-await context.route('**/v1/trainer/*', r => r.fulfill({ json: mockTrainer }))
-
 const page = await context.newPage()
 
 // 1) Home — leaderboard + global stats (~3s)
 await page.goto(`${BASE_URL}/`, { waitUntil: 'networkidle' })
-await page.waitForTimeout(2500)
+await page.waitForTimeout(3000)
 
 // 2) Arena pool (~3s)
 await page.click('text=⚔️ Arena')
-await page.waitForTimeout(2500)
+await page.waitForTimeout(3000)
 
 // 3) Click on an opponent → trainer card (~2.5s)
 await page.click('text=Erika')
@@ -197,4 +233,5 @@ await page.waitForTimeout(10000)
 await page.close()
 await context.close()
 await browser.close()
+mockServer.close()
 console.log(`✓ Video recorded in ${OUTPUT_DIR}`)

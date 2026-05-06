@@ -11,10 +11,17 @@ OUT_DIR="$SCRIPT_DIR/output"
 PALETTE="$OUT_DIR/palette.png"
 GIF="$SCRIPT_DIR/arena-demo.gif"
 
-if ! command -v ffmpeg >/dev/null 2>&1; then
-  echo "❌ ffmpeg not found in PATH. Install it (apt: sudo apt install ffmpeg)" >&2
+# Resolve ffmpeg binary : prefer the ffmpeg-static npm install (no sudo
+# required), fall back to system ffmpeg if installed.
+if [ -f "$SCRIPT_DIR/../node_modules/ffmpeg-static/ffmpeg" ]; then
+  FFMPEG="$SCRIPT_DIR/../node_modules/ffmpeg-static/ffmpeg"
+elif command -v ffmpeg >/dev/null 2>&1; then
+  FFMPEG=ffmpeg
+else
+  echo "❌ ffmpeg not found. Either : npm i -D ffmpeg-static  OR  sudo apt install ffmpeg" >&2
   exit 1
 fi
+echo "ffmpeg : $FFMPEG"
 
 # Pick the latest .webm in output/ (Playwright generates a hashed filename).
 VIDEO=$(ls -t "$OUT_DIR"/*.webm 2>/dev/null | head -n1 || true)
@@ -25,8 +32,8 @@ fi
 echo "Source : $VIDEO"
 
 # Two-pass conversion (palette extraction → GIF render) for better colors.
-ffmpeg -y -i "$VIDEO" -vf "fps=12,scale=720:-1:flags=lanczos,palettegen=stats_mode=diff" "$PALETTE"
-ffmpeg -y -i "$VIDEO" -i "$PALETTE" \
+"$FFMPEG" -y -i "$VIDEO" -vf "fps=12,scale=720:-1:flags=lanczos,palettegen=stats_mode=diff" "$PALETTE"
+"$FFMPEG" -y -i "$VIDEO" -i "$PALETTE" \
   -filter_complex "fps=12,scale=720:-1:flags=lanczos[x];[x][1:v]paletteuse=dither=bayer:bayer_scale=4" \
   "$GIF"
 
