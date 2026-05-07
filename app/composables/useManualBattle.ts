@@ -43,9 +43,10 @@ export function useManualBattle(opts: UseManualBattleOptions) {
 
   const isHumanTurn = computed(() => !state.value.finished && state.value.whoseTurn === humanSide)
   const movesAvailable = computed(() => playerMoves(state.value))
-  const lastTurn = computed(() =>
-    state.value.turns.length > 0 ? state.value.turns[state.value.turns.length - 1] : null,
-  )
+  const lastTurn = computed(() => {
+    const turns = state.value.turns
+    return turns.length > 0 ? (turns[turns.length - 1] ?? null) : null
+  })
   const result = computed(() => stateToResult(state.value))
 
   // Convenient HP helpers for the UI.

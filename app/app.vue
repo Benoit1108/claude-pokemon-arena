@@ -105,6 +105,50 @@ if (import.meta.client) {
 }
 
 /*
+ * Battle juice : screen shake on critical hits. The element receives the
+ * .crit-shake class and a :key bump to retrigger the keyframes on every
+ * crit (Vue's render-key trick).
+ */
+@keyframes crit-shake {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  10% {
+    transform: translate3d(-4px, 1px, 0);
+  }
+  20% {
+    transform: translate3d(5px, -2px, 0);
+  }
+  30% {
+    transform: translate3d(-3px, 2px, 0);
+  }
+  40% {
+    transform: translate3d(4px, -1px, 0);
+  }
+  50% {
+    transform: translate3d(-2px, 1px, 0);
+  }
+  60% {
+    transform: translate3d(2px, -1px, 0);
+  }
+  70% {
+    transform: translate3d(-1px, 0, 0);
+  }
+  80% {
+    transform: translate3d(1px, 0, 0);
+  }
+}
+.crit-shake {
+  animation: crit-shake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .crit-shake {
+    animation: none;
+  }
+}
+
+/*
  * Retro mode — GameBoy DMG palette monochrome. Mirrors the CLI 'retro'
  * theme (lib/lib.sh : pokemon_theme_accent + pokemon_ansi_color). The
  * .retro class is applied on <html> by app.vue when colorMode.preference

@@ -4,9 +4,10 @@ import { useBattlePlayer } from '~/composables/useBattlePlayer'
 import { useSoundEffects } from '~/composables/useSoundEffects'
 import { useLadderProgress } from '~/composables/useLadderProgress'
 import { useManualBattle } from '~/composables/useManualBattle'
+import { useBattleJuice } from '~/composables/useBattleJuice'
 import { resolveBattle, hashSeed, LINEAGE_TO_TYPE } from '~/utils/battle-engine'
 import { lineageGradient } from '~/utils/lineage'
-import type { BattleParticipant } from '~/types/api'
+import type { BattleParticipant, BattleSide } from '~/types/api'
 
 definePageMeta({ ssr: false })
 
@@ -101,6 +102,28 @@ watch(
 // Defender combat type for super-effective hint in AttackPicker.
 const opponentCombatType = LINEAGE_TO_TYPE[opponentSnapshot.lineage]
 
+// ── JUICE PACK — wired to whichever mode is active ────────────────────────
+const autoWinner = computed<BattleSide | 'draw' | null>(() =>
+  autoPlayer.isFinished.value ? autoBattle.winner : null,
+)
+const autoJuice = useBattleJuice({
+  lastTurn: autoPlayer.lastTurn,
+  isFinished: autoPlayer.isFinished,
+  winner: autoWinner,
+  cheerSide: 'challenger',
+})
+
+const manualWinner = computed<BattleSide | 'draw' | null>(() =>
+  manual.state.value.finished ? manual.state.value.winner : null,
+)
+const manualFinished = computed(() => manual.state.value.finished)
+const manualJuice = useBattleJuice({
+  lastTurn: manual.lastTurn,
+  isFinished: manualFinished,
+  winner: manualWinner,
+  cheerSide: 'challenger',
+})
+
 const tileGradient = lineageGradient(bot.lineage)
 
 useHead({
@@ -109,7 +132,14 @@ useHead({
 </script>
 
 <template>
-  <main class="max-w-4xl mx-auto px-6 py-12 relative" :style="{ background: tileGradient }">
+  <main
+    class="max-w-4xl mx-auto px-6 py-12 relative"
+    :class="{
+      'crit-shake': mode === 'auto' ? autoJuice.shakeKey.value : manualJuice.shakeKey.value,
+    }"
+    :key="`shake-${mode === 'auto' ? autoJuice.shakeKey.value : manualJuice.shakeKey.value}`"
+    :style="{ background: tileGradient }"
+  >
     <div class="mb-6">
       <NuxtLink to="/ladder" class="text-secondary hover:text-primary text-sm transition">
         ← Trail
@@ -167,6 +197,7 @@ useHead({
         :winner="autoBattle.winner"
         :current-turn="autoPlayer.lastTurn.value"
         :show-final-state="autoPlayer.isFinished.value"
+        :floating-damages="autoJuice.floatingDamages.value"
       />
 
       <BattleControls
@@ -223,6 +254,7 @@ useHead({
         :winner="manual.result.value.winner"
         :current-turn="manual.lastTurn.value"
         :show-final-state="manual.state.value.finished"
+        :floating-damages="manualJuice.floatingDamages.value"
       />
 
       <!-- Live HP bars -->

@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { useBattlePlayer } from '~/composables/useBattlePlayer'
 import { useSoundEffects } from '~/composables/useSoundEffects'
+import { useBattleJuice } from '~/composables/useBattleJuice'
 import { lineageGradient } from '~/utils/lineage'
-import type { BattleResponse, BattleTurn } from '~/types/api'
+import type { BattleResponse, BattleSide, BattleTurn } from '~/types/api'
 
 const route = useRoute()
 const api = useApi()
@@ -45,6 +46,18 @@ watch(player.isFinished, finished => {
   else sfx.playDefeat()
 })
 
+// Juice pack — confetti on winner = challenger, screen shake on crit,
+// floating damage on every hit.
+const finishedWinner = computed<BattleSide | 'draw' | null>(() =>
+  player.isFinished.value ? (battle.value?.winner ?? null) : null,
+)
+const juice = useBattleJuice({
+  lastTurn: player.lastTurn,
+  isFinished: player.isFinished,
+  winner: finishedWinner,
+  cheerSide: 'challenger',
+})
+
 // Backdrop tinted by the winner's lineage (or challenger's if draw / mid-fight).
 const backdropGradient = computed(() => {
   if (!battle.value) return 'none'
@@ -71,7 +84,12 @@ useHead({
 </script>
 
 <template>
-  <main class="max-w-4xl mx-auto px-6 py-12 relative" :style="{ background: backdropGradient }">
+  <main
+    class="max-w-4xl mx-auto px-6 py-12 relative"
+    :class="{ 'crit-shake': juice.shakeKey.value }"
+    :key="`shake-${juice.shakeKey.value}`"
+    :style="{ background: backdropGradient }"
+  >
     <div class="mb-6">
       <NuxtLink to="/arena" class="text-secondary hover:text-primary text-sm transition">
         ← Arena pool
@@ -109,6 +127,7 @@ useHead({
         :winner="battle.winner"
         :current-turn="player.lastTurn.value"
         :show-final-state="player.isFinished.value"
+        :floating-damages="juice.floatingDamages.value"
       />
 
       <BattleControls
