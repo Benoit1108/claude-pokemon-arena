@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { lineageEmoji, LINEAGE_LABELS } from '~/utils/lineage'
+import { LINEAGE_LABELS } from '~/utils/lineage'
 import type { TrainerResponse } from '~/types/api'
 
 const props = defineProps<{
@@ -26,7 +26,16 @@ const lineageLabel = computed(() => (lineage.value ? LINEAGE_LABELS[lineage.valu
       Trainer card
     </div>
 
-    <div class="text-7xl mb-4" aria-hidden="true">{{ lineageEmoji(lineage) }}</div>
+    <div class="flex justify-center mb-4">
+      <PokemonSprite
+        v-if="lineage"
+        :lineage="lineage"
+        :level="level"
+        :is-shiny="isShiny"
+        size="xl"
+        animated
+      />
+    </div>
 
     <h1 class="text-4xl md:text-5xl font-bold mb-2 text-primary">
       🎮 {{ label }}

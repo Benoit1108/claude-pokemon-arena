@@ -6,7 +6,6 @@ Web arena for [`claude-pokemon`](https://github.com/Benoit1108/claude-pokemon) �
 
 > Recorded via `.demo/record.mjs` (Playwright + tiny mock API server) → `.demo/build-gif.sh` (ffmpeg). See [`.demo/README.md`](.demo/README.md) to regenerate.
 
-
 This is **Phase 2** of the [claude-pokemon roadmap](https://github.com/Benoit1108/claude-pokemon/blob/main/ROADMAP.md). The CLI raises the Pokémon, this site is where they compete.
 
 ## Stack

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { lineageEmoji, LINEAGE_LABELS } from '~/utils/lineage'
+import { LINEAGE_LABELS } from '~/utils/lineage'
 import { trainerLabel } from '~/utils/format'
 import type { BattleParticipant } from '~/types/api'
 
@@ -40,14 +40,20 @@ const animKey = computed(
   >
     <div class="text-xs uppercase tracking-widest text-muted mb-1">{{ sideLabel }}</div>
     <div
-      :key="`emoji-${animKey}`"
-      class="text-4xl text-center mb-2"
+      :key="`sprite-${animKey}`"
+      class="flex items-center justify-center mb-2"
       :class="{
         'sprite-bounce': isAttacking,
         'sprite-shake': isDefending,
       }"
     >
-      {{ lineageEmoji(participant.lineage) }}
+      <PokemonSprite
+        :lineage="participant.lineage"
+        :level="participant.level"
+        :is-shiny="participant.is_shiny"
+        size="lg"
+        animated
+      />
     </div>
     <div class="text-center font-bold text-primary truncate">
       {{ trainerLabel(participant) }}

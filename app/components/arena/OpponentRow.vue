@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { lineageEmoji, LINEAGE_LABELS } from '~/utils/lineage'
+import { LINEAGE_LABELS } from '~/utils/lineage'
 import { trainerLabel } from '~/utils/format'
 import type { ArenaOpponent } from '~/types/api'
 
@@ -15,7 +15,13 @@ defineProps<{
     :class="opponent.is_shiny ? 'ring-1 ring-accent' : ''"
   >
     <div class="flex items-center gap-3">
-      <div class="text-3xl">{{ lineageEmoji(opponent.lineage) }}</div>
+      <PokemonSprite
+        :lineage="opponent.lineage"
+        :level="opponent.level"
+        :is-shiny="opponent.is_shiny"
+        size="md"
+        idle
+      />
       <div class="flex-grow min-w-0">
         <div class="font-semibold text-primary truncate">
           {{ trainerLabel(opponent) }}

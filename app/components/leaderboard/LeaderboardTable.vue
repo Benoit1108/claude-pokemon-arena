@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { fmt, rankPrefix, trainerLabel } from '~/utils/format'
-import { lineageEmoji } from '~/utils/lineage'
 import type { LeaderboardEntry } from '~/types/api'
 
 defineProps<{
@@ -26,6 +25,16 @@ defineProps<{
             <td class="px-4 py-3 text-2xl w-16 text-center">
               {{ rankPrefix(i + 1) }}
             </td>
+            <td class="px-4 py-3 w-12">
+              <PokemonSprite
+                v-if="entry.lineage"
+                :lineage="entry.lineage"
+                :level="entry.level"
+                :is-shiny="entry.is_shiny"
+                size="sm"
+                idle
+              />
+            </td>
             <td class="px-4 py-3">
               <NuxtLink
                 :to="`/trainer/${entry.anon_id}`"
@@ -39,7 +48,6 @@ defineProps<{
               {{ fmt(entry.value) }}
             </td>
             <td class="px-4 py-3 text-right text-secondary text-sm">
-              <span class="mr-1">{{ lineageEmoji(entry.lineage) }}</span>
               <span>{{ entry.lineage }}</span>
               <span class="ml-2 text-muted">
                 {{ entry.level === 0 ? '🥚' : `Lv.${entry.level}` }}
@@ -48,7 +56,7 @@ defineProps<{
             </td>
           </tr>
           <tr v-if="!entries.length">
-            <td colspan="4" class="px-4 py-12 text-center text-muted">
+            <td colspan="5" class="px-4 py-12 text-center text-muted">
               No trainer has submitted stats yet. Be the first :
               <code class="text-accent">/pokemon stats-share enable --confirm</code>
             </td>

@@ -87,8 +87,17 @@ describe('<PokedexCard />', () => {
     expect(wrapper.text()).toContain('◆ rare')
   })
 
-  it('displays the emoji', () => {
+  it('hot-links the Pokémon Showdown sprite for the species id', () => {
     const wrapper = mount(PokedexCard, { props: { pokemon: samplePikachu } })
+    const img = wrapper.find('img')
+    expect(img.exists()).toBe(true)
+    expect(img.attributes('src')).toBe('https://play.pokemonshowdown.com/sprites/gen5/pikachu.png')
+    expect(img.attributes('alt')).toBe('Pikachu')
+  })
+
+  it('keeps the emoji as a fallback when the sprite fails to load', async () => {
+    const wrapper = mount(PokedexCard, { props: { pokemon: samplePikachu } })
+    await wrapper.find('img').trigger('error')
     expect(wrapper.text()).toContain('⚡')
   })
 })

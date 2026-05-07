@@ -36,9 +36,19 @@ describe('<OpponentRow />', () => {
     expect(w.text()).toContain('Lv.30')
   })
 
-  it('shows the lineage emoji', () => {
+  it('renders a Pokémon Showdown sprite for the lineage stage', () => {
     const w = mountRow(baseOpponent)
-    expect(w.text()).toContain('🔥')
+    const img = w.find('img')
+    expect(img.exists()).toBe(true)
+    // fire + Lv.30 = charmeleon (min_level 16)
+    expect(img.attributes('src')).toContain('charmeleon')
+    expect(img.attributes('src')).toContain('play.pokemonshowdown.com')
+  })
+
+  it('uses the shiny variant URL when the opponent is shiny', () => {
+    const w = mountRow({ ...baseOpponent, is_shiny: true })
+    const img = w.find('img')
+    expect(img.attributes('src')).toContain('-shiny/')
   })
 
   it('shows the lineage label (Fire, Water, ...)', () => {

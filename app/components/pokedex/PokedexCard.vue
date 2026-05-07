@@ -16,6 +16,12 @@ const rarityRing = computed(() => {
   if (props.pokemon.rarity === 'rare') return 'ring-1 ring-purple-400 dark:ring-purple-500'
   return ''
 })
+
+// Pokédex IDs map 1:1 to Showdown showdown_id, so we can hot-link directly.
+const spriteUrl = computed(
+  () => `https://play.pokemonshowdown.com/sprites/gen5/${props.pokemon.id}.png`,
+)
+const spriteFailed = ref(false)
 </script>
 
 <template>
@@ -27,7 +33,18 @@ const rarityRing = computed(() => {
     <div class="text-xs text-muted text-right tabular-nums">
       #{{ pokemon.national_dex.toString().padStart(3, '0') }}
     </div>
-    <div class="text-4xl text-center my-1" aria-hidden="true">{{ pokemon.emoji }}</div>
+    <div class="flex items-center justify-center my-1 h-16">
+      <img
+        v-if="!spriteFailed"
+        :src="spriteUrl"
+        :alt="pokemon.name_en"
+        loading="lazy"
+        decoding="async"
+        class="w-16 h-16 object-contain pixel-render sprite-yoyo-pokedex"
+        @error="spriteFailed = true"
+      />
+      <span v-else class="text-4xl" aria-hidden="true">{{ pokemon.emoji }}</span>
+    </div>
     <div class="text-center font-semibold text-primary text-sm truncate">
       {{ displayName }}
     </div>
@@ -46,3 +63,23 @@ const rarityRing = computed(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+@keyframes pokedex-yoyo {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+.sprite-yoyo-pokedex {
+  animation: pokedex-yoyo 3s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sprite-yoyo-pokedex {
+    animation: none;
+  }
+}
+</style>
