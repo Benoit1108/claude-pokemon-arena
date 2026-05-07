@@ -73,6 +73,8 @@ export interface PlayerStats {
 export interface TrainerResponse {
   anon_id: string
   display_name: string | null
+  /** Public-facing trainer quote (≤80 chars), set via CLI `/pokemon quote`. */
+  quote: string | null
   submitted_at: string
   client_version: string
   stats: PlayerStats

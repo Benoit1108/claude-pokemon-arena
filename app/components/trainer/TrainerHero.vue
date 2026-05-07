@@ -46,5 +46,13 @@ const lineageLabel = computed(() => (lineage.value ? LINEAGE_LABELS[lineage.valu
       {{ lineageLabel }} ·
       {{ level === 0 ? '🥚 Egg' : `Lv.${level}` }}
     </p>
+
+    <p
+      v-if="trainer.quote"
+      class="mt-3 text-sm italic text-muted max-w-xl mx-auto"
+      :title="`Quote set via /pokemon quote in the CLI`"
+    >
+      💬 "{{ trainer.quote }}"
+    </p>
   </header>
 </template>
