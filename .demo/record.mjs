@@ -218,17 +218,27 @@ const page = await context.newPage()
 await page.goto(`${BASE_URL}/`, { waitUntil: 'networkidle' })
 await page.waitForTimeout(3000)
 
-// 2) Arena pool (~3s)
+// 2) Arena pool (~3s) — Showdown sprites visible in tiles
 await page.click('text=⚔️ Arena')
 await page.waitForTimeout(3000)
 
-// 3) Click on an opponent → trainer card (~2.5s)
+// 3) Click on an opponent → trainer card with xl animated sprite (~3s)
 await page.click('text=Erika')
-await page.waitForTimeout(2500)
+await page.waitForTimeout(3000)
 
-// 4) Battle replay — full animation (~10s)
+// 4) Battle replay — full animation with bouncing sprites + dynamic backdrop (~10s)
 await page.goto(`${BASE_URL}/battle/${'d'.repeat(32)}`, { waitUntil: 'networkidle' })
 await page.waitForTimeout(10000)
+
+// 5) Solo ladder — tile grid with lineage-tinted backdrops (~3s)
+await page.goto(`${BASE_URL}/ladder`, { waitUntil: 'networkidle' })
+await page.waitForTimeout(3000)
+
+// 6) Trail challenge vs first bot — client-side battle, animated (~9s)
+// Bug Catcher Léo (grass Lv.5) vs default fire Lv.2 player → fast fight,
+// shows the engine + visuals end-to-end.
+await page.goto(`${BASE_URL}/ladder/bug-catcher-leo`, { waitUntil: 'networkidle' })
+await page.waitForTimeout(9000)
 
 await page.close()
 await context.close()
