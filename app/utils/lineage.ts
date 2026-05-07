@@ -56,3 +56,24 @@ export function lineageGradient(lineage: Lineage | string | null | undefined): s
   if (!lineage) return 'none'
   return LINEAGE_GRADIENT[lineage] || 'none'
 }
+
+// Solid accent color (used for borders, focus rings, pinned-badge highlights
+// on the trainer profile). Distinct from the gradient — full opacity, picked
+// to read well as a thin border on dark + light surfaces. Sprint 2.9.
+export const LINEAGE_ACCENT: Record<string, string> = {
+  fire: '#ef6c00',
+  water: '#268fff',
+  grass: '#64b437',
+  electric: '#ffda00',
+  eevee: '#c2a88a',
+  chikorita: '#7eb858',
+  cyndaquil: '#e8a32a',
+  totodile: '#3d8de8',
+}
+
+/** CSS color string for the trainer's lineage accent — falls back to the UI
+ * "accent" token (gold) when no lineage is set. */
+export function lineageAccent(lineage: Lineage | string | null | undefined): string {
+  if (!lineage) return 'var(--accent, #fbbf24)'
+  return LINEAGE_ACCENT[lineage] || 'var(--accent, #fbbf24)'
+}

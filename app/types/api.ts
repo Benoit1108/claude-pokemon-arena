@@ -75,6 +75,10 @@ export interface TrainerResponse {
   display_name: string | null
   /** Public-facing trainer quote (≤80 chars), set via CLI `/pokemon quote`. */
   quote: string | null
+  /** Multi-line trainer bio (≤160 chars, ≤4 lines), set via `/pokemon bio`. */
+  bio: string | null
+  /** Up to 3 badge ids the user pinned via `/pokemon pins set ...`. */
+  pinned_badges: string[]
   submitted_at: string
   client_version: string
   stats: PlayerStats
