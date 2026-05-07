@@ -3,14 +3,11 @@ import { findBot, isFinalBoss } from '~/data/bot-trainers'
 import { useBattlePlayer } from '~/composables/useBattlePlayer'
 import { useSoundEffects } from '~/composables/useSoundEffects'
 import { useLadderProgress } from '~/composables/useLadderProgress'
-import { resolveBattle, hashSeed } from '~/utils/battle-engine'
+import { useManualBattle } from '~/composables/useManualBattle'
+import { resolveBattle, hashSeed, LINEAGE_TO_TYPE } from '~/utils/battle-engine'
 import { lineageGradient } from '~/utils/lineage'
 import type { BattleParticipant } from '~/types/api'
 
-// Solo ladder is offline-first : no Worker fetches, no SSR. Everything
-// (player snapshot, battle resolution, progress tracking) lives in the
-// browser. Future sprint will wire the player snapshot to their real
-// CLI stats via anon_id sync.
 definePageMeta({ ssr: false })
 
 const route = useRoute()
@@ -24,9 +21,11 @@ if (!bot) {
   throw createError({ statusCode: 404, statusMessage: 'Bot not found' })
 }
 
-// MVP : a generic Charmander level-matched to the bot. Slight handicap
-// (-3 levels) so the fight is winnable but not trivial. Future sprint will
-// pull from the CLI's actual active state.
+// Mode toggle via query : ?mode=manual for interactive play, default = auto.
+const mode = computed<'auto' | 'manual'>(() =>
+  (route.query.mode as string) === 'manual' ? 'manual' : 'auto',
+)
+
 const playerSnapshot: BattleParticipant = {
   anon_id: '00000000',
   display_name: 'Vous',
@@ -46,39 +45,61 @@ const opponentSnapshot: BattleParticipant = {
   is_shiny: bot.is_shiny,
 }
 
-// Seed = stable per (bot, run) so each fresh visit gets a new fight, but
-// any single playthrough is deterministic from start to finish.
+// ── AUTO MODE ─────────────────────────────────────────────────────────────
 const seed = hashSeed(`${bot.id}|${Date.now()}|${Math.random()}`)
-const battle = resolveBattle({
+const autoBattle = resolveBattle({
   challenger: playerSnapshot,
   defender: opponentSnapshot,
   seed,
   createdAt: new Date().toISOString(),
 })
 
-const player = useBattlePlayer(battle.turns, { autoPlay: true, speed: 1 })
+const autoPlayer = useBattlePlayer(autoBattle.turns, { autoPlay: true, speed: 1 })
 
-// Wire SFX to player events.
-watch(player.lastTurn, t => {
-  if (!t) return
+watch(autoPlayer.lastTurn, t => {
+  if (mode.value !== 'auto' || !t) return
   if (t.critical) sfx.playCritical()
   else if (t.effectiveness >= 2) sfx.playSuperEffective()
   else sfx.playHit()
 })
 
-let recorded = false
-watch(player.isFinished, finished => {
-  if (!finished || recorded) return
-  recorded = true
-  if (battle.winner === 'challenger') {
+let autoRecorded = false
+watch(autoPlayer.isFinished, finished => {
+  if (mode.value !== 'auto' || !finished || autoRecorded) return
+  autoRecorded = true
+  if (autoBattle.winner === 'challenger') {
     sfx.playWin()
-    ladder.recordVictory(bot.id, battle.turns.length, battle.seed)
-  } else if (battle.winner === 'defender') {
+    ladder.recordVictory(bot.id, autoBattle.turns.length, autoBattle.seed)
+  } else if (autoBattle.winner === 'defender') {
     sfx.playDefeat()
   } else {
     sfx.playDraw()
   }
 })
+
+// ── MANUAL MODE ───────────────────────────────────────────────────────────
+const manual = useManualBattle({
+  challenger: playerSnapshot,
+  defender: opponentSnapshot,
+  seed,
+  humanSide: 'challenger',
+  difficulty: bot.level >= 36 ? 'hard' : bot.level >= 16 ? 'normal' : 'easy',
+})
+
+let manualRecorded = false
+watch(
+  () => manual.state.value.finished,
+  finished => {
+    if (mode.value !== 'manual' || !finished || manualRecorded) return
+    manualRecorded = true
+    if (manual.state.value.winner === 'challenger') {
+      ladder.recordVictory(bot.id, manual.state.value.turns.length, manual.state.value.seed)
+    }
+  },
+)
+
+// Defender combat type for super-effective hint in AttackPicker.
+const opponentCombatType = LINEAGE_TO_TYPE[opponentSnapshot.lineage]
 
 const tileGradient = lineageGradient(bot.lineage)
 
@@ -110,57 +131,180 @@ useHead({
       </p>
     </header>
 
-    <BattleScene
-      :challenger="battle.challenger"
-      :defender="battle.defender"
-      :winner="battle.winner"
-      :current-turn="player.lastTurn.value"
-      :show-final-state="player.isFinished.value"
-    />
-
-    <BattleControls
-      :is-playing="player.isPlaying.value"
-      :is-finished="player.isFinished.value"
-      :speed="player.speed.value"
-      :progress="player.progress.value"
-      :current-turn-idx="player.currentTurnIdx.value"
-      :total-turns="player.totalTurns"
-      :sound-enabled="sfx.enabled.value"
-      @toggle="player.toggle()"
-      @skip-to-end="player.skipToEnd()"
-      @restart="player.restart()"
-      @set-speed="s => player.setSpeed(s)"
-      @toggle-sound="sfx.toggle()"
-    />
-
-    <BattleResultBanner
-      v-if="player.isFinished.value"
-      :winner="battle.winner"
-      :reason="battle.reason"
-      :challenger="battle.challenger"
-      :defender="battle.defender"
-      :total-turns="battle.turns.length"
-    />
-
-    <div
-      v-if="player.isFinished.value && battle.winner === 'challenger'"
-      class="surface-card border-2 border-accent rounded-lg p-6 mb-6 text-center"
-    >
-      <div class="text-3xl mb-2">🎉</div>
-      <p class="font-bold text-primary mb-1">Victory!</p>
-      <p class="text-secondary text-sm">{{ bot.reward }}</p>
+    <!-- Mode toggle -->
+    <div class="flex justify-center gap-2 mb-6">
       <NuxtLink
-        to="/ladder"
-        class="inline-block mt-4 px-5 py-2.5 bg-accent text-zinc-900 font-bold rounded-md hover:opacity-90 transition"
+        :to="{ query: { mode: 'auto' } }"
+        replace
+        class="px-4 py-2 text-sm border surface-border rounded-md transition"
+        :class="
+          mode === 'auto'
+            ? 'bg-accent text-zinc-900 font-bold border-accent'
+            : 'surface-card-hover text-secondary'
+        "
       >
-        ← Back to trail
+        🎬 Auto
+      </NuxtLink>
+      <NuxtLink
+        :to="{ query: { mode: 'manual' } }"
+        replace
+        class="px-4 py-2 text-sm border surface-border rounded-md transition"
+        :class="
+          mode === 'manual'
+            ? 'bg-accent text-zinc-900 font-bold border-accent'
+            : 'surface-card-hover text-secondary'
+        "
+      >
+        ⚔️ Manual
       </NuxtLink>
     </div>
 
-    <BattleLog
-      :turns="player.visibleTurns.value"
-      :challenger="battle.challenger"
-      :defender="battle.defender"
-    />
+    <!-- ── AUTO MODE ───────────────────────────────────────────────── -->
+    <template v-if="mode === 'auto'">
+      <BattleScene
+        :challenger="autoBattle.challenger"
+        :defender="autoBattle.defender"
+        :winner="autoBattle.winner"
+        :current-turn="autoPlayer.lastTurn.value"
+        :show-final-state="autoPlayer.isFinished.value"
+      />
+
+      <BattleControls
+        :is-playing="autoPlayer.isPlaying.value"
+        :is-finished="autoPlayer.isFinished.value"
+        :speed="autoPlayer.speed.value"
+        :progress="autoPlayer.progress.value"
+        :current-turn-idx="autoPlayer.currentTurnIdx.value"
+        :total-turns="autoPlayer.totalTurns"
+        :sound-enabled="sfx.enabled.value"
+        @toggle="autoPlayer.toggle()"
+        @skip-to-end="autoPlayer.skipToEnd()"
+        @restart="autoPlayer.restart()"
+        @set-speed="s => autoPlayer.setSpeed(s)"
+        @toggle-sound="sfx.toggle()"
+      />
+
+      <BattleResultBanner
+        v-if="autoPlayer.isFinished.value"
+        :winner="autoBattle.winner"
+        :reason="autoBattle.reason"
+        :challenger="autoBattle.challenger"
+        :defender="autoBattle.defender"
+        :total-turns="autoBattle.turns.length"
+      />
+
+      <div
+        v-if="autoPlayer.isFinished.value && autoBattle.winner === 'challenger'"
+        class="surface-card border-2 border-accent rounded-lg p-6 mb-6 text-center"
+      >
+        <div class="text-3xl mb-2">🎉</div>
+        <p class="font-bold text-primary mb-1">Victory!</p>
+        <p class="text-secondary text-sm">{{ bot.reward }}</p>
+        <NuxtLink
+          to="/ladder"
+          class="inline-block mt-4 px-5 py-2.5 bg-accent text-zinc-900 font-bold rounded-md hover:opacity-90 transition"
+        >
+          ← Back to trail
+        </NuxtLink>
+      </div>
+
+      <BattleLog
+        :turns="autoPlayer.visibleTurns.value"
+        :challenger="autoBattle.challenger"
+        :defender="autoBattle.defender"
+      />
+    </template>
+
+    <!-- ── MANUAL MODE ─────────────────────────────────────────────── -->
+    <template v-else>
+      <BattleScene
+        :challenger="manual.result.value.challenger"
+        :defender="manual.result.value.defender"
+        :winner="manual.result.value.winner"
+        :current-turn="manual.lastTurn.value"
+        :show-final-state="manual.state.value.finished"
+      />
+
+      <!-- Live HP bars -->
+      <div class="grid grid-cols-2 gap-3 mb-6">
+        <HpBar
+          :hp="manual.challengerHp.value"
+          :max-hp="manual.challengerMaxHp.value"
+          label="Vous"
+        />
+        <HpBar
+          :hp="manual.defenderHp.value"
+          :max-hp="manual.defenderMaxHp.value"
+          :label="`${bot.title} ${bot.name}`"
+        />
+      </div>
+
+      <!-- AttackPicker (only on player's turn) -->
+      <AttackPicker
+        v-if="manual.isHumanTurn.value"
+        :moves="manual.movesAvailable.value"
+        :defender-type="opponentCombatType"
+        @pick="i => manual.pickAction(i)"
+      />
+      <div
+        v-else-if="!manual.state.value.finished"
+        class="surface-card border surface-border rounded-lg p-4 mb-4 text-center text-secondary"
+      >
+        <span class="inline-block animate-pulse">⏳ {{ bot.name }} réfléchit...</span>
+      </div>
+
+      <BattleResultBanner
+        v-if="manual.state.value.finished"
+        :winner="manual.result.value.winner"
+        :reason="manual.result.value.reason"
+        :challenger="manual.result.value.challenger"
+        :defender="manual.result.value.defender"
+        :total-turns="manual.state.value.turns.length"
+      />
+
+      <div
+        v-if="manual.state.value.finished && manual.state.value.winner === 'challenger'"
+        class="surface-card border-2 border-accent rounded-lg p-6 mb-6 text-center"
+      >
+        <div class="text-3xl mb-2">🎉</div>
+        <p class="font-bold text-primary mb-1">Victory!</p>
+        <p class="text-secondary text-sm">{{ bot.reward }}</p>
+        <div class="flex gap-3 justify-center mt-4">
+          <button
+            type="button"
+            class="px-5 py-2.5 border surface-border rounded-md surface-card-hover transition text-primary"
+            @click="manual.reset()"
+          >
+            ↻ Rejouer
+          </button>
+          <NuxtLink
+            to="/ladder"
+            class="px-5 py-2.5 bg-accent text-zinc-900 font-bold rounded-md hover:opacity-90 transition"
+          >
+            ← Back to trail
+          </NuxtLink>
+        </div>
+      </div>
+
+      <div
+        v-else-if="manual.state.value.finished"
+        class="surface-card border surface-border rounded-lg p-6 mb-6 text-center"
+      >
+        <p class="text-secondary text-sm mb-3">{{ bot.name }} t'a vaincu·e cette fois.</p>
+        <button
+          type="button"
+          class="px-5 py-2.5 bg-accent text-zinc-900 font-bold rounded-md hover:opacity-90 transition"
+          @click="manual.reset()"
+        >
+          ↻ Réessayer
+        </button>
+      </div>
+
+      <BattleLog
+        :turns="manual.state.value.turns"
+        :challenger="manual.result.value.challenger"
+        :defender="manual.result.value.defender"
+      />
+    </template>
   </main>
 </template>
