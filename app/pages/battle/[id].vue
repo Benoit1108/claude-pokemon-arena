@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useBattlePlayer } from '~/composables/useBattlePlayer'
 import { useSoundEffects } from '~/composables/useSoundEffects'
+import { lineageGradient } from '~/utils/lineage'
 import type { BattleResponse, BattleTurn } from '~/types/api'
 
 const route = useRoute()
@@ -44,6 +45,16 @@ watch(player.isFinished, finished => {
   else sfx.playDefeat()
 })
 
+// Backdrop tinted by the winner's lineage (or challenger's if draw / mid-fight).
+const backdropGradient = computed(() => {
+  if (!battle.value) return 'none'
+  const tintLineage =
+    battle.value.winner === 'defender'
+      ? battle.value.defender.lineage
+      : battle.value.challenger.lineage
+  return lineageGradient(tintLineage)
+})
+
 useHead({
   title: () =>
     battle.value
@@ -60,7 +71,7 @@ useHead({
 </script>
 
 <template>
-  <main class="max-w-4xl mx-auto px-6 py-12">
+  <main class="max-w-4xl mx-auto px-6 py-12 relative" :style="{ background: backdropGradient }">
     <div class="mb-6">
       <NuxtLink to="/arena" class="text-secondary hover:text-primary text-sm transition">
         ← Arena pool

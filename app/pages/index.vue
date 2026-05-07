@@ -45,6 +45,12 @@ const { data: leaderboard } = await useAsyncData('leaderboard', () =>
         >
           ⚔️ Arena
         </NuxtLink>
+        <NuxtLink
+          to="/ladder"
+          class="px-5 py-2.5 border surface-border rounded-md surface-card-hover transition text-primary"
+        >
+          🏞️ Trail
+        </NuxtLink>
         <a
           href="https://github.com/Benoit1108/claude-pokemon"
           class="px-5 py-2.5 border surface-border rounded-md surface-card-hover transition text-primary"
