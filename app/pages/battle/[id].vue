@@ -3,7 +3,7 @@ import { useBattlePlayer } from '~/composables/useBattlePlayer'
 import { useSoundEffects } from '~/composables/useSoundEffects'
 import { useBattleJuice } from '~/composables/useBattleJuice'
 import { lineageGradient } from '~/utils/lineage'
-import type { BattleResponse, BattleSide, BattleTurn } from '~/types/api'
+import type { BattleResponse, BattleSide, BattleTurn, ReactionKey } from '~/types/api'
 
 const route = useRoute()
 const api = useApi()
@@ -21,6 +21,15 @@ if (error.value && import.meta.server) {
 
 const battle = computed(() => data.value?.battle)
 const turns: BattleTurn[] = data.value?.battle?.turns ?? []
+const initialReactions: Record<ReactionKey, number> = {
+  clap: 0,
+  fire: 0,
+  party: 0,
+  lol: 0,
+  tear: 0,
+  love: 0,
+  ...(data.value?.reactions ?? {}),
+}
 
 // Single-shot composable invocation — turns is captured at this moment
 // (data is already fetched thanks to await useAsyncData above). Playback
@@ -152,6 +161,12 @@ useHead({
         :challenger="battle.challenger"
         :defender="battle.defender"
         :total-turns="turns.length"
+      />
+
+      <ReactionBar
+        v-if="player.isFinished.value"
+        :battle-id="battleId"
+        :initial-counts="initialReactions"
       />
 
       <BattleLog

@@ -128,6 +128,11 @@ export interface OpponentsResponse {
   total: number
 }
 
+export const REACTION_KEYS = ['clap', 'fire', 'party', 'lol', 'tear', 'love'] as const
+export type ReactionKey = (typeof REACTION_KEYS)[number]
+
 export interface BattleResponse {
   battle: BattleResult
+  /** Aggregated reaction counts (Sprint 2.8b). Optional for backward-compat. */
+  reactions?: Record<ReactionKey, number>
 }

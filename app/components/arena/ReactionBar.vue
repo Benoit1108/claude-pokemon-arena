@@ -1,0 +1,137 @@
+<script setup lang="ts">
+// Bounded emoji reactions on the post-finish battle page (Sprint 2.8b).
+// 6 buttons : 👏 🔥 🎉 😂 🥲 ❤️ — sized to fit one row on desktop, wraps
+// on mobile. Each shows aggregated count. Click sends POST + optimistic
+// local update + server sync.
+//
+// User identity for rate-limit : a randomly generated anon_id stored in
+// localStorage. This is SEPARATE from the CLI's anon_id (we don't have
+// access to it without a sync flow — Sprint 2.12 will add QR-code login).
+
+import type { ReactionKey } from '~/types/api'
+
+const props = defineProps<{
+  battleId: string
+  /** Initial counts from the battle endpoint (server-truth). */
+  initialCounts: Record<ReactionKey, number>
+}>()
+
+const REACTIONS: { key: ReactionKey; emoji: string; label: string }[] = [
+  { key: 'clap', emoji: '👏', label: 'Bien joué' },
+  { key: 'fire', emoji: '🔥', label: 'En feu' },
+  { key: 'party', emoji: '🎉', label: 'Bravo' },
+  { key: 'lol', emoji: '😂', label: 'Hilarant' },
+  { key: 'tear', emoji: '🥲', label: 'Touchant' },
+  { key: 'love', emoji: '❤️', label: 'Coup de cœur' },
+]
+
+const counts = ref<Record<ReactionKey, number>>({ ...props.initialCounts })
+const myReaction = ref<ReactionKey | null>(null)
+const submitting = ref(false)
+const error = ref<string | null>(null)
+
+const ANON_KEY = 'arena-reaction-anon-id'
+const VOTE_KEY_PREFIX = 'arena-reaction-vote:'
+
+function getOrCreateAnonId(): string {
+  if (typeof localStorage === 'undefined') return '00000000'
+  let id = localStorage.getItem(ANON_KEY)
+  if (!id || !/^[a-f0-9]{8,16}$/.test(id)) {
+    // 8 hex chars from crypto.getRandomValues — same shape as CLI anon_id.
+    const bytes = new Uint8Array(4)
+    crypto.getRandomValues(bytes)
+    id = [...bytes].map(b => b.toString(16).padStart(2, '0')).join('')
+    try {
+      localStorage.setItem(ANON_KEY, id)
+    } catch {
+      /* ignore */
+    }
+  }
+  return id
+}
+
+onMounted(() => {
+  // Restore the previous vote for THIS battle (if any) so the highlighted
+  // emoji persists across reloads.
+  try {
+    const stored = localStorage.getItem(VOTE_KEY_PREFIX + props.battleId)
+    if (stored && REACTIONS.find(r => r.key === stored) !== undefined) {
+      myReaction.value = stored as ReactionKey
+    }
+  } catch {
+    /* ignore */
+  }
+})
+
+const config = useRuntimeConfig()
+
+async function react(reaction: ReactionKey) {
+  if (submitting.value) return
+  // Optimistic update : decrement old, increment new locally, then POST.
+  const previous = myReaction.value
+  if (previous === reaction) return // no-op
+  if (previous && counts.value[previous] > 0) counts.value[previous]--
+  counts.value[reaction] = (counts.value[reaction] ?? 0) + 1
+  myReaction.value = reaction
+  try {
+    localStorage.setItem(VOTE_KEY_PREFIX + props.battleId, reaction)
+  } catch {
+    /* ignore */
+  }
+
+  submitting.value = true
+  error.value = null
+  try {
+    const res = await $fetch<{ ok: boolean; reactions: Record<ReactionKey, number> }>(
+      `${config.public.apiBase}/v1/arena/battle/${props.battleId}/react`,
+      {
+        method: 'POST',
+        body: { anon_id: getOrCreateAnonId(), reaction },
+      },
+    )
+    // Sync to server-truth (in case other people reacted simultaneously).
+    if (res?.reactions) counts.value = { ...counts.value, ...res.reactions }
+  } catch (e) {
+    // Revert optimistic state on failure.
+    if (previous) {
+      counts.value[reaction] = Math.max(0, (counts.value[reaction] ?? 0) - 1)
+      counts.value[previous] = (counts.value[previous] ?? 0) + 1
+      myReaction.value = previous
+    } else {
+      counts.value[reaction] = Math.max(0, (counts.value[reaction] ?? 0) - 1)
+      myReaction.value = null
+    }
+    error.value = e instanceof Error ? e.message : 'network error'
+  } finally {
+    submitting.value = false
+  }
+}
+</script>
+
+<template>
+  <div class="surface-card border surface-border rounded-lg p-4 mb-6">
+    <div class="text-xs uppercase tracking-widest text-secondary mb-3 text-center">
+      GG — réagissez au combat
+    </div>
+    <div class="flex flex-wrap justify-center gap-2">
+      <button
+        v-for="r in REACTIONS"
+        :key="r.key"
+        type="button"
+        :title="r.label"
+        :disabled="submitting"
+        class="px-3 py-2 border surface-border rounded-md transition flex items-center gap-1.5 disabled:opacity-60"
+        :class="
+          myReaction === r.key
+            ? 'bg-accent text-zinc-900 border-accent font-bold'
+            : 'surface-card-hover text-primary'
+        "
+        @click="react(r.key)"
+      >
+        <span class="text-lg">{{ r.emoji }}</span>
+        <span class="tabular-nums text-sm">{{ counts[r.key] || 0 }}</span>
+      </button>
+    </div>
+    <p v-if="error" class="text-xs text-red-400 mt-2 text-center">⚠ {{ error }}</p>
+  </div>
+</template>
