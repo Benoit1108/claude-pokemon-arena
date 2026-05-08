@@ -62,8 +62,11 @@ const pinned = computed(() =>
       </div>
     </div>
 
-    <h1 class="text-4xl md:text-5xl font-bold mb-2 text-primary">
-      🎮 {{ label }}
+    <h1
+      class="text-4xl md:text-5xl font-bold mb-2 text-primary flex items-center justify-center gap-2"
+    >
+      <PokeballIcon size="lg" :variant="isShiny ? 'shiny' : 'default'" />
+      <span>{{ label }}</span>
       <span v-if="isShiny" class="text-accent" title="Active companion is shiny">✦</span>
     </h1>
 

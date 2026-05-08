@@ -77,10 +77,20 @@ onBeforeUnmount(() => {
         Phase 2 · MVP preview
       </div>
       <h1
-        class="text-5xl md:text-6xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-br from-gold-soft to-lineage-fire dark:from-gold dark:to-lineage-fire transition-transform"
+        class="text-5xl md:text-6xl font-bold mb-4 transition-transform flex items-center justify-center gap-3"
         :class="konamiTriggered ? 'scale-110' : ''"
       >
-        🎮 claude-pokemon arena
+        <PokeballIcon
+          size="xl"
+          :variant="konamiTriggered ? 'shiny' : 'default'"
+          :spin="konamiTriggered"
+          title="claude-pokemon arena"
+        />
+        <span
+          class="bg-clip-text text-transparent bg-gradient-to-br from-gold-soft to-lineage-fire dark:from-gold dark:to-lineage-fire"
+        >
+          claude-pokemon arena</span
+        >
         <span
           v-if="konamiTriggered"
           class="inline-block ml-2 text-2xl align-middle"
