@@ -196,6 +196,7 @@ useHead({
         :defender="autoBattle.defender"
         :winner="autoBattle.winner"
         :current-turn="autoPlayer.lastTurn.value"
+        :visible-turns="autoPlayer.visibleTurns.value"
         :show-final-state="autoPlayer.isFinished.value"
         :floating-damages="autoJuice.floatingDamages.value"
       />

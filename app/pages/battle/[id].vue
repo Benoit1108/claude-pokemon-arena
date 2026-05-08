@@ -135,6 +135,7 @@ useHead({
         :defender="battle.defender"
         :winner="battle.winner"
         :current-turn="player.lastTurn.value"
+        :visible-turns="player.visibleTurns.value"
         :show-final-state="player.isFinished.value"
         :floating-damages="juice.floatingDamages.value"
       />

@@ -56,12 +56,7 @@ const topFill = computed(() =>
       <!-- Outer circle -->
       <circle cx="32" cy="32" r="30" fill="#fff" stroke="#1a1a1a" stroke-width="3" />
       <!-- Top half (color varies with variant) -->
-      <path
-        d="M2 32 a30 30 0 0 1 60 0 Z"
-        :fill="topFill"
-        stroke="#1a1a1a"
-        stroke-width="3"
-      />
+      <path d="M2 32 a30 30 0 0 1 60 0 Z" :fill="topFill" stroke="#1a1a1a" stroke-width="3" />
       <!-- Center seam line -->
       <line x1="2" y1="32" x2="62" y2="32" stroke="#1a1a1a" stroke-width="4" />
       <!-- Center button (white inner with dark ring) -->

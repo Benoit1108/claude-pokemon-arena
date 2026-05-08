@@ -178,3 +178,31 @@ export function resolveBattle(args: {
     created_at: args.createdAt,
   }
 }
+
+/**
+ * Sprint 2.14 — derive a side's current HP at the end of a turn slice.
+ *
+ * The BattleTurn shape carries `defender_hp_after` (the HP of the SIDE BEING
+ * HIT after that turn). To reconstruct HP for either combatant during replay
+ * we walk the turns and snapshot the last value where that side was hit.
+ *
+ *   - actor === 'challenger' → defender side took damage → that turn updates
+ *     the DEFENDER's HP.
+ *   - actor === 'defender' → challenger side took damage → that turn updates
+ *     the CHALLENGER's HP.
+ *
+ * Returns max when no turns provided (battle just started).
+ */
+export function deriveHpFromTurns(
+  side: BattleSide,
+  turns: BattleTurn[] | undefined,
+  max: number,
+): number {
+  if (!turns || turns.length === 0) return max
+  let hp = max
+  for (const t of turns) {
+    const sideHit: BattleSide = t.actor === 'challenger' ? 'defender' : 'challenger'
+    if (sideHit === side) hp = t.defender_hp_after
+  }
+  return hp
+}

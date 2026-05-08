@@ -10,8 +10,8 @@
 // remove the duplication and make this redundant.
 
 import { describe, it, expect } from 'vitest'
-import { resolveBattle, hashSeed, mulberry32 } from '~/utils/battle-engine'
-import type { BattleParticipant } from '~/types/api'
+import { deriveHpFromTurns, hashSeed, mulberry32, resolveBattle } from '~/utils/battle-engine'
+import type { BattleParticipant, BattleTurn } from '~/types/api'
 
 // Helper : build a participant from terse args.
 function p(
@@ -88,5 +88,53 @@ describe('battle-engine parity (web ↔ worker)', () => {
     const aSig = a.turns.map(t => `${t.actor}:${t.damage}:${t.critical ? 1 : 0}`).join('|')
     const bSig = b.turns.map(t => `${t.actor}:${t.damage}:${t.critical ? 1 : 0}`).join('|')
     expect(aSig).not.toBe(bSig)
+  })
+})
+
+describe('deriveHpFromTurns (Sprint 2.14)', () => {
+  function turn(actor: 'challenger' | 'defender', defenderHpAfter: number): BattleTurn {
+    return {
+      turn: 0,
+      actor,
+      damage: 5,
+      effectiveness: 1,
+      critical: false,
+      defender_hp_after: defenderHpAfter,
+    }
+  }
+
+  it('returns max when no turns provided', () => {
+    expect(deriveHpFromTurns('challenger', undefined, 100)).toBe(100)
+    expect(deriveHpFromTurns('defender', [], 80)).toBe(80)
+  })
+
+  it('tracks defender HP when challenger attacks', () => {
+    // Challenger attacks → defender takes damage. defender_hp_after = current
+    // defender HP. Most recent challenger-attack turn wins.
+    const turns = [turn('challenger', 90), turn('challenger', 75)]
+    expect(deriveHpFromTurns('defender', turns, 100)).toBe(75)
+  })
+
+  it('tracks challenger HP when defender attacks', () => {
+    const turns = [turn('defender', 88), turn('defender', 60)]
+    expect(deriveHpFromTurns('challenger', turns, 100)).toBe(60)
+  })
+
+  it('interleaves correctly', () => {
+    const turns = [
+      turn('challenger', 90), // defender = 90
+      turn('defender', 95), // challenger = 95
+      turn('challenger', 70), // defender = 70
+      turn('defender', 60), // challenger = 60
+    ]
+    expect(deriveHpFromTurns('challenger', turns, 100)).toBe(60)
+    expect(deriveHpFromTurns('defender', turns, 100)).toBe(70)
+  })
+
+  it('ignores turns where the requested side did not get hit', () => {
+    // Only the defender ever takes damage in this slice → challenger HP
+    // stays at max.
+    const turns = [turn('challenger', 80), turn('challenger', 30)]
+    expect(deriveHpFromTurns('challenger', turns, 100)).toBe(100)
   })
 })
