@@ -61,4 +61,26 @@ export class ApiClient {
       baseURL: this.baseUrl,
     })
   }
+
+  arenaPairRedeem(code: string): Promise<{ ok: true; anon_id: string; arena_secret: string }> {
+    return this.fetcher('/v1/arena/pair/redeem', {
+      method: 'POST',
+      baseURL: this.baseUrl,
+      body: { code },
+    })
+  }
+
+  arenaLiveCommit(args: {
+    battleId: string
+    anonId: string
+    moveId: string
+    arenaSecret: string
+  }): Promise<LiveBattleView & { ok: true }> {
+    return this.fetcher(`/v1/arena/live/${args.battleId}/commit`, {
+      method: 'POST',
+      baseURL: this.baseUrl,
+      headers: { authorization: `Bearer ${args.arenaSecret}` },
+      body: { anon_id: args.anonId, move_id: args.moveId },
+    })
+  }
 }

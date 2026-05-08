@@ -1,19 +1,88 @@
 <script setup lang="ts">
-// Spectator view of a live PvP battle (Sprint 2.10c). Polls the worker every
-// 2s and renders HP, turn count, last 5 turn-log entries, and the final
-// banner once the battle resolves. Read-only — players commit moves through
-// the CLI until 2.12 ships QR-code secret pairing.
+// Live PvP battle page. Polls /v1/arena/live/<id> every 2s and renders HP,
+// turn log, and a final banner. When this browser is paired with a CLI
+// install (Sprint 2.12) AND the paired anon_id matches one of the two
+// participants, it also exposes a move picker so the user can commit
+// directly from the page — no more CLI round-trips.
 
 import { useLiveBattle } from '~/composables/useLiveBattle'
+import { useArenaSession } from '~/composables/useArenaSession'
 import { LINEAGE_LABELS, lineageGradient } from '~/utils/lineage'
+import { stageFor } from '~/utils/sprites'
+import { movesForStage, type Move } from '~/data/moves'
+import { LINEAGE_TO_TYPE, type CombatType } from '~/utils/battle-engine'
 import type { BattleSide, BattleTurn } from '~/types/api'
 
 const route = useRoute()
 const battleId = computed(() => route.params.id as string)
+const api = useApi()
 
 const { data, error, lastFetchAt } = useLiveBattle(battleId.value)
+const { session, isPaired } = useArenaSession()
 
 const live = computed(() => data.value)
+
+// Identify which side (if any) the paired browser represents.
+const mySide = computed<BattleSide | null>(() => {
+  if (!isPaired.value || !live.value || !session.value) return null
+  if (session.value.anon_id === live.value.challenger.anon_id) return 'challenger'
+  if (session.value.anon_id === live.value.defender.anon_id) return 'defender'
+  return null
+})
+
+const myAvailableMoves = computed<Move[]>(() => {
+  if (!live.value || !mySide.value) return []
+  const snap =
+    mySide.value === 'challenger' ? live.value.challenger.snapshot : live.value.defender.snapshot
+  if (!snap) return []
+  return movesForStage(stageFor(snap.lineage, snap.level).showdown_id)
+})
+
+const opponentType = computed<CombatType>(() => {
+  if (!live.value || !mySide.value) return 'normal'
+  const opp =
+    mySide.value === 'challenger' ? live.value.defender.snapshot : live.value.challenger.snapshot
+  if (!opp) return 'normal'
+  return LINEAGE_TO_TYPE[opp.lineage] ?? 'normal'
+})
+
+const myHasPendingAction = computed(() => {
+  if (!live.value || !mySide.value) return false
+  return mySide.value === 'challenger'
+    ? live.value.challenger.has_pending_action
+    : live.value.defender.has_pending_action
+})
+
+const canCommit = computed(
+  () =>
+    isPaired.value &&
+    mySide.value !== null &&
+    live.value?.state === 'active' &&
+    !myHasPendingAction.value,
+)
+
+const commitInFlight = ref(false)
+const commitError = ref<string | null>(null)
+
+async function commitMove(move: Move) {
+  if (!session.value || !mySide.value || commitInFlight.value) return
+  commitInFlight.value = true
+  commitError.value = null
+  try {
+    await api.arenaLiveCommit({
+      battleId: battleId.value,
+      anonId: session.value.anon_id,
+      moveId: move.name,
+      arenaSecret: session.value.arena_secret,
+    })
+    // The polling composable will pick up the new state on its next tick ;
+    // no need to manually refetch.
+  } catch (e) {
+    commitError.value = e instanceof Error ? e.message : 'commit failed'
+  } finally {
+    commitInFlight.value = false
+  }
+}
 
 const stateLabel = computed(() => {
   if (!live.value) return '…'
@@ -177,6 +246,43 @@ useHead({
         </div>
       </div>
 
+      <!-- Sprint 2.12 — move picker shown when this browser is paired to one
+           of the participants and the battle is awaiting their commit. -->
+      <div
+        v-if="canCommit && myAvailableMoves.length"
+        class="surface-card border surface-border rounded-lg p-4 mb-6"
+      >
+        <h2 class="text-sm uppercase tracking-wider text-muted mb-3 text-center">
+          🎯 Choisis ton attaque
+          <span class="text-accent"
+            >({{ mySide === 'challenger' ? 'challenger' : 'defender' }})</span
+          >
+        </h2>
+        <AttackPicker
+          :moves="myAvailableMoves"
+          :defender-type="opponentType"
+          :disabled="commitInFlight"
+          @pick="i => commitMove(myAvailableMoves[i]!)"
+        />
+        <p v-if="commitError" class="text-xs text-red-400 mt-2 text-center">⚠ {{ commitError }}</p>
+      </div>
+
+      <div
+        v-else-if="myHasPendingAction && live.state === 'active'"
+        class="surface-card border surface-border rounded-lg p-3 mb-6 text-center text-sm text-secondary"
+      >
+        ✓ Coup verrouillé — en attente de l'adversaire.
+      </div>
+
+      <div
+        v-else-if="!isPaired && live.state === 'active'"
+        class="surface-card border surface-border rounded-lg p-3 mb-6 text-center text-xs text-muted"
+      >
+        🔗 Pour jouer depuis le navigateur :
+        <NuxtLink to="/pair" class="text-accent underline">appairer ce navigateur</NuxtLink>
+        avec ton install CLI.
+      </div>
+
       <div v-if="recentTurns.length" class="surface-card border surface-border rounded-lg p-4 mb-6">
         <h2 class="text-sm uppercase tracking-wider text-muted mb-2">Derniers échanges</h2>
         <ul class="space-y-1 text-sm">
@@ -215,10 +321,13 @@ useHead({
       </div>
 
       <footer class="text-center text-muted text-sm mt-12 pt-8 border-t surface-border">
-        <p>
-          Vue spectateur — les coups sont joués depuis le CLI (<code class="text-secondary"
-            >/pokemon arena live move</code
-          >). Pairing web ↔ CLI à venir (Sprint 2.12).
+        <p v-if="isPaired">
+          🔗 Browser appairé.
+          <NuxtLink to="/pair" class="text-accent underline">Gérer le pairing.</NuxtLink>
+        </p>
+        <p v-else>
+          Tu peux aussi jouer depuis le CLI :
+          <code class="text-secondary">/pokemon arena live move</code>.
         </p>
       </footer>
     </template>
