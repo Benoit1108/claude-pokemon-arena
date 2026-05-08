@@ -26,3 +26,6 @@ node_modules/
 # Demo recordings — raw videos are local-only, only the final GIF is committed
 .demo/output/
 .demo/playwright-report/
+
+# Claude Code local settings (per-machine permissions, not shared)
+.claude/settings.local.json
