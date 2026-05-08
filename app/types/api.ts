@@ -140,3 +140,30 @@ export interface BattleResponse {
   /** Aggregated reaction counts (Sprint 2.8b). Optional for backward-compat. */
   reactions?: Record<ReactionKey, number>
 }
+
+// ---------------------------------------------------------------------------
+// Live PvP (Sprint 2.10) — polling-based realtime view
+// ---------------------------------------------------------------------------
+
+export type LiveBattleState = 'pending' | 'active' | 'finished' | 'expired' | 'abandoned'
+
+export interface LiveBattleSideView {
+  anon_id: string
+  snapshot: BattleParticipant | null
+  hp: number | null
+  has_pending_action: boolean
+}
+
+export interface LiveBattleView {
+  battle_id: string
+  state: LiveBattleState
+  challenger: LiveBattleSideView
+  defender: LiveBattleSideView
+  turn_no: number
+  turn_log: BattleTurn[]
+  winner: BattleSide | 'draw' | null
+  reason: 'ko' | 'turn_limit' | 'forfeit' | 'expired' | null
+  created_at: string
+  last_activity_at: string
+  forfeit_by: BattleSide | null
+}

@@ -6,6 +6,7 @@ import type {
   BattleResponse,
   LeaderboardMetric,
   LeaderboardResponse,
+  LiveBattleView,
   OpponentsResponse,
   TrainerResponse,
 } from '~/types/api'
@@ -51,6 +52,12 @@ export class ApiClient {
 
   arenaBattle(battleId: string): Promise<BattleResponse> {
     return this.fetcher<BattleResponse>(`/v1/arena/battle/${battleId}`, {
+      baseURL: this.baseUrl,
+    })
+  }
+
+  arenaLive(battleId: string): Promise<LiveBattleView> {
+    return this.fetcher<LiveBattleView>(`/v1/arena/live/${battleId}`, {
       baseURL: this.baseUrl,
     })
   }
