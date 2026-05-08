@@ -68,6 +68,9 @@ export interface PlayerStats {
   active: ActiveStats
   badges: string[]
   pokedex_seen_count: number
+  /** Wild species ids the trainer has encountered (Sprint 2.11). Optional —
+   * pre-2.11 records won't have it. */
+  pokedex_seen_ids?: string[]
 }
 
 export interface TrainerResponse {

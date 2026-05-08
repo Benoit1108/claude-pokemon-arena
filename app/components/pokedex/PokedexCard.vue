@@ -5,6 +5,9 @@ import type { WildPokemon } from '~/types/pokedex'
 const props = defineProps<{
   pokemon: WildPokemon
   lang?: 'fr' | 'en'
+  /** Sprint 2.11 — when a trainer view is active, undefined = no overlay,
+   * true = "seen by this trainer", false = "not yet encountered" (greyed out). */
+  seenByTrainer?: boolean | undefined
 }>()
 
 const displayName = computed(() =>
@@ -26,10 +29,16 @@ const spriteFailed = ref(false)
 
 <template>
   <div
-    class="surface-card border surface-border rounded-lg p-3 transition surface-card-hover"
-    :class="rarityRing"
+    class="surface-card border surface-border rounded-lg p-3 transition surface-card-hover relative"
+    :class="[rarityRing, seenByTrainer === false ? 'opacity-30 grayscale' : '']"
     :title="`${pokemon.name_en} · ${pokemon.type} · ${pokemon.rarity}`"
   >
+    <span
+      v-if="seenByTrainer === true"
+      class="absolute top-1 left-1 text-xs"
+      title="Seen by this trainer"
+      >✓</span
+    >
     <div class="text-xs text-muted text-right tabular-nums">
       #{{ pokemon.national_dex.toString().padStart(3, '0') }}
     </div>

@@ -58,6 +58,11 @@ useHead({
         :lifetime="trainer.stats.lifetime"
         :pokedex-seen-count="trainer.stats.pokedex_seen_count"
       />
+      <p v-if="trainer.stats.pokedex_seen_ids?.length" class="text-center -mt-8 mb-12 text-sm">
+        <NuxtLink :to="`/pokedex?trainer=${anonId}`" class="text-accent hover:underline">
+          → Voir leur pokédex (espèces rencontrées)
+        </NuxtLink>
+      </p>
       <TrainerBadges :earned="trainer.stats.badges" />
 
       <footer class="text-center text-muted text-sm mt-12 pt-8 border-t surface-border">

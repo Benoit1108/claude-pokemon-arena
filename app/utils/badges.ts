@@ -45,6 +45,27 @@ export const BADGE_META: Record<string, BadgeMeta> = {
     label: 'Pokédex Master',
     description: '5 lineages encountered',
   },
+  // Sprint 2.11 — wild pokédex milestones
+  dex_50: {
+    emoji: '🔬',
+    label: 'Researcher',
+    description: '50 wild species observed',
+  },
+  dex_100: {
+    emoji: '📚',
+    label: 'Librarian',
+    description: '100 wild species observed',
+  },
+  regional_kanto: {
+    emoji: '🏔️',
+    label: 'Kanto complete',
+    description: 'All 151 Kanto species seen',
+  },
+  regional_johto: {
+    emoji: '🏯',
+    label: 'Johto complete',
+    description: 'All 100 Johto species seen',
+  },
   // Master per Gen 1 lineage
   master_fire: { emoji: '🔥', label: 'Fire Master', description: 'Lv.100 on Fire Lineage' },
   master_water: { emoji: '💧', label: 'Water Master', description: 'Lv.100 on Water Lineage' },

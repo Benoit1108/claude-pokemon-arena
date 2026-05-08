@@ -1,6 +1,37 @@
 <script setup lang="ts">
 import { TOTAL_POKEDEX, WILD_POKEMON, filterPokedex } from '~/utils/pokedex'
 import type { Rarity } from '~/types/pokedex'
+import type { TrainerResponse } from '~/types/api'
+
+const route = useRoute()
+const api = useApi()
+
+// Sprint 2.11 — optional ?trainer=<anonId> query param drives a "seen by this
+// trainer" overlay. When present we fetch the trainer's pokedex_seen_ids
+// and grey out anything they haven't encountered yet.
+const trainerAnonId = computed(() => {
+  const q = route.query.trainer
+  return typeof q === 'string' && /^[a-f0-9]{8,16}$/.test(q) ? q : null
+})
+
+const { data: trainer } = await useAsyncData<TrainerResponse | null>(
+  () => `pokedex-trainer-${trainerAnonId.value ?? 'none'}`,
+  async () => {
+    if (!trainerAnonId.value) return null
+    try {
+      return await api.trainer(trainerAnonId.value)
+    } catch {
+      return null
+    }
+  },
+)
+
+const seenSet = computed<Set<string> | null>(() => {
+  const ids = trainer.value?.stats.pokedex_seen_ids
+  return ids ? new Set(ids) : null
+})
+
+const seenCount = computed(() => seenSet.value?.size ?? 0)
 
 const filters = ref<{
   gen: 1 | 2 | 'all'
@@ -8,18 +39,30 @@ const filters = ref<{
   rarity: Rarity | 'all'
   query: string
   lang: 'fr' | 'en'
+  /** Sprint 2.11 — when true, hide species this trainer hasn't seen. */
+  seenOnly: boolean
 }>({
   gen: 'all',
   type: 'all',
   rarity: 'all',
   query: '',
   lang: 'fr',
+  seenOnly: false,
 })
 
-const filtered = computed(() => filterPokedex(WILD_POKEMON, filters.value))
+const filtered = computed(() => {
+  let list = filterPokedex(WILD_POKEMON, filters.value)
+  if (filters.value.seenOnly && seenSet.value) {
+    list = list.filter(p => seenSet.value!.has(p.id))
+  }
+  return list
+})
 
 useHead({
-  title: 'Pokédex · claude-pokemon arena',
+  title: () =>
+    trainerAnonId.value
+      ? `Pokédex · trainer ${trainerAnonId.value.slice(0, 8)}`
+      : 'Pokédex · claude-pokemon arena',
   meta: [
     {
       name: 'description',
@@ -43,9 +86,31 @@ useHead({
         {{ filtered.length }} / {{ TOTAL_POKEDEX }} Pokémon
         <span v-if="filtered.length !== TOTAL_POKEDEX" class="text-muted">(filtered)</span>
       </p>
+      <p v-if="trainerAnonId && trainer" class="mt-2 text-sm text-accent">
+        👀 Trainer view :
+        <NuxtLink :to="`/trainer/${trainerAnonId}`" class="underline hover:text-primary">
+          {{ trainer.display_name || trainerAnonId.slice(0, 8) }}
+        </NuxtLink>
+        — {{ seenCount }} / {{ TOTAL_POKEDEX }} encountered
+      </p>
+      <p v-else-if="trainerAnonId && !trainer" class="mt-2 text-sm text-red-400">
+        ⚠ Trainer not found ({{ trainerAnonId }})
+      </p>
     </header>
 
     <PokedexFilters v-model="filters" />
+
+    <div v-if="seenSet" class="mb-4 flex items-center gap-2 text-sm">
+      <input
+        id="seen-only"
+        v-model="filters.seenOnly"
+        type="checkbox"
+        class="rounded surface-border"
+      />
+      <label for="seen-only" class="text-secondary cursor-pointer">
+        Show only species this trainer has seen
+      </label>
+    </div>
 
     <div
       v-if="filtered.length"
@@ -56,6 +121,7 @@ useHead({
         :key="pokemon.id"
         :pokemon="pokemon"
         :lang="filters.lang"
+        :seen-by-trainer="seenSet ? seenSet.has(pokemon.id) : undefined"
       />
     </div>
 

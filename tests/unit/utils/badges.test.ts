@@ -2,9 +2,17 @@ import { describe, it, expect } from 'vitest'
 import { BADGE_META, TOTAL_BADGES, badgeMeta } from '~/utils/badges'
 
 describe('BADGE_META', () => {
-  it('has exactly 15 badges (matches CLI total)', () => {
-    expect(TOTAL_BADGES).toBe(15)
-    expect(Object.keys(BADGE_META)).toHaveLength(15)
+  it('has exactly 19 badges (matches CLI total)', () => {
+    // 7 generic + 4 dex (Sprint 2.11) + 8 master (5 Gen 1 + 3 Gen 2) = 19
+    expect(TOTAL_BADGES).toBe(19)
+    expect(Object.keys(BADGE_META)).toHaveLength(19)
+  })
+
+  it('exposes the four pokédex milestone badges (Sprint 2.11)', () => {
+    for (const id of ['dex_50', 'dex_100', 'regional_kanto', 'regional_johto']) {
+      expect(BADGE_META[id]).toBeDefined()
+      expect(BADGE_META[id]?.emoji).toBeTruthy()
+    }
   })
 
   it('has 7 generic badges', () => {
