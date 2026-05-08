@@ -197,3 +197,70 @@ giving fresh data without rebuilds. Trade-off : CF Pages SSR cold-start
 - test fixtures come in Étape 2 (next session). The architecture is
   designed test-friendly (pure utils, injectable services) so retrofit is
   cheap.
+
+### ADR-006 : No `server/` directory — frontend-only Nuxt
+
+**2026-05-08 (Sprint 2.13).** Considered adding `server/api/*` Nitro routes
+for OG-card SSR or webhook handlers. Decided against : the Worker
+(`claude-pokemon/api`) is the single source of truth for state ; two
+backends would invite drift. The Nuxt app is intentionally a thin client
+that talks to the Worker over HTTPS. `runtimeConfig.public.apiBase`
+controls the endpoint. CORS lives in the Worker, not in a Nuxt proxy.
+
+**When to revisit** : OG image / share-card SSR (heavy canvas), Discord /
+GitHub webhook handlers (need server-side secrets), or cache layer for
+`/aggregate` if Worker latency becomes an issue. Add `server/` then,
+documenting **why** in this file.
+
+### ADR-007 : Mirror code over npm package (until Sprint 3)
+
+**2026-05-08 (Sprint 2.13).** Three files are hand-maintained mirrors of
+the Worker / CLI : `app/utils/battle-engine.ts`,
+`app/data/moves.ts`, and the various lineage / badge / pokedex catalogs.
+Identified by code review as a drift risk. Decided to defer the npm package
+extraction to Sprint 3 post-Sprint-2 push, and add **contractual parity
+tests** as the immediate guard :
+
+- `tests/unit/utils/battle-engine-parity.test.ts` (this repo)
+- `api/tests/lib/battle-parity.test.ts` (Worker repo)
+
+Both pin the same fixed-vector `resolveBattle` outputs. A unilateral
+formula change fails CI on at least one side, forcing a sync update.
+
+### ADR-008 : `arena_secret` in `localStorage` — accepted XSS surface
+
+**2026-05-08 (Sprint 2.13).** After `/pair` redemption, the
+`arena_secret` is stored in `localStorage` under `arena-session-v1`. This
+exposes it to any script running on this origin (XSS).
+
+Mitigations :
+1. No `v-html` of untrusted content anywhere in the codebase.
+2. Single npm runtime dependency that touches the DOM (`canvas-confetti`,
+   vendored).
+3. Recommend a strict CSP at deploy (TODO: add via Cloudflare Pages headers).
+4. One-click rotation via `/pokemon arena regenerate` on the CLI.
+
+Acceptable for the current threat surface (no money, no PII, no auth tokens
+of value beyond the trainer's own data). Re-evaluate if the model shifts
+(e.g. monetization, real PII).
+
+The alternative — `HttpOnly` cookies set by the Worker — would require
+CORS credentials, a Worker session endpoint, and breaks the "pair via
+copy-paste code" UX. Trade-off accepted.
+
+### ADR-009 : KV last-write-wins concurrency model
+
+**2026-05-08 (Sprint 2.13).** Cloudflare KV has no compare-and-swap. Two
+read-modify-write paths needed mitigation :
+
+- **Live commit** (`/v1/arena/live/<id>/commit`) : two simultaneous commits
+  could overwrite each other. Mitigated with a bounded retry-after-write
+  loop on the Worker side. `resolveLiveTurn` is deterministic so duplicate
+  parallel resolves produce identical content. Up to 3 retries, then 503.
+- **Pair redeem** (`/v1/arena/pair/redeem`) : two concurrent redeems could
+  both return the secret. Mitigated with a claim-and-verify dance using a
+  `consumed_by` randomUUID token. The loser observes a different token on
+  re-read and 404s.
+
+Both mitigations live in the Worker repo (`api/src/handlers/arena/`). The
+web side just calls the endpoints — no client-side concurrency logic.
