@@ -130,7 +130,7 @@ useHead({
         </p>
       </header>
 
-      <BattleScene
+      <BattleStage
         :challenger="battle.challenger"
         :defender="battle.defender"
         :winner="battle.winner"

@@ -15,17 +15,20 @@ const props = withDefaults(
     level: number
     isShiny?: boolean
     /** Visual size — picks Tailwind w-/h- + emoji font-size in fallback. */
-    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl'
     /** Animated GIF (gen5+ only). Otherwise static gen5 PNG. */
     animated?: boolean
     /** Slow yoyo bounce for non-active sprites in lists. */
     idle?: boolean
+    /** Sprint 2.13 UA1 — back-view sprite (BW arena style). */
+    back?: boolean
   }>(),
   {
     isShiny: false,
     size: 'md',
     animated: false,
     idle: false,
+    back: false,
   },
 )
 
@@ -36,6 +39,7 @@ const url = computed(() =>
     level: props.level,
     isShiny: props.isShiny,
     animated: props.animated,
+    back: props.back,
   }),
 )
 const name = computed(() => stageNameFor(props.lineage, props.level))
@@ -48,6 +52,7 @@ const wrapperClass = computed(
       md: 'w-16 h-16',
       lg: 'w-24 h-24',
       xl: 'w-32 h-32',
+      '2xl': 'w-44 h-44',
     })[props.size],
 )
 
@@ -59,6 +64,7 @@ const fallbackFontClass = computed(
       md: 'text-4xl',
       lg: 'text-5xl',
       xl: 'text-7xl',
+      '2xl': 'text-8xl',
     })[props.size],
 )
 </script>

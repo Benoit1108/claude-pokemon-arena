@@ -111,9 +111,18 @@ export function spriteUrl(opts: {
   level: number
   isShiny?: boolean
   animated?: boolean
+  /** Sprint 2.13 (UA1) — back-view (player's pokémon seen from behind, BW
+   * battle-style). Showdown : /sprites/back/<id>.png + /sprites/ani-back/. */
+  back?: boolean
 }): string {
   const stage = stageFor(opts.lineage, opts.level)
   const variant = opts.isShiny ? '-shiny' : ''
+  if (opts.back) {
+    if (opts.animated) {
+      return `${SHOWDOWN_BASE}/ani-back${variant}/${stage.showdown_id}.gif`
+    }
+    return `${SHOWDOWN_BASE}/gen5-back${variant}/${stage.showdown_id}.png`
+  }
   if (opts.animated) {
     return `${SHOWDOWN_BASE}/ani${variant}/${stage.showdown_id}.gif`
   }

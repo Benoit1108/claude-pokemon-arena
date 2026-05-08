@@ -13,7 +13,7 @@
 //   playerMoves(state)                  → Move[]   (4 moves available to the side whose turn it is)
 //   applyManualAction(state, moveIndex) → ManualBattleState (after one tick of action)
 //   chooseAiMove(state, difficulty)     → moveIndex picked by the bot AI
-//   stateToResult(state)                → BattleResult (drop-in for BattleScene/Log/etc.)
+//   stateToResult(state)                → BattleResult (drop-in for BattleStage/Log/etc.)
 
 import {
   ARENA_MAX_TURNS,
@@ -237,7 +237,7 @@ export function chooseAiMove(
 
 /**
  * Convert internal state to a BattleResult drop-in for existing components
- * (BattleScene, BattleLog, BattleResultBanner already consume BattleResult).
+ * (BattleStage, BattleLog, BattleResultBanner already consume BattleResult).
  */
 export function stateToResult(state: ManualBattleState): BattleResult {
   return {

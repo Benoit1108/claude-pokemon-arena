@@ -191,7 +191,7 @@ useHead({
 
     <!-- ── AUTO MODE ───────────────────────────────────────────────── -->
     <template v-if="mode === 'auto'">
-      <BattleScene
+      <BattleStage
         :challenger="autoBattle.challenger"
         :defender="autoBattle.defender"
         :winner="autoBattle.winner"
@@ -248,13 +248,18 @@ useHead({
 
     <!-- ── MANUAL MODE ─────────────────────────────────────────────── -->
     <template v-else>
-      <BattleScene
+      <BattleStage
         :challenger="manual.result.value.challenger"
         :defender="manual.result.value.defender"
+        :challenger-hp="manual.challengerHp.value"
+        :challenger-max-hp="manual.challengerMaxHp.value"
+        :defender-hp="manual.defenderHp.value"
+        :defender-max-hp="manual.defenderMaxHp.value"
         :winner="manual.result.value.winner"
         :current-turn="manual.lastTurn.value"
         :show-final-state="manual.state.value.finished"
         :floating-damages="manualJuice.floatingDamages.value"
+        :show-intro="false"
       />
 
       <!-- Live HP bars -->

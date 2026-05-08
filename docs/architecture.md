@@ -234,6 +234,7 @@ formula change fails CI on at least one side, forcing a sync update.
 exposes it to any script running on this origin (XSS).
 
 Mitigations :
+
 1. No `v-html` of untrusted content anywhere in the codebase.
 2. Single npm runtime dependency that touches the DOM (`canvas-confetti`,
    vendored).
