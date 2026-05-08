@@ -5,6 +5,66 @@ const { data: aggregate } = await useAsyncData('aggregate', () => api.aggregate(
 const { data: leaderboard } = await useAsyncData('leaderboard', () =>
   api.leaderboard('total_tokens', 10),
 )
+
+// Sprint 2.12 — Konami code easter egg. ↑↑↓↓←→←→BA triggers a one-shot
+// confetti shower. Tracks recent keys, resets on any non-matching key so the
+// player has to type it cleanly. Confetti import is lazy so non-trigger
+// sessions don't pay for the bundle.
+const KONAMI_SEQUENCE = [
+  'ArrowUp',
+  'ArrowUp',
+  'ArrowDown',
+  'ArrowDown',
+  'ArrowLeft',
+  'ArrowRight',
+  'ArrowLeft',
+  'ArrowRight',
+  'KeyB',
+  'KeyA',
+]
+const konamiBuffer: string[] = []
+const konamiTriggered = ref(false)
+
+async function fireKonami() {
+  konamiTriggered.value = true
+  const { default: confetti } = await import('canvas-confetti')
+  // Three bursts in different directions for that arcade reveal feel.
+  for (const origin of [
+    { x: 0.2, y: 0.3 },
+    { x: 0.8, y: 0.3 },
+    { x: 0.5, y: 0.9 },
+  ]) {
+    confetti({
+      particleCount: 100,
+      spread: 80,
+      origin,
+      colors: ['#fbbf24', '#ef6c00', '#3d8de8', '#7eb858'],
+    })
+  }
+  setTimeout(() => {
+    konamiTriggered.value = false
+  }, 3000)
+}
+
+function onKeydown(event: KeyboardEvent) {
+  const expected = KONAMI_SEQUENCE[konamiBuffer.length]
+  if (event.code === expected) {
+    konamiBuffer.push(event.code)
+    if (konamiBuffer.length === KONAMI_SEQUENCE.length) {
+      konamiBuffer.length = 0
+      void fireKonami()
+    }
+  } else if (konamiBuffer.length > 0) {
+    konamiBuffer.length = 0
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', onKeydown)
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeydown)
+})
 </script>
 
 <template>
@@ -17,9 +77,16 @@ const { data: leaderboard } = await useAsyncData('leaderboard', () =>
         Phase 2 · MVP preview
       </div>
       <h1
-        class="text-5xl md:text-6xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-br from-gold-soft to-lineage-fire dark:from-gold dark:to-lineage-fire"
+        class="text-5xl md:text-6xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-br from-gold-soft to-lineage-fire dark:from-gold dark:to-lineage-fire transition-transform"
+        :class="konamiTriggered ? 'scale-110' : ''"
       >
         🎮 claude-pokemon arena
+        <span
+          v-if="konamiTriggered"
+          class="inline-block ml-2 text-2xl align-middle"
+          aria-hidden="true"
+          >✨</span
+        >
       </h1>
       <p class="text-lg text-secondary max-w-2xl mx-auto leading-relaxed">
         Where Pokémon raised in your Claude Code statusline
