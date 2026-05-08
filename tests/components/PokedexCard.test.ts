@@ -1,8 +1,21 @@
 // @vitest-environment happy-dom
 import { describe, it, expect } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { config, mount } from '@vue/test-utils'
+import { defineComponent, h } from 'vue'
 import PokedexCard from '~/components/pokedex/PokedexCard.vue'
 import type { WildPokemon } from '~/types/pokedex'
+
+// Sprint 2.13 UA2 — PokedexCard now wraps in <NuxtLink to="/pokedex/<id>">.
+// Without a Nuxt runtime we stub it globally as a passthrough <a> so every
+// mount in this file picks it up (config.global.stubs applies to all).
+const NuxtLinkStub = defineComponent({
+  name: 'NuxtLink',
+  props: { to: { type: [String, Object], default: '#' } },
+  setup(props, { slots }) {
+    return () => h('a', { href: typeof props.to === 'string' ? props.to : '#' }, slots.default?.())
+  },
+})
+config.global.stubs = { ...config.global.stubs, NuxtLink: NuxtLinkStub }
 
 const samplePikachu: WildPokemon = {
   id: 'pikachu',

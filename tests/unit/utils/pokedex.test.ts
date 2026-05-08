@@ -5,6 +5,9 @@ import {
   TYPE_COLOR,
   typeColor,
   filterPokedex,
+  nextPokemon,
+  pokemonById,
+  previousPokemon,
   uniqueTypes,
 } from '~/utils/pokedex'
 
@@ -117,5 +120,43 @@ describe('uniqueTypes', () => {
     for (let i = 1; i < types.length; i++) {
       expect(types[i]!.localeCompare(types[i - 1]!)).toBeGreaterThan(0)
     }
+  })
+})
+
+describe('pokemonById / previousPokemon / nextPokemon (Sprint 2.13 UA2)', () => {
+  it('pokemonById finds a known species', () => {
+    const p = pokemonById('pikachu')
+    expect(p).toBeDefined()
+    expect(p?.national_dex).toBe(25)
+  })
+
+  it('pokemonById returns undefined on unknown id', () => {
+    expect(pokemonById('not-a-pokemon')).toBeUndefined()
+  })
+
+  it('previousPokemon returns null for the first species', () => {
+    const first = WILD_POKEMON[0]!
+    expect(previousPokemon(first)).toBeNull()
+  })
+
+  it('previousPokemon walks back by national_dex', () => {
+    const p = pokemonById('pikachu')!
+    const prev = previousPokemon(p)
+    expect(prev?.national_dex).toBe(24) // Raichu = 26, Pikachu = 25, Raichu prev = 24 (raichu? no — index based not dex)
+    // Actually we walk by index in the (sorted-by-dex) WILD_POKEMON array,
+    // so prev is national_dex 24 (Arbok). Either way it's exactly one before.
+    expect(prev?.national_dex).toBe(p.national_dex - 1)
+  })
+
+  it('nextPokemon returns null for the last species', () => {
+    const last = WILD_POKEMON[WILD_POKEMON.length - 1]!
+    expect(nextPokemon(last)).toBeNull()
+    expect(last.national_dex).toBe(251)
+  })
+
+  it('nextPokemon walks forward by national_dex', () => {
+    const p = pokemonById('pikachu')!
+    const next = nextPokemon(p)
+    expect(next?.national_dex).toBe(p.national_dex + 1)
   })
 })

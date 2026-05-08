@@ -78,3 +78,24 @@ export function filterPokedex(
 export function uniqueTypes(pool: readonly WildPokemon[]): string[] {
   return [...new Set(pool.map(p => p.type))].sort()
 }
+
+/** O(1) lookup by id ; returns undefined if not catalogued. Sprint 2.13 UA2. */
+const POKEMON_BY_ID: Record<string, WildPokemon> = Object.fromEntries(
+  WILD_POKEMON.map(p => [p.id, p]),
+)
+export function pokemonById(id: string): WildPokemon | undefined {
+  return POKEMON_BY_ID[id]
+}
+
+/** Pokémon at the previous national_dex slot (or null if first). Used by
+ * the species detail page for ← prev navigation. */
+export function previousPokemon(p: WildPokemon): WildPokemon | null {
+  const idx = WILD_POKEMON.findIndex(x => x.id === p.id)
+  return idx > 0 ? WILD_POKEMON[idx - 1]! : null
+}
+
+/** Pokémon at the next national_dex slot (or null if last). */
+export function nextPokemon(p: WildPokemon): WildPokemon | null {
+  const idx = WILD_POKEMON.findIndex(x => x.id === p.id)
+  return idx >= 0 && idx < WILD_POKEMON.length - 1 ? WILD_POKEMON[idx + 1]! : null
+}
