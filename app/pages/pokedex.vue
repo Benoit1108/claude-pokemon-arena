@@ -14,17 +14,43 @@ const trainerAnonId = computed(() => {
   return typeof q === 'string' && /^[a-f0-9]{8,16}$/.test(q) ? q : null
 })
 
-const { data: trainer } = await useAsyncData<TrainerResponse | null>(
+// Sprint 2.13 (Q8) — distinguish "trainer doesn't exist" from "Worker error".
+// The 404 path renders a friendly "Trainer not found" hint ; anything else
+// (network, 5xx) surfaces a real error so we don't silently lie to the user.
+type TrainerFetchState =
+  | { kind: 'none' }
+  | { kind: 'ok'; data: TrainerResponse }
+  | { kind: 'not_found' }
+  | { kind: 'error'; message: string }
+
+const { data: trainerState } = await useAsyncData<TrainerFetchState>(
   () => `pokedex-trainer-${trainerAnonId.value ?? 'none'}`,
   async () => {
-    if (!trainerAnonId.value) return null
+    if (!trainerAnonId.value) return { kind: 'none' as const }
     try {
-      return await api.trainer(trainerAnonId.value)
-    } catch {
-      return null
+      const data = await api.trainer(trainerAnonId.value)
+      return { kind: 'ok' as const, data }
+    } catch (e) {
+      const status =
+        (e as { statusCode?: number; response?: { status?: number } } | undefined)?.statusCode ??
+        (e as { response?: { status?: number } } | undefined)?.response?.status
+      if (status === 404) return { kind: 'not_found' as const }
+      const message = e instanceof Error ? e.message : 'unknown'
+      return { kind: 'error' as const, message }
     }
   },
 )
+
+const trainer = computed<TrainerResponse | null>(() =>
+  trainerState.value?.kind === 'ok' ? trainerState.value.data : null,
+)
+const trainerError = computed(() => {
+  const s = trainerState.value
+  if (!s) return null
+  if (s.kind === 'not_found') return 'not_found' as const
+  if (s.kind === 'error') return s.message
+  return null
+})
 
 const seenSet = computed<Set<string> | null>(() => {
   const ids = trainer.value?.stats.pokedex_seen_ids
@@ -93,8 +119,11 @@ useHead({
         </NuxtLink>
         — {{ seenCount }} / {{ TOTAL_POKEDEX }} encountered
       </p>
-      <p v-else-if="trainerAnonId && !trainer" class="mt-2 text-sm text-red-400">
-        ⚠ Trainer not found ({{ trainerAnonId }})
+      <p v-else-if="trainerError === 'not_found'" class="mt-2 text-sm text-red-400">
+        ⚠ Dresseur introuvable ({{ trainerAnonId }})
+      </p>
+      <p v-else-if="trainerError" class="mt-2 text-sm text-red-400">
+        ⚠ Erreur de chargement ({{ trainerError }}). Réessaie dans un instant.
       </p>
     </header>
 

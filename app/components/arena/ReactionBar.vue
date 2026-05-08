@@ -30,19 +30,40 @@ const myReaction = ref<ReactionKey | null>(null)
 const submitting = ref(false)
 const error = ref<string | null>(null)
 
-const ANON_KEY = 'arena-reaction-anon-id'
+// Sprint 2.13 (Q9) — renamed from "anon-id" to "reactor-id" to break the
+// confusion with the CLI's anon_id (which is a real trainer identifier with
+// arena_secret + stats). The reactor_id is a per-browser ephemeral pseudo-ID
+// used solely to rate-limit reactions ; it has no privileges and is NOT the
+// same identifier as the CLI's. Worker-side, /react still expects the field
+// name `anon_id` in the body — we just send the reactor_id under that name
+// (the worker never correlates it with stats).
+const REACTOR_KEY = 'arena-reactor-id'
 const VOTE_KEY_PREFIX = 'arena-reaction-vote:'
 
-function getOrCreateAnonId(): string {
+function getOrCreateReactorId(): string {
   if (typeof localStorage === 'undefined') return '00000000'
-  let id = localStorage.getItem(ANON_KEY)
+  let id = localStorage.getItem(REACTOR_KEY)
+  // Migration : pick up the old key if the new one isn't set yet.
+  if (!id) {
+    const legacy = localStorage.getItem('arena-reaction-anon-id')
+    if (legacy) {
+      id = legacy
+      try {
+        localStorage.setItem(REACTOR_KEY, id)
+      } catch {
+        /* ignore */
+      }
+    }
+  }
   if (!id || !/^[a-f0-9]{8,16}$/.test(id)) {
-    // 8 hex chars from crypto.getRandomValues — same shape as CLI anon_id.
+    // 8 hex chars from crypto.getRandomValues — same shape as the CLI anon_id
+    // contract so the worker accepts it (the worker doesn't care which side
+    // generated it, only the regex).
     const bytes = new Uint8Array(4)
     crypto.getRandomValues(bytes)
     id = [...bytes].map(b => b.toString(16).padStart(2, '0')).join('')
     try {
-      localStorage.setItem(ANON_KEY, id)
+      localStorage.setItem(REACTOR_KEY, id)
     } catch {
       /* ignore */
     }
@@ -86,7 +107,7 @@ async function react(reaction: ReactionKey) {
       `${config.public.apiBase}/v1/arena/battle/${props.battleId}/react`,
       {
         method: 'POST',
-        body: { anon_id: getOrCreateAnonId(), reaction },
+        body: { anon_id: getOrCreateReactorId(), reaction },
       },
     )
     // Sync to server-truth (in case other people reacted simultaneously).

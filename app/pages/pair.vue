@@ -30,11 +30,16 @@ async function redeem(code: string) {
   errorMsg.value = null
   try {
     const res = await api.arenaPairRedeem(code)
-    set({
+    const stored = set({
       anon_id: res.anon_id,
       arena_secret: res.arena_secret,
       paired_at: new Date().toISOString(),
     })
+    if (!stored) {
+      status.value = 'error'
+      errorMsg.value = 'Réponse Worker invalide (anon_id ou secret malformé).'
+      return
+    }
     status.value = 'paired'
   } catch (e) {
     status.value = 'error'

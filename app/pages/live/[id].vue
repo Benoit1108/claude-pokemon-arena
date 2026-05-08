@@ -17,7 +17,16 @@ const route = useRoute()
 const battleId = computed(() => route.params.id as string)
 const api = useApi()
 
-const { data, error, lastFetchAt } = useLiveBattle(battleId.value)
+// Sprint 2.13 (Q6) — reject malformed ids client-side so we don't fire a
+// useless XHR. Worker validates again on its end.
+const BATTLE_ID_RE = /^[a-f0-9]{16,32}$/
+const battleIdValid = computed(() => BATTLE_ID_RE.test(battleId.value))
+
+// Skip the polling composable entirely on a malformed id — battleIdValid
+// gates the template into a 404-ish shell instead.
+const { data, error, lastFetchAt } = battleIdValid.value
+  ? useLiveBattle(battleId.value)
+  : { data: ref(null), error: ref('invalid_battle_id'), lastFetchAt: ref(null) }
 const { session, isPaired } = useArenaSession()
 
 const live = computed(() => data.value)
@@ -78,7 +87,7 @@ async function commitMove(move: Move) {
     // The polling composable will pick up the new state on its next tick ;
     // no need to manually refetch.
   } catch (e) {
-    commitError.value = e instanceof Error ? e.message : 'commit failed'
+    commitError.value = e instanceof Error ? e.message : 'Échec du commit'
   } finally {
     commitInFlight.value = false
   }

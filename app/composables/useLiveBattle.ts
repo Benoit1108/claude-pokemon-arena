@@ -40,7 +40,7 @@ export function useLiveBattle(battleId: string, opts: UseLiveBattleOptions = {})
         return
       }
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'fetch failed'
+      error.value = e instanceof Error ? e.message : 'Échec du chargement'
     } finally {
       if (!stopped) {
         timer = setTimeout(tick, intervalMs)

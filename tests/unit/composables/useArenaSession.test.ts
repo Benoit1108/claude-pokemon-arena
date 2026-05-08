@@ -29,16 +29,43 @@ describe('useArenaSession', () => {
     expect(api.session.value).toBeNull()
   })
 
-  it('set() persists the session in localStorage', () => {
+  it('set() persists the session in localStorage and returns true', () => {
     const { api } = mountSession()
-    api.set({
+    const ok = api.set({
       anon_id: 'aaaaaaaa',
       arena_secret: 'deadbeef'.repeat(8),
       paired_at: '2026-05-08T10:00:00Z',
     })
+    expect(ok).toBe(true)
     expect(api.isPaired.value).toBe(true)
     expect(api.session.value?.anon_id).toBe('aaaaaaaa')
     expect(localStorage.getItem('arena-session-v1')).not.toBeNull()
+  })
+
+  it('set() returns false on malformed anon_id (Sprint 2.13 Q5)', () => {
+    const { api } = mountSession()
+    // Reset module-level state — earlier tests may have set a valid session.
+    api.clear()
+    const ok = api.set({
+      anon_id: 'BAD-ID',
+      arena_secret: 'deadbeef'.repeat(8),
+      paired_at: '2026-05-08T10:00:00Z',
+    })
+    expect(ok).toBe(false)
+    expect(api.isPaired.value).toBe(false)
+    expect(localStorage.getItem('arena-session-v1')).toBeNull()
+  })
+
+  it('set() returns false on malformed arena_secret', () => {
+    const { api } = mountSession()
+    api.clear()
+    const ok = api.set({
+      anon_id: 'aaaaaaaa',
+      arena_secret: 'too-short',
+      paired_at: '2026-05-08T10:00:00Z',
+    })
+    expect(ok).toBe(false)
+    expect(api.isPaired.value).toBe(false)
   })
 
   it('clear() removes the session and localStorage entry', () => {
