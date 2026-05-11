@@ -135,8 +135,10 @@ const lineageColor: Record<FeaturedTile['lineage'], string> = {
 
 <template>
   <main class="max-w-6xl mx-auto px-6">
-    <!-- Hero -->
-    <section class="relative pt-20 pb-8 text-center overflow-hidden">
+    <!-- Hero. `z-0` crée un stacking context pour piéger `.hero-deco`
+         (z-index:-1) à l'intérieur ; sans ça il s'évade derrière l'ancêtre
+         `surface-bg` opaque et les pokéballs décoratives disparaissent. -->
+    <section class="relative z-0 pt-20 pb-8 text-center overflow-hidden">
       <!-- Decorative outlined pokéballs in bg, very low opacity -->
       <div class="hero-deco" aria-hidden="true">
         <svg class="p1" viewBox="0 0 32 32">
