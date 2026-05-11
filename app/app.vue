@@ -19,6 +19,12 @@ if (import.meta.client) {
 
 <template>
   <div class="min-h-screen surface-bg text-primary font-mono transition-colors duration-150">
+    <!-- Sprint 3.6 — floating user menu, top-left. Persistent across pages,
+         lets the visitor see their identity at a glance and access their
+         profile / pair / unpair quickly. -->
+    <div class="fixed top-4 left-4 z-50">
+      <UserMenu />
+    </div>
     <!-- Floating theme toggle, top-right -->
     <div class="fixed top-4 right-4 z-50">
       <ColorModeToggle />

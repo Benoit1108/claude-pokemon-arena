@@ -319,3 +319,93 @@ git push  # Cloudflare Pages auto-deploys
 because submodules don't run install scripts. Author discipline is
 required : whenever you edit `shared/src/`, run `npm run build` and
 commit the regenerated `dist/` in the same change.
+
+### ADR-011 : Unified identity model — Worker owns trainers, CLI + web are equal clients
+
+**2026-05-11 (Sprint 3.6 + 4).** The web was launched as a CLI companion :
+its only identity model was "pair with an existing CLI install". That left
+a gap : users without Claude Code (the majority of potential players)
+hit the site, see a leaderboard + a ladder, and find nothing they can
+actually own. The ladder defaulted to a hardcoded Salamèche Lv.(bot-3) —
+hostile to anyone discovering the project.
+
+We're flipping the model. **The Worker is the single source of truth for
+trainer identity**. Both CLI and web are equal first-class clients.
+
+#### Identity creation
+
+- **From CLI** (existing) : `/pokemon arena enable --confirm` generates
+  `anon_id` locally and calls `POST /v1/arena/enable`. The Worker stores
+  the trainer record with `origin: 'cli'`.
+- **From web** (new in Sprint 4) : `/signup` page lets the visitor pick a
+  starter and a display name, calls the same `POST /v1/arena/enable`
+  (with `origin: 'web'`). The `arena_secret` lands in `localStorage`
+  via `useArenaSession`.
+
+Both flows yield the **same shape of trainer record**. The `origin` field
+is informational only — there's no functional gating based on it (a CLI
+trainer can do everything a web trainer can, and vice versa).
+
+#### Pairing — bidirectional
+
+The existing `POST /v1/arena/pair/{init,redeem}` endpoints work both ways :
+
+- **CLI → web** : `/pokemon arena pair` issues a code, web `/pair?code=XXX`
+  redeems it and stores the secret.
+- **Web → CLI** (new in Sprint 4.3) : web "Pair my CLI" button issues a
+  code via the same endpoint, CLI command `/pokemon arena link <code>`
+  redeems it. The CLI also fetches `GET /v1/trainer/<anon_id>` and writes
+  the trainer state into `~/.claude/pokemon/state.json` so the user's web
+  progression is recovered locally.
+
+On successful link, the Worker bumps `origin` to `'linked'`.
+
+#### Progression model — separate XP sources, one trainer
+
+| XP source                      | CLI      | Web                     |
+| ------------------------------ | -------- | ----------------------- |
+| Tokens consumed in Claude Code | ✅       | ❌ (no IDE integration) |
+| Wild zone encounters           | ❌       | ✅ (Sprint 4.5+)        |
+| Async PvP win                  | small    | small                   |
+| Live PvP win                   | small    | small                   |
+| Ladder bots PvE                | n/a      | ✅ (Sprint 4.6+)        |
+| Daily login bonus              | optional | ✅                      |
+| Pokémon quizzes                | ✅       | port from CLI           |
+
+A `linked` account accumulates both sources naturally — no double-counting
+because each source has its own server-side validation + cooldown.
+
+#### Anti-cheat via wild zones (Sprint 4.5)
+
+Web XP is gated by a **zones model** inspired by Pokéchill : the world is
+split into level-bracketed zones (Route 1 Lv.1-10, Forêt de Jade Lv.11-20,
+…, Mont Argent Lv.71-100). Each zone has a wild pool (subset of the
+existing 251-species pokédex) and a fixed encounter cooldown (20 s per
+trainer per zone).
+
+Anti-cheat is built in :
+
+- Cooldown caps the encounter rate (~3 / minute max, in practice ~5-15 / h)
+- Level bracket rules : trainer below `zone.min - 10` is locked out ;
+  trainer above `zone.max + 10` gets XP × 0.1 (drastically reduced).
+- Battles resolve server-side (`POST /v1/zone/<id>/fight`) — the client
+  can't fabricate wins.
+
+No "tokens passively earn XP" loophole on web. Earning XP requires
+visible gameplay actions.
+
+#### KV vs a SQL DB (Cloudflare D1)
+
+The current persistence is Cloudflare KV. KV is sufficient for :
+trainer records, battle persistence, pair codes, live sessions, zone
+cooldowns. The known limitation : leaderboards iterate all keys in
+Worker memory, breaks beyond ~1000 trainers.
+
+Migration to **Cloudflare D1 (serverless SQLite)** is a 1-day job if we
+hit the scale, but it's not blocking. We start on KV.
+
+#### `server/` Nuxt directory — still not needed
+
+ADR-006 holds : no `server/` Nuxt directory. All new endpoints
+(`POST /v1/web/signup`, `POST /v1/zone/<id>/explore`, etc.) live in the
+Worker (`api/src/handlers/`). The Nuxt app stays a thin client.
