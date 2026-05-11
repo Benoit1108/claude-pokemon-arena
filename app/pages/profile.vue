@@ -158,21 +158,15 @@ useHead({
       </p>
     </header>
 
-    <div v-if="!isPaired" class="surface-card border surface-border rounded-lg p-8 text-center">
+    <div v-if="!isPaired" class="card p-8 text-center">
       <p class="text-secondary">Redirection vers <code>/pair</code>...</p>
     </div>
 
-    <div
-      v-else-if="fetching && !trainer"
-      class="surface-card border surface-border rounded-lg p-8 text-center"
-    >
+    <div v-else-if="fetching && !trainer" class="card p-8 text-center">
       <p class="text-secondary">Chargement de ton profil...</p>
     </div>
 
-    <div
-      v-else-if="fetchError"
-      class="surface-card border surface-border rounded-lg p-6 mb-6 text-center"
-    >
+    <div v-else-if="fetchError" class="card p-6 mb-6 text-center">
       <p class="text-red-400">⚠ {{ fetchError }}</p>
       <button
         type="button"
@@ -185,7 +179,7 @@ useHead({
 
     <template v-else-if="trainer">
       <!-- Identity preview (read-only) -->
-      <section class="surface-card border surface-border rounded-lg p-6 mb-6 text-center">
+      <section class="card p-6 mb-6 text-center">
         <div class="flex justify-center mb-3">
           <div
             class="rounded-full p-1.5"
@@ -209,7 +203,7 @@ useHead({
       </section>
 
       <!-- Editable form -->
-      <section class="surface-card border surface-border rounded-lg p-6 mb-6 space-y-5">
+      <section class="card p-6 mb-6 space-y-5">
         <h2 class="text-sm uppercase tracking-wider text-muted">Informations publiques</h2>
 
         <!-- Display name -->
@@ -321,7 +315,7 @@ useHead({
       <!-- Sprint 4.3 — Pair my CLI : the inverse of /pair. Generates a
            6-char code that the user types into `/pokemon arena link <code>`
            on their CLI to import this trainer's identity locally. -->
-      <section class="surface-card border surface-border rounded-lg p-6 mb-6">
+      <section class="card p-6 mb-6">
         <h2 class="text-sm uppercase tracking-wider text-muted mb-2">🔗 Lier mon CLI</h2>
         <p class="text-xs text-muted mb-4">
           Tu utilises aussi <code>claude-pokemon</code> en local ? Génère un code à 6 caractères

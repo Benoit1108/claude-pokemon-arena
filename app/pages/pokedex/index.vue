@@ -154,7 +154,7 @@ useHead({
       />
     </div>
 
-    <div v-else class="surface-card border surface-border rounded-lg p-12 text-center">
+    <div v-else class="card p-12 text-center">
       <div class="text-6xl mb-4" aria-hidden="true">🔍</div>
       <p class="text-secondary">No Pokémon matches the filters.</p>
     </div>

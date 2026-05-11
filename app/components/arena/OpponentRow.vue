@@ -11,7 +11,7 @@ defineProps<{
 <template>
   <NuxtLink
     :to="`/trainer/${opponent.anon_id}`"
-    class="block surface-card border surface-border rounded-lg p-3 transition surface-card-hover"
+    class="block card p-3 transition surface-card-hover"
     :class="opponent.is_shiny ? 'ring-1 ring-accent' : ''"
   >
     <div class="flex items-center gap-3">

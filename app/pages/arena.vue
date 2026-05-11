@@ -51,10 +51,7 @@ useHead({
       </button>
     </div>
 
-    <div
-      v-if="list.length === 0"
-      class="surface-card border surface-border rounded-lg p-12 text-center"
-    >
+    <div v-if="list.length === 0" class="card p-12 text-center">
       <div class="text-6xl mb-4" aria-hidden="true">🦗</div>
       <h2 class="text-xl font-semibold text-primary mb-2">No trainers yet</h2>
       <p class="text-secondary">

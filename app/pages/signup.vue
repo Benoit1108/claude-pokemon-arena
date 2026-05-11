@@ -182,7 +182,7 @@ useHead({
       </p>
     </header>
 
-    <section class="surface-card border surface-border rounded-lg p-6 mb-6">
+    <section class="card p-6 mb-6">
       <h2 class="text-sm uppercase tracking-wider text-muted mb-4">1. Choisis ton starter</h2>
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         <button
@@ -210,7 +210,7 @@ useHead({
       </p>
     </section>
 
-    <section class="surface-card border surface-border rounded-lg p-6 mb-6">
+    <section class="card p-6 mb-6">
       <h2 class="text-sm uppercase tracking-wider text-muted mb-4">
         2. Display name <span class="text-muted">(optionnel)</span>
       </h2>

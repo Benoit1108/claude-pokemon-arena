@@ -105,7 +105,7 @@ useHead({
       </NuxtLink>
     </div>
 
-    <div v-if="error" class="surface-card border surface-border rounded-lg p-12 text-center">
+    <div v-if="error" class="card p-12 text-center">
       <div class="text-6xl mb-4" aria-hidden="true">🥺</div>
       <h1 class="text-2xl font-bold text-primary mb-2">Battle not found</h1>
       <p class="text-secondary">

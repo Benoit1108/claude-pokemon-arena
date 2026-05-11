@@ -223,10 +223,7 @@ useHead({
       </NuxtLink>
     </div>
 
-    <div
-      v-if="zoneError || !zone"
-      class="surface-card border surface-border rounded-lg p-8 text-center"
-    >
+    <div v-if="zoneError || !zone" class="card p-8 text-center">
       <div class="text-4xl mb-2" aria-hidden="true">🗺️</div>
       <p class="text-secondary">Zone introuvable.</p>
     </div>
@@ -283,10 +280,7 @@ useHead({
       </div>
 
       <!-- Idle : explore button -->
-      <div
-        v-else-if="exploreState.kind === 'idle'"
-        class="surface-card border surface-border rounded-lg p-8 text-center"
-      >
+      <div v-else-if="exploreState.kind === 'idle'" class="card p-8 text-center">
         <p class="text-sm text-secondary mb-4">
           Plonge dans les hautes herbes pour rencontrer un Pokémon sauvage.
         </p>
@@ -300,19 +294,13 @@ useHead({
       </div>
 
       <!-- Exploring -->
-      <div
-        v-else-if="exploreState.kind === 'exploring'"
-        class="surface-card border surface-border rounded-lg p-8 text-center"
-      >
+      <div v-else-if="exploreState.kind === 'exploring'" class="card p-8 text-center">
         <div class="text-3xl mb-2 animate-pulse" aria-hidden="true">🌿</div>
         <p class="text-secondary">Tu fouilles les hautes herbes…</p>
       </div>
 
       <!-- Cooldown -->
-      <div
-        v-else-if="exploreState.kind === 'cooldown'"
-        class="surface-card border surface-border rounded-lg p-8 text-center"
-      >
+      <div v-else-if="exploreState.kind === 'cooldown'" class="card p-8 text-center">
         <div class="text-3xl mb-2" aria-hidden="true">⏳</div>
         <p class="text-secondary">
           Repos avant la prochaine exploration :
@@ -372,10 +360,7 @@ useHead({
       </div>
 
       <!-- Item -->
-      <div
-        v-else-if="exploreState.kind === 'item'"
-        class="surface-card border surface-border rounded-lg p-8 text-center"
-      >
+      <div v-else-if="exploreState.kind === 'item'" class="card p-8 text-center">
         <div class="text-5xl mb-2" aria-hidden="true">{{ exploreState.item.emoji }}</div>
         <p class="text-primary font-bold">Tu as trouvé un objet !</p>
         <p class="text-xs text-secondary mt-1 capitalize">{{ exploreState.item.kind }}</p>
@@ -392,10 +377,7 @@ useHead({
       </div>
 
       <!-- Nothing -->
-      <div
-        v-else-if="exploreState.kind === 'nothing'"
-        class="surface-card border surface-border rounded-lg p-8 text-center"
-      >
+      <div v-else-if="exploreState.kind === 'nothing'" class="card p-8 text-center">
         <div class="text-3xl mb-2" aria-hidden="true">🍃</div>
         <p class="text-secondary">Rien n'a bougé dans les herbes…</p>
         <button
@@ -408,10 +390,7 @@ useHead({
       </div>
 
       <!-- Fighting -->
-      <div
-        v-else-if="exploreState.kind === 'fighting'"
-        class="surface-card border surface-border rounded-lg p-8 text-center"
-      >
+      <div v-else-if="exploreState.kind === 'fighting'" class="card p-8 text-center">
         <div class="text-3xl mb-2 animate-pulse" aria-hidden="true">⚔️</div>
         <p class="text-secondary">Combat en cours…</p>
       </div>

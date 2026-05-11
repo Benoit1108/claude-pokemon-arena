@@ -23,7 +23,7 @@ const speeds: PlaybackSpeed[] = [0.5, 1, 2, 4]
 </script>
 
 <template>
-  <div class="surface-card border surface-border rounded-lg p-3 mb-4">
+  <div class="card p-3 mb-4">
     <div class="flex flex-wrap items-center gap-3">
       <button
         type="button"

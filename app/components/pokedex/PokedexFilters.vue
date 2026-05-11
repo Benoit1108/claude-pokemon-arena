@@ -18,7 +18,7 @@ function reset() {
 </script>
 
 <template>
-  <div class="surface-card border surface-border rounded-lg p-4 mb-6">
+  <div class="card p-4 mb-6">
     <div class="flex flex-wrap gap-3 items-center">
       <input
         v-model="filters.query"

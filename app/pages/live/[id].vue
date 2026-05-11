@@ -168,20 +168,20 @@ useHead({
       </p>
     </header>
 
-    <div v-if="error" class="surface-card border surface-border rounded-lg p-4 mb-6 text-center">
+    <div v-if="error" class="card p-4 mb-6 text-center">
       <p class="text-red-400">⚠ {{ error }}</p>
       <p v-if="lastFetchAt" class="text-xs text-muted mt-1">
         Dernier rafraîchissement : {{ Math.round((Date.now() - lastFetchAt) / 1000) }}s
       </p>
     </div>
 
-    <div v-if="!live" class="surface-card border surface-border rounded-lg p-12 text-center">
+    <div v-if="!live" class="card p-12 text-center">
       <div class="text-3xl mb-2" aria-hidden="true">⏳</div>
       <p class="text-secondary">Connexion au combat…</p>
     </div>
 
     <template v-else>
-      <div class="surface-card border surface-border rounded-lg p-4 mb-6 text-center">
+      <div class="card p-4 mb-6 text-center">
         <p class="text-lg font-semibold text-primary">{{ stateLabel }}</p>
         <p class="text-xs text-muted mt-1">
           tour {{ live.turn_no }} · dernière activité
@@ -190,7 +190,7 @@ useHead({
       </div>
 
       <div class="grid md:grid-cols-2 gap-4 mb-6">
-        <div class="surface-card border surface-border rounded-lg p-4">
+        <div class="card p-4">
           <div class="flex items-center gap-3 mb-3">
             <PokemonSprite
               v-if="live.challenger.snapshot"
@@ -221,7 +221,7 @@ useHead({
           </p>
         </div>
 
-        <div class="surface-card border surface-border rounded-lg p-4">
+        <div class="card p-4">
           <div class="flex items-center gap-3 mb-3">
             <PokemonSprite
               v-if="live.defender.snapshot"
@@ -257,10 +257,7 @@ useHead({
 
       <!-- Sprint 2.12 — move picker shown when this browser is paired to one
            of the participants and the battle is awaiting their commit. -->
-      <div
-        v-if="canCommit && myAvailableMoves.length"
-        class="surface-card border surface-border rounded-lg p-4 mb-6"
-      >
+      <div v-if="canCommit && myAvailableMoves.length" class="card p-4 mb-6">
         <h2 class="text-sm uppercase tracking-wider text-muted mb-3 text-center">
           🎯 Choisis ton attaque
           <span class="text-accent"
@@ -278,21 +275,21 @@ useHead({
 
       <div
         v-else-if="myHasPendingAction && live.state === 'active'"
-        class="surface-card border surface-border rounded-lg p-3 mb-6 text-center text-sm text-secondary"
+        class="card p-3 mb-6 text-center text-sm text-secondary"
       >
         ✓ Coup verrouillé — en attente de l'adversaire.
       </div>
 
       <div
         v-else-if="!isPaired && live.state === 'active'"
-        class="surface-card border surface-border rounded-lg p-3 mb-6 text-center text-xs text-muted"
+        class="card p-3 mb-6 text-center text-xs text-muted"
       >
         🔗 Pour jouer depuis le navigateur :
         <NuxtLink to="/pair" class="text-accent underline">appairer ce navigateur</NuxtLink>
         avec ton install CLI.
       </div>
 
-      <div v-if="recentTurns.length" class="surface-card border surface-border rounded-lg p-4 mb-6">
+      <div v-if="recentTurns.length" class="card p-4 mb-6">
         <h2 class="text-sm uppercase tracking-wider text-muted mb-2">Derniers échanges</h2>
         <ul class="space-y-1 text-sm">
           <li v-for="t in recentTurns" :key="t.turn" class="flex justify-between">
@@ -309,7 +306,7 @@ useHead({
 
       <div
         v-if="live.state === 'finished' || live.state === 'abandoned'"
-        class="surface-card border surface-border rounded-lg p-6 text-center"
+        class="card p-6 text-center"
       >
         <div class="text-4xl mb-2" aria-hidden="true">
           {{ winner === 'draw' ? '🤝' : '🏆' }}

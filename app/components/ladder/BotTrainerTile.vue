@@ -16,7 +16,7 @@ const tileGradient = computed(() => lineageGradient(props.bot.lineage))
 <template>
   <NuxtLink
     :to="isLocked ? '' : `/ladder/${bot.id}`"
-    class="relative block surface-card border surface-border rounded-lg p-4 transition overflow-hidden"
+    class="relative block card p-4 transition overflow-hidden"
     :class="{
       'opacity-50 pointer-events-none cursor-not-allowed': isLocked,
       'ring-2 ring-accent': isNext,

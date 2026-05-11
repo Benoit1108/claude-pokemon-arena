@@ -93,7 +93,7 @@ useHead({
       </p>
     </header>
 
-    <div v-if="isPaired" class="surface-card border surface-border rounded-lg p-6 text-center">
+    <div v-if="isPaired" class="card p-6 text-center">
       <div class="text-4xl mb-2" aria-hidden="true">✓</div>
       <p class="text-lg font-semibold text-primary">Navigateur appairé</p>
       <p class="text-sm text-secondary mt-1">
@@ -113,16 +113,13 @@ useHead({
       </button>
     </div>
 
-    <div
-      v-else-if="status === 'redeeming'"
-      class="surface-card border surface-border rounded-lg p-6 text-center"
-    >
+    <div v-else-if="status === 'redeeming'" class="card p-6 text-center">
       <div class="text-3xl mb-2" aria-hidden="true">⏳</div>
       <p class="text-secondary">Redemption en cours…</p>
     </div>
 
     <div v-else class="space-y-4">
-      <div class="surface-card border surface-border rounded-lg p-6">
+      <div class="card p-6">
         <p class="text-sm text-secondary mb-4">
           Étape 1 : sur ton install CLI, lance
           <code class="text-accent">/pokemon arena pair</code>. Tu obtiens un code à 6 caractères.
@@ -152,7 +149,7 @@ useHead({
 
       <p v-if="status === 'error'" class="text-center text-red-400 text-sm">⚠ {{ errorMsg }}</p>
 
-      <div class="surface-card border surface-border rounded-lg p-4 text-xs text-muted">
+      <div class="card p-4 text-xs text-muted">
         🔒 Ton arena_secret est stocké dans le localStorage du navigateur uniquement. Pour le
         retirer, clique « Déconnecter » ici, ou efface les données du site.
       </div>

@@ -49,7 +49,7 @@ function confirmReset() {
     </header>
 
     <!-- Progress bar -->
-    <div class="surface-card border surface-border rounded-lg p-4 mb-6">
+    <div class="card p-4 mb-6">
       <div class="flex items-center justify-between text-sm text-secondary mb-2">
         <span class="font-mono">
           {{ ladder.beatenCount.value }} / {{ ladder.totalCount }} beaten

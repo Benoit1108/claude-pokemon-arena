@@ -130,7 +130,7 @@ async function react(reaction: ReactionKey) {
 </script>
 
 <template>
-  <div class="surface-card border surface-border rounded-lg p-4 mb-6">
+  <div class="card p-4 mb-6">
     <div class="text-xs uppercase tracking-widest text-secondary mb-3 text-center">
       GG — réagissez au combat
     </div>

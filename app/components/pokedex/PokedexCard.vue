@@ -30,7 +30,7 @@ const spriteFailed = ref(false)
 <template>
   <NuxtLink
     :to="`/pokedex/${pokemon.id}`"
-    class="surface-card border surface-border rounded-lg p-3 transition surface-card-hover relative block hover:scale-[1.03]"
+    class="card p-3 transition surface-card-hover relative block hover:scale-[1.03]"
     :class="[rarityRing, seenByTrainer === false ? 'opacity-30 grayscale' : '']"
     :title="`${pokemon.name_en} · ${pokemon.type} · ${pokemon.rarity}`"
   >

@@ -313,7 +313,7 @@ useHead({
       />
       <div
         v-else-if="!manual.state.value.finished"
-        class="surface-card border surface-border rounded-lg p-4 mb-4 text-center text-secondary"
+        class="card p-4 mb-4 text-center text-secondary"
       >
         <span class="inline-block animate-pulse">⏳ {{ bot.name }} réfléchit...</span>
       </div>
@@ -351,10 +351,7 @@ useHead({
         </div>
       </div>
 
-      <div
-        v-else-if="manual.state.value.finished"
-        class="surface-card border surface-border rounded-lg p-6 mb-6 text-center"
-      >
+      <div v-else-if="manual.state.value.finished" class="card p-6 mb-6 text-center">
         <p class="text-secondary text-sm mb-3">{{ bot.name }} t'a vaincu·e cette fois.</p>
         <button
           type="button"

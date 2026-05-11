@@ -75,7 +75,7 @@ useHead({
       </NuxtLink>
     </div>
 
-    <div v-if="!species" class="surface-card border surface-border rounded-lg p-12 text-center">
+    <div v-if="!species" class="card p-12 text-center">
       <div class="text-6xl mb-4" aria-hidden="true">🔍</div>
       <h1 class="text-2xl font-bold text-primary mb-2">Pokémon introuvable</h1>
       <p class="text-secondary">
@@ -96,7 +96,7 @@ useHead({
       </header>
 
       <div class="grid sm:grid-cols-3 gap-4 mb-8">
-        <div class="surface-card border surface-border rounded-lg p-4 flex flex-col items-center">
+        <div class="card p-4 flex flex-col items-center">
           <div class="text-xs uppercase tracking-widest text-muted mb-2">Front</div>
           <img
             v-if="!frontFailed"
@@ -110,7 +110,7 @@ useHead({
           <span v-else class="text-7xl" aria-hidden="true">{{ species.emoji }}</span>
         </div>
 
-        <div class="surface-card border surface-border rounded-lg p-4 flex flex-col items-center">
+        <div class="card p-4 flex flex-col items-center">
           <div class="text-xs uppercase tracking-widest text-muted mb-2">Back</div>
           <img
             v-if="!backFailed"
@@ -124,7 +124,7 @@ useHead({
           <span v-else class="text-7xl" aria-hidden="true">{{ species.emoji }}</span>
         </div>
 
-        <div class="surface-card border surface-border rounded-lg p-4 flex flex-col items-center">
+        <div class="card p-4 flex flex-col items-center">
           <div class="text-xs uppercase tracking-widest text-muted mb-2">✦ Shiny</div>
           <img
             v-if="!shinyFailed"
@@ -139,7 +139,7 @@ useHead({
         </div>
       </div>
 
-      <div class="surface-card border surface-border rounded-lg p-6 mb-8">
+      <div class="card p-6 mb-8">
         <h2 class="text-sm uppercase tracking-wider text-muted mb-4">Caractéristiques</h2>
         <dl class="grid sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
           <div class="flex justify-between">
@@ -185,7 +185,7 @@ useHead({
         <NuxtLink
           v-if="prev"
           :to="`/pokedex/${prev.id}`"
-          class="surface-card border surface-border rounded-md px-4 py-2 surface-card-hover transition flex items-center gap-2 max-w-[45%]"
+          class="card rounded-md px-4 py-2 surface-card-hover transition flex items-center gap-2 max-w-[45%]"
         >
           <span aria-hidden="true">←</span>
           <span class="text-muted text-xs"
@@ -198,7 +198,7 @@ useHead({
         <NuxtLink
           v-if="next"
           :to="`/pokedex/${next.id}`"
-          class="surface-card border surface-border rounded-md px-4 py-2 surface-card-hover transition flex items-center gap-2 max-w-[45%] ml-auto"
+          class="card rounded-md px-4 py-2 surface-card-hover transition flex items-center gap-2 max-w-[45%] ml-auto"
         >
           <span class="text-primary truncate">{{ next.name_fr }}</span>
           <span class="text-muted text-xs"

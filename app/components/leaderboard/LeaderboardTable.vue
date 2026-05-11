@@ -13,7 +13,7 @@ defineProps<{
     <h2 class="text-sm uppercase tracking-wider text-muted mb-3">
       🏆 {{ title || 'Leaderboard — total tokens' }}
     </h2>
-    <div class="surface-card border surface-border rounded-lg overflow-hidden">
+    <div class="card overflow-hidden">
       <table class="w-full">
         <tbody>
           <tr

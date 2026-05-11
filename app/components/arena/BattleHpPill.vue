@@ -23,7 +23,7 @@ const barColor = computed(() => {
 
 <template>
   <div
-    class="surface-card border surface-border rounded-md px-3 py-2 shadow-md"
+    class="card rounded-md px-3 py-2 shadow-md"
     :class="side === 'challenger' ? 'rounded-bl-2xl' : 'rounded-tr-2xl'"
   >
     <div class="flex items-baseline justify-between gap-3">
