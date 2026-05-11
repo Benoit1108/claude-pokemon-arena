@@ -236,14 +236,14 @@ onBeforeUnmount(() => {
     border-color 200ms cubic-bezier(0.16, 1, 0.3, 1),
     background-color 200ms cubic-bezier(0.16, 1, 0.3, 1);
 }
-:global(html.dark) .user-pill {
+:global(html.dark .user-pill) {
   border-color: rgb(48 54 61);
   background-color: rgb(28 33 40);
 }
 .user-pill:hover {
   border-color: rgb(212 160 23 / 0.5);
 }
-:global(html.dark) .user-pill:hover {
+:global(html.dark .user-pill:hover) {
   border-color: rgb(255 215 0 / 0.5);
   background-color: rgb(22 27 34);
 }
@@ -261,7 +261,7 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
   box-sizing: content-box;
 }
-:global(html.dark) .user-avatar {
+:global(html.dark .user-avatar) {
   background: rgb(22 27 34);
 }
 .user-name {
@@ -293,13 +293,13 @@ onBeforeUnmount(() => {
 .menu-item:hover {
   background: rgb(244 244 245);
 }
-:global(html.dark) .menu-item:hover {
+:global(html.dark .menu-item:hover) {
   background: rgb(33 38 45);
 }
 .menu-item-danger {
   color: rgb(220 38 38);
 }
-:global(html.dark) .menu-item-danger {
+:global(html.dark .menu-item-danger) {
   color: rgb(239 68 68);
 }
 .menu-item-danger:hover {

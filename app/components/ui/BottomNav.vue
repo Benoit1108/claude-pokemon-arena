@@ -73,13 +73,13 @@ function isActive(entry: Entry): boolean {
   transition: color 200ms cubic-bezier(0.16, 1, 0.3, 1);
   text-decoration: none;
 }
-:global(html.dark) .bnav-item {
+:global(html.dark .bnav-item) {
   color: rgb(161 161 170);
 }
 .bnav-item:hover {
   color: rgb(82 82 91);
 }
-:global(html.dark) .bnav-item:hover {
+:global(html.dark .bnav-item:hover) {
   color: rgb(228 228 231);
 }
 .bnav-item svg {
@@ -88,7 +88,7 @@ function isActive(entry: Entry): boolean {
 .bnav-item[aria-current='page'] {
   color: rgb(24 24 27);
 }
-:global(html.dark) .bnav-item[aria-current='page'] {
+:global(html.dark .bnav-item[aria-current='page']) {
   color: rgb(244 244 245);
 }
 .bnav-item[aria-current='page'] svg {
@@ -106,7 +106,7 @@ function isActive(entry: Entry): boolean {
   background: linear-gradient(90deg, #d4a017, #ef6c00);
   box-shadow: 0 0 12px -2px #d4a017;
 }
-:global(html.dark) .bnav-item[aria-current='page']::after {
+:global(html.dark .bnav-item[aria-current='page']::after) {
   background: linear-gradient(90deg, #ffd700, #ef6c00);
   box-shadow: 0 0 12px -2px #ffd700;
 }

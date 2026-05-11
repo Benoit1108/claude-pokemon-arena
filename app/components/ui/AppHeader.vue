@@ -127,7 +127,7 @@ const starsLabel = computed(() => {
   background-clip: text;
   color: transparent;
 }
-:global(html.dark) .header-wordmark-accent {
+:global(html.dark .header-wordmark-accent) {
   background: linear-gradient(135deg, #ffd700 0%, #ef6c00 100%);
   -webkit-background-clip: text;
   background-clip: text;
@@ -146,14 +146,14 @@ const starsLabel = computed(() => {
     color 200ms cubic-bezier(0.16, 1, 0.3, 1),
     background-color 200ms cubic-bezier(0.16, 1, 0.3, 1);
 }
-:global(html.dark) .nav-tab {
+:global(html.dark .nav-tab) {
   color: rgb(161 161 170); /* zinc-400 */
 }
 .nav-tab:hover {
   color: rgb(24 24 27);
   background: rgb(244 244 245 / 0.6);
 }
-:global(html.dark) .nav-tab:hover {
+:global(html.dark .nav-tab:hover) {
   color: rgb(244 244 245);
   background: rgb(255 255 255 / 0.04);
 }
@@ -161,7 +161,7 @@ const starsLabel = computed(() => {
   color: rgb(24 24 27);
   font-weight: 600;
 }
-:global(html.dark) .nav-tab[aria-current='page'] {
+:global(html.dark .nav-tab[aria-current='page']) {
   color: rgb(244 244 245);
 }
 .nav-tab[aria-current='page']::after {
@@ -174,7 +174,7 @@ const starsLabel = computed(() => {
   background: linear-gradient(90deg, #d4a017 0%, #ef6c00 100%);
   border-radius: 2px 2px 0 0;
 }
-:global(html.dark) .nav-tab[aria-current='page']::after {
+:global(html.dark .nav-tab[aria-current='page']::after) {
   background: linear-gradient(90deg, #ffd700 0%, #ef6c00 100%);
 }
 </style>

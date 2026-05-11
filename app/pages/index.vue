@@ -284,12 +284,12 @@ const lineageColor: Record<FeaturedTile['lineage'], string> = {
   border-radius: 50%;
   box-shadow: 0 0 0 4px rgb(212 160 23 / 0.1);
 }
-:global(html.dark) .hero-eyebrow {
+:global(html.dark .hero-eyebrow) {
   background: rgb(255 215 0 / 0.1);
   color: rgb(255 215 0);
   border-color: rgb(255 215 0 / 0.3);
 }
-:global(html.dark) .hero-eyebrow::before {
+:global(html.dark .hero-eyebrow::before) {
   background: #ffd700;
   box-shadow: 0 0 0 4px rgb(255 215 0 / 0.1);
 }
@@ -300,7 +300,7 @@ const lineageColor: Record<FeaturedTile['lineage'], string> = {
   background-clip: text;
   color: transparent;
 }
-:global(html.dark) .hero-accent {
+:global(html.dark .hero-accent) {
   background: linear-gradient(135deg, #ffd700 0%, #ef6c00 100%);
   -webkit-background-clip: text;
   background-clip: text;
@@ -314,7 +314,7 @@ const lineageColor: Record<FeaturedTile['lineage'], string> = {
   color: rgb(82 82 91);
   line-height: 1.55;
 }
-:global(html.dark) .hero-subtitle {
+:global(html.dark .hero-subtitle) {
   color: rgb(139 148 158);
 }
 
@@ -327,14 +327,14 @@ const lineageColor: Record<FeaturedTile['lineage'], string> = {
   z-index: -1;
   color: rgb(24 24 27);
 }
-:global(html.dark) .hero-deco {
+:global(html.dark .hero-deco) {
   color: rgb(240 246 252);
 }
 .hero-deco svg {
   position: absolute;
   opacity: 0.06;
 }
-:global(html.dark) .hero-deco svg {
+:global(html.dark .hero-deco svg) {
   opacity: 0.08;
 }
 .hero-deco .p1 {
@@ -369,7 +369,7 @@ const lineageColor: Record<FeaturedTile['lineage'], string> = {
     border-color 200ms cubic-bezier(0.16, 1, 0.3, 1),
     box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1);
 }
-:global(html.dark) .tile {
+:global(html.dark .tile) {
   background: #161b22;
   border-color: rgb(48 54 61);
 }
@@ -406,7 +406,7 @@ const lineageColor: Record<FeaturedTile['lineage'], string> = {
 .tile:hover::before {
   opacity: 0.18;
 }
-:global(html.dark) .tile:hover::before {
+:global(html.dark .tile:hover::before) {
   opacity: 0.22;
 }
 .tile:hover::after {
@@ -451,7 +451,7 @@ const lineageColor: Record<FeaturedTile['lineage'], string> = {
   color: rgb(82 82 91);
   line-height: 1.55;
 }
-:global(html.dark) .tile-desc {
+:global(html.dark .tile-desc) {
   color: rgb(139 148 158);
 }
 .tile-cta {

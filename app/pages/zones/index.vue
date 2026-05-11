@@ -246,7 +246,7 @@ useHead({
     border-color 200ms cubic-bezier(0.16, 1, 0.3, 1),
     box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1);
 }
-:global(html.dark) .zone {
+:global(html.dark .zone) {
   background: #161b22;
   border-color: rgb(48 54 61);
 }
@@ -261,7 +261,7 @@ useHead({
   opacity: 0.08;
   transition: opacity 200ms cubic-bezier(0.16, 1, 0.3, 1);
 }
-:global(html.dark) .zone-bg {
+:global(html.dark .zone-bg) {
   opacity: 0.11;
 }
 
@@ -281,7 +281,7 @@ useHead({
 .zone:hover .zone-bg {
   opacity: 0.2;
 }
-:global(html.dark) .zone:hover .zone-bg {
+:global(html.dark .zone:hover .zone-bg) {
   opacity: 0.24;
 }
 .zone:hover .zone-cta {
@@ -310,7 +310,7 @@ useHead({
   border-color: rgb(228 228 231);
   box-shadow: none;
 }
-:global(html.dark) .zone--locked:hover {
+:global(html.dark .zone--locked:hover) {
   border-color: rgb(48 54 61);
 }
 .zone--locked:hover .zone-bg {
@@ -344,7 +344,7 @@ useHead({
   letter-spacing: -0.01em;
   color: rgb(24 24 27);
 }
-:global(html.dark) .zone-title {
+:global(html.dark .zone-title) {
   color: rgb(240 246 252);
 }
 
@@ -358,7 +358,7 @@ useHead({
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-:global(html.dark) .zone-desc {
+:global(html.dark .zone-desc) {
   color: rgb(139 148 158);
 }
 
@@ -380,7 +380,7 @@ useHead({
   height: 10px;
   background: rgb(228 228 231);
 }
-:global(html.dark) .zone-meta-div {
+:global(html.dark .zone-meta-div) {
   background: rgb(48 54 61);
 }
 .zone-pool {
@@ -428,7 +428,7 @@ useHead({
   border-radius: 50%;
   color: rgb(82 82 91);
 }
-:global(html.dark) .zone-lock {
+:global(html.dark .zone-lock) {
   background: rgb(28 33 40);
   border-color: rgb(48 54 61);
   color: rgb(161 161 170);
@@ -461,7 +461,7 @@ useHead({
   background: rgb(22 163 74 / 0.12);
   color: rgb(22 163 74);
 }
-:global(html.dark) .status-badge--sweet {
+:global(html.dark .status-badge--sweet) {
   background: rgb(34 197 94 / 0.14);
   color: rgb(34 197 94);
 }
@@ -469,7 +469,7 @@ useHead({
   background: rgb(37 99 235 / 0.12);
   color: rgb(37 99 235);
 }
-:global(html.dark) .status-badge--preview {
+:global(html.dark .status-badge--preview) {
   background: rgb(59 130 246 / 0.14);
   color: rgb(59 130 246);
 }
@@ -477,7 +477,7 @@ useHead({
   background: rgb(217 119 6 / 0.12);
   color: rgb(217 119 6);
 }
-:global(html.dark) .status-badge--outclassed {
+:global(html.dark .status-badge--outclassed) {
   background: rgb(245 158 11 / 0.14);
   color: rgb(245 158 11);
 }
@@ -485,7 +485,7 @@ useHead({
   background: rgb(244 244 245);
   color: rgb(113 113 122);
 }
-:global(html.dark) .status-badge--locked {
+:global(html.dark .status-badge--locked) {
   background: rgb(33 38 45);
   color: rgb(139 148 158);
 }
@@ -501,7 +501,7 @@ useHead({
   gap: 0.625rem 1rem;
   align-items: center;
 }
-:global(html.dark) .legend {
+:global(html.dark .legend) {
   background: #161b22;
   border-color: rgb(48 54 61);
 }
@@ -519,7 +519,7 @@ useHead({
   font-size: 0.8125rem;
   color: rgb(82 82 91);
 }
-:global(html.dark) .legend-row {
+:global(html.dark .legend-row) {
   color: rgb(139 148 158);
 }
 @media (max-width: 560px) {
