@@ -68,16 +68,50 @@ onBeforeUnmount(() => {
 <template>
   <ClientOnly>
     <div ref="menuRef" class="relative">
-      <!-- NOT PAIRED — small pill linking to /pair -->
-      <NuxtLink
-        v-if="!isPaired"
-        to="/pair"
-        class="flex items-center gap-2 px-3 py-2 rounded-full border surface-border surface-card surface-card-hover text-sm transition shadow"
-        title="Se connecter à un compte claude-pokemon (via CLI ou signup)"
-      >
-        <PokeballIcon size="sm" />
-        <span class="text-secondary hidden sm:inline">Se connecter</span>
-      </NuxtLink>
+      <!-- NOT PAIRED — pill with dropdown offering signup OR pair (Sprint 4.2). -->
+      <div v-if="!isPaired" class="relative">
+        <button
+          type="button"
+          class="flex items-center gap-2 px-3 py-2 rounded-full border surface-border surface-card surface-card-hover text-sm transition shadow"
+          title="Créer un compte ou pair ton CLI"
+          @click="open = !open"
+        >
+          <PokeballIcon size="sm" />
+          <span class="text-secondary hidden sm:inline">Se connecter</span>
+          <span
+            class="text-xs text-muted transition-transform"
+            :class="open ? 'rotate-180' : ''"
+            aria-hidden="true"
+            >▾</span
+          >
+        </button>
+        <Transition name="menu-fade">
+          <div
+            v-if="open"
+            class="absolute left-0 mt-2 w-64 surface-card border surface-border rounded-md shadow-2xl py-1 z-50"
+            role="menu"
+          >
+            <NuxtLink
+              to="/signup"
+              class="block px-3 py-2 text-sm surface-card-hover text-primary transition"
+              role="menuitem"
+              @click="open = false"
+            >
+              <div class="font-bold">🎮 Créer mon dresseur</div>
+              <div class="text-xs text-muted">Pas besoin de CLI — joue tout de suite</div>
+            </NuxtLink>
+            <NuxtLink
+              to="/pair"
+              class="block px-3 py-2 text-sm surface-card-hover text-primary transition border-t surface-border"
+              role="menuitem"
+              @click="open = false"
+            >
+              <div class="font-bold">🔗 Pair mon CLI</div>
+              <div class="text-xs text-muted">J'utilise déjà claude-pokemon en local</div>
+            </NuxtLink>
+          </div>
+        </Transition>
+      </div>
 
       <!-- PAIRED — avatar + display_name + level + dropdown trigger -->
       <button

@@ -112,4 +112,45 @@ export class ApiClient {
       body: args.patch,
     })
   }
+
+  /**
+   * Sprint 4.2 — web-native trainer signup. Wraps POST /v1/arena/enable
+   * with the same payload shape as the CLI's enable flow but stamped
+   * origin='web'. Returns the arena_secret ONCE — caller MUST persist it
+   * to localStorage (via useArenaSession.set) immediately.
+   */
+  arenaEnable(args: {
+    anon_id: string
+    display_name?: string | null
+    lineage:
+      | 'fire'
+      | 'water'
+      | 'grass'
+      | 'electric'
+      | 'eevee'
+      | 'chikorita'
+      | 'cyndaquil'
+      | 'totodile'
+    level: number
+    is_shiny: boolean
+    origin: 'cli' | 'web'
+  }): Promise<{
+    ok: true
+    arena_secret: string
+    enabled_at: string
+    origin: 'cli' | 'web'
+    team_snapshot: {
+      anon_id: string
+      display_name: string | null
+      lineage: string
+      level: number
+      is_shiny: boolean
+    }
+  }> {
+    return this.fetcher('/v1/arena/enable', {
+      method: 'POST',
+      baseURL: this.baseUrl,
+      body: args,
+    })
+  }
 }

@@ -104,11 +104,20 @@ onBeforeUnmount(() => {
         between trainers worldwide.
       </p>
       <div class="mt-8 flex justify-center gap-3 flex-wrap">
-        <a
-          href="https://www.npmjs.com/package/claude-pokemon"
+        <!-- Sprint 4.2 — two equal-weight CTAs : web signup OR CLI install.
+             "Hero feature" = CLI (statusline pokémon), but web is now a full
+             first-class entry point. -->
+        <NuxtLink
+          to="/signup"
           class="px-5 py-2.5 bg-accent text-zinc-900 font-bold rounded-md hover:opacity-90 transition"
         >
-          Install the CLI →
+          🎮 Crée ton dresseur
+        </NuxtLink>
+        <a
+          href="https://www.npmjs.com/package/claude-pokemon"
+          class="px-5 py-2.5 border-2 border-accent text-accent font-bold rounded-md hover:bg-accent/10 transition"
+        >
+          💻 Install the CLI →
         </a>
         <NuxtLink
           to="/pokedex"
