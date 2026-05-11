@@ -94,9 +94,9 @@ useHead({
 
 <template>
   <main
+    :key="`shake-${juice.shakeKey.value}`"
     class="max-w-4xl mx-auto px-6 py-12 relative"
     :class="{ 'crit-shake': juice.shakeKey.value }"
-    :key="`shake-${juice.shakeKey.value}`"
     :style="{ background: backdropGradient }"
   >
     <div class="mb-6">

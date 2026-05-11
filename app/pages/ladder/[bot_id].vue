@@ -160,11 +160,11 @@ useHead({
 
 <template>
   <main
+    :key="`shake-${mode === 'auto' ? autoJuice.shakeKey.value : manualJuice.shakeKey.value}`"
     class="max-w-4xl mx-auto px-6 py-12 relative"
     :class="{
       'crit-shake': mode === 'auto' ? autoJuice.shakeKey.value : manualJuice.shakeKey.value,
     }"
-    :key="`shake-${mode === 'auto' ? autoJuice.shakeKey.value : manualJuice.shakeKey.value}`"
     :style="{ background: tileGradient }"
   >
     <div class="mb-6">
