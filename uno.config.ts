@@ -1,24 +1,29 @@
 import { defineConfig, presetWind4 } from 'unocss'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Design tokens — Sprint 4.9 audit revealed 46 sites duplicating the exact
-// string `surface-card border surface-border rounded-lg`, 220/312 typography
-// usages stuck in `text-xs`/`text-sm` with no semantic name, and 3 different
-// transition durations (150/300/500ms) sprinkled inline. The tokens below
-// give those patterns *one name each*, leaving raw utilities for one-off
-// cases. Composition rule : `card p-4` over `card-md` so padding stays
-// explicit at the call site (audit showed p-3, p-4, p-6, p-12 are all used
-// for legitimate visual reasons).
+// Design tokens — Sprint 5 design pass.
 //
-// Token philosophy : *additive*, not restrictive. Existing utilities still
-// work — these shortcuts just give a single semantic source of truth for the
-// patterns we already repeat 10+ times. Migration is opt-in per component.
+// Iteration on the Sprint 4.9 baseline. The audit + mockup pass identified a
+// few more gaps :
+//   1. Typography needs a real *display* face (Bricolage Grotesque) for
+//      headings + a clean body face (DM Sans). Was system + mono only.
+//   2. Border radii were too tight (rounded-md = 6px) — the "Pokémon canon
+//      moderne" DA reads better at 10/14/20 px.
+//   3. Status colors had no `*-soft` background variants → needed for zone
+//      badges + battle effectiveness pills.
+//   4. Shadows were unused (audit found 8 sites total) but the new tile
+//      hover-glow + glow-gold for primary CTA need them.
+//   5. Easing curves : single `ease-out` 200ms was fine for fades but the
+//      segmented theme thumb + tile hover want a spring curve.
+//
+// Composition rule unchanged : `card p-4` over `card-md`. Tokens stay
+// additive — old utilities (rounded-md numeric, text-xl, etc.) still work.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default defineConfig({
   presets: [
     presetWind4({
-      // Enable .dark / .light class strategy (color-mode module sets these on <html>)
+      // .dark / .light class strategy (color-mode module sets these on <html>)
       dark: 'class',
     }),
   ],
@@ -39,26 +44,86 @@ export default defineConfig({
       gold: {
         DEFAULT: '#ffd700',
         soft: '#d4a017', // for light mode (better contrast on white)
+        strong: '#b8860b', // hover / border on btn-primary
       },
-      // Sprint 4.9 — status colors with theme variants. Replaces the ad-hoc
-      // `text-emerald-400` / `text-red-400` / `text-amber-400` sprinkled in
-      // battle UI. Each pair = (light, dark) so the readable shade flips
-      // with the theme automatically.
+      // Status colors with theme variants.
       status: {
-        success: { DEFAULT: '#15803d', dark: '#34d399' }, // emerald-700 / emerald-400
-        warning: { DEFAULT: '#b45309', dark: '#fbbf24' }, // amber-700 / amber-400
-        danger: { DEFAULT: '#b91c1c', dark: '#f87171' }, // red-700 / red-400
-        info: { DEFAULT: '#1d4ed8', dark: '#60a5fa' }, // blue-700 / blue-400
+        success: { DEFAULT: '#16a34a', dark: '#22c55e' },
+        warning: { DEFAULT: '#d97706', dark: '#f59e0b' },
+        danger: { DEFAULT: '#dc2626', dark: '#ef4444' },
+        info: { DEFAULT: '#2563eb', dark: '#3b82f6' },
       },
     },
     fontFamily: {
-      mono: 'ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, monospace',
+      // Sprint 5 — 3-font stack. Bricolage Grotesque for personality on
+      // headings, DM Sans for body readability, JetBrains Mono for code +
+      // numbers + ids.
+      display: '"Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif',
+      body: '"DM Sans", ui-sans-serif, system-ui, sans-serif',
+      mono: '"JetBrains Mono", ui-monospace, "Cascadia Code", "SF Mono", Menlo, monospace',
       pixel: '"Press Start 2P", system-ui, monospace',
+    },
+    borderRadius: {
+      // Sprint 5 — softer scale matching the mockup. Default rounded-md was
+      // 6px ; bumping to 10px gives the friendly "Pokémon canon" feel. Wide
+      // impact (every existing `rounded-md` / `rounded-lg` shifts) — intended.
+      none: '0',
+      sm: '6px',
+      DEFAULT: '10px',
+      md: '10px',
+      lg: '14px',
+      xl: '20px',
+      '2xl': '28px',
+      full: '9999px',
+      pill: '9999px',
+    },
+    boxShadow: {
+      none: 'none',
+      sm: '0 1px 2px 0 rgb(0 0 0 / 0.04)',
+      DEFAULT: '0 1px 3px 0 rgb(0 0 0 / 0.06)',
+      md: '0 4px 12px -2px rgb(0 0 0 / 0.08), 0 2px 4px -1px rgb(0 0 0 / 0.04)',
+      lg: '0 14px 36px -8px rgb(0 0 0 / 0.14), 0 4px 10px -2px rgb(0 0 0 / 0.06)',
+      xl: '0 24px 48px -12px rgb(0 0 0 / 0.18)',
+      'glow-gold': '0 0 0 1px rgb(212 160 23 / 0.30), 0 12px 32px -10px rgb(212 160 23 / 0.45)',
+    },
+    transitionTimingFunction: {
+      // Smooth out — default for fades, color shifts.
+      out: 'cubic-bezier(0.16, 1, 0.3, 1)',
+      // Spring — for translate / scale (theme thumb, tile hover lift).
+      spring: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
     },
   },
   rules: [
-    // Pixelated rendering for sprite images
+    // Pixelated rendering for sprite images.
     ['pixel-render', { 'image-rendering': 'pixelated' }],
+    // Lineage-soft backgrounds (10% opacity). Static map so UnoCSS can
+    // generate the rules at build time — `bg-lineage-fire/10` would force
+    // a JIT pass per color which is what we want to avoid.
+    [
+      /^bg-lineage-(fire|water|grass|electric)-soft$/,
+      ([, c]) => {
+        const colors: Record<string, string> = {
+          fire: 'rgb(239 108 0 / 0.12)',
+          water: 'rgb(38 143 255 / 0.12)',
+          grass: 'rgb(100 180 55 / 0.14)',
+          electric: 'rgb(255 218 0 / 0.16)',
+        }
+        return { 'background-color': colors[c!] }
+      },
+    ],
+    // Status soft backgrounds.
+    [
+      /^bg-status-(success|warning|danger|info)-soft$/,
+      ([, c]) => {
+        const colors: Record<string, string> = {
+          success: 'rgb(22 163 74 / 0.12)',
+          warning: 'rgb(217 119 6 / 0.12)',
+          danger: 'rgb(220 38 38 / 0.12)',
+          info: 'rgb(37 99 235 / 0.12)',
+        }
+        return { 'background-color': colors[c!] }
+      },
+    ],
   ],
   // Shortcuts = semantic class aliases that resolve to dark:/light: variants.
   // Use these in components for theme-adaptive styling.
@@ -68,75 +133,78 @@ export default defineConfig({
     'surface-card': 'bg-white dark:bg-[#161b22]',
     'surface-card-hover': 'hover:bg-zinc-100 dark:hover:bg-[#21262d]',
     'surface-border': 'border-zinc-200 dark:border-[#30363d]',
-    /** Sprint 4.9 — popovers / dropdowns / modals. Slightly elevated tone
-     * over `surface-card` to read above content. */
-    'surface-elevated': 'bg-white dark:bg-[#1c2128] shadow-lg shadow-black/20',
+    /** Popovers / dropdowns / modals — sits above `surface-card`. */
+    'surface-elevated': 'bg-[#f4f4f5] dark:bg-[#1c2128] shadow-lg shadow-black/20',
+    /** Sticky header backdrop. Theme-aware translucent fill, used with
+     * `backdrop-blur-md` for the frosted-glass effect. */
+    'surface-overlay': 'bg-zinc-50/80 dark:bg-[#0d1117]/80',
 
-    // ── Text ───────────────────────────────────────────────────────────────
+    // ── Text colors ────────────────────────────────────────────────────────
     'text-primary': 'text-zinc-900 dark:text-zinc-100',
     'text-secondary': 'text-zinc-600 dark:text-zinc-400',
     'text-muted': 'text-zinc-500 dark:text-zinc-500',
+    'text-tertiary': 'text-zinc-400 dark:text-zinc-500',
     'text-accent': 'text-gold-soft dark:text-gold',
     'bg-accent': 'bg-gold-soft dark:bg-gold',
-    /** Sprint 4.9 — status text shortcuts. Theme-aware. */
-    'text-success': 'text-[#15803d] dark:text-[#34d399]',
-    'text-warning': 'text-[#b45309] dark:text-[#fbbf24]',
-    'text-danger': 'text-[#b91c1c] dark:text-[#f87171]',
-    'text-info': 'text-[#1d4ed8] dark:text-[#60a5fa]',
+    'border-accent': 'border-gold-soft dark:border-gold',
+    /** Status text shortcuts. Theme-aware. */
+    'text-success': 'text-status-success dark:text-status-success-dark',
+    'text-warning': 'text-status-warning dark:text-status-warning-dark',
+    'text-danger': 'text-status-danger dark:text-status-danger-dark',
+    'text-info': 'text-status-info dark:text-status-info-dark',
 
     // ── Typography ─────────────────────────────────────────────────────────
-    // Semantic type scale. Use these over raw `text-2xl font-bold` so we can
-    // adjust the scale globally (responsive size, weight, tracking) in one
-    // place.
-    /** Hero / landing page headline. Mirrors the index.vue h1. */
-    'text-display': 'text-5xl md:text-6xl font-bold tracking-tight',
+    // Headings use the display face (Bricolage). Body / meta / caption stay
+    // on the body face (DM Sans). Mono on JetBrains for code + numbers.
+    /** Hero / landing page headline — clamp for fluid scaling. */
+    'text-display':
+      'font-display font-bold tracking-tight leading-[1.02] text-[clamp(2.5rem,5vw+1rem,4.5rem)] text-primary',
     /** Page title (e.g. "Pokédex", "Mon profil"). */
-    'text-h1': 'text-3xl font-bold tracking-tight',
+    'text-h1': 'font-display font-bold tracking-tight text-[2rem] leading-[1.15] text-primary',
     /** Section title within a page. */
-    'text-h2': 'text-2xl font-bold',
+    'text-h2':
+      'font-display font-semibold text-[1.375rem] leading-[1.25] tracking-tight text-primary',
     /** Card title / subsection. */
-    'text-h3': 'text-lg font-semibold',
+    'text-h3': 'font-display font-semibold text-[1.0625rem] leading-[1.3] text-primary',
     /** Small uppercase label above a card section ("Battle log", "Connecté"). */
     'text-label': 'text-xs uppercase tracking-widest text-secondary font-medium',
     /** Body copy — the default reading size in cards. */
-    'text-body': 'text-sm text-primary',
+    'text-body': 'text-[0.9375rem] leading-[1.55] text-secondary',
     /** Secondary meta info (timestamps, counts). */
-    'text-meta': 'text-xs text-secondary',
-    /** Tiny ancillary (anon_id slugs, footnotes). */
-    'text-caption': 'text-[10px] text-muted tracking-wide',
+    'text-meta': 'text-xs text-tertiary font-medium tracking-wide',
+    /** Tiny mono ancillary (anon_id slugs, status codes). */
+    'text-caption': 'font-mono text-[0.6875rem] uppercase tracking-widest text-tertiary',
 
-    // ── Card archetype ─────────────────────────────────────────────────────
-    // Audit showed 46 sites duplicating this exact 4-class string. Replace
-    // `surface-card border surface-border rounded-lg` (often + `p-X`) with
-    // `card p-X`. Composition keeps padding explicit at the call site.
+    // ── Card archetypes ────────────────────────────────────────────────────
+    /** Default card shape. Compose with `p-X` for padding. */
     card: 'surface-card border surface-border rounded-lg',
-    /** Card that reacts to hover (used as a button/link). */
-    'card-interactive': 'card surface-card-hover transition-default cursor-pointer',
+    /** Card that reacts to hover (clickable). Lift + accent border. */
+    'card-interactive':
+      'card transition-default cursor-pointer hover:-translate-y-0.5 hover:border-gold-soft dark:hover:border-gold hover:shadow-md',
     /** Higher elevation, used for popovers/dropdowns. */
     'card-elevated': 'surface-elevated border surface-border rounded-lg',
 
     // ── Pills & chips ──────────────────────────────────────────────────────
-    /** Header nav / user menu trigger style. Compose with a color border. */
-    pill: 'inline-flex items-center gap-2 px-3 py-1.5 rounded-full border surface-border surface-card transition-default',
-    'pill-interactive': 'pill surface-card-hover cursor-pointer',
-    /** Inline badge for tags / status labels (small, no border). */
-    chip: 'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium',
+    /** Header chrome pill (version, GitHub stars, status). */
+    pill: 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-pill border surface-border surface-elevated text-xs font-medium text-secondary transition-default',
+    'pill-interactive': 'pill hover:surface-card hover:text-primary cursor-pointer',
+    /** Tiny inline badge (tags, status labels). */
+    chip: 'inline-flex items-center gap-1 px-2 py-0.5 rounded-sm text-[0.6875rem] font-mono font-medium tracking-wide',
 
     // ── Buttons ────────────────────────────────────────────────────────────
-    /** Primary action button. */
+    /** Primary CTA — gold accent. */
     'btn-primary':
-      'inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-accent text-zinc-900 font-bold rounded-md hover:opacity-90 transition-default cursor-pointer',
-    /** Secondary outline. */
+      'inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-md bg-accent text-zinc-900 border border-gold-strong font-medium text-sm transition-default cursor-pointer hover:brightness-110 hover:shadow-glow-gold',
+    /** Secondary outline — neutral. */
     'btn-secondary':
-      'inline-flex items-center justify-center gap-2 px-5 py-2.5 border-2 border-gold-soft dark:border-gold text-accent font-bold rounded-md hover:bg-accent/10 transition-default cursor-pointer',
+      'inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-md surface-elevated border surface-border text-primary font-medium text-sm transition-default cursor-pointer hover:surface-card hover:border-gold-soft dark:hover:border-gold',
     /** Tertiary / ghost — for less-emphasized actions. */
     'btn-ghost':
-      'inline-flex items-center justify-center gap-2 px-5 py-2.5 border surface-border rounded-md surface-card-hover transition-default text-primary cursor-pointer',
+      'inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-md text-secondary font-medium text-sm transition-default cursor-pointer hover:surface-elevated hover:text-primary',
 
     // ── Transitions ────────────────────────────────────────────────────────
-    // Replace ad-hoc `transition duration-300` strings (audit found 150ms,
-    // 300ms, 500ms used inconsistently) with one semantic default.
     'transition-default': 'transition duration-200 ease-out',
+    'transition-spring': 'transition duration-200 ease-spring',
     'transition-slow': 'transition duration-400 ease-out',
   },
 })

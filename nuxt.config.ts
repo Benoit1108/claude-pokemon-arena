@@ -3,6 +3,11 @@ export default defineNuxtConfig({
   modules: ['@unocss/nuxt', '@nuxtjs/color-mode', '@nuxt/eslint'],
   devtools: { enabled: true },
 
+  // Sprint 5 — register the small global stylesheet (fonts baseline +
+  // ambient body bg + reveal keyframes). Token system + utilities still
+  // live in uno.config.ts.
+  css: ['~/assets/css/global.css'],
+
   app: {
     // GameBoy-dither page transition — subtle scale + saturation/contrast
     // shift that mimics a pixelated fade between routes. CSS-only, ~250 ms,
@@ -23,6 +28,18 @@ export default defineNuxtConfig({
         { property: 'og:title', content: 'claude-pokemon arena' },
         { property: 'og:type', content: 'website' },
       ],
+      // Sprint 5 — 3-font stack (Bricolage Grotesque display / DM Sans body /
+      // JetBrains Mono code). Preconnect to fonts.gstatic to shave a TLS
+      // handshake off first paint ; `display=swap` so text shows in fallback
+      // until the webfont arrives (no FOIT).
+      link: [
+        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+        {
+          rel: 'stylesheet',
+          href: 'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500;600&display=swap',
+        },
+      ],
     },
   },
 
@@ -35,9 +52,17 @@ export default defineNuxtConfig({
 
   // API base for the claude-pokemon Worker. Override with NUXT_PUBLIC_API_BASE
   // env var in CI / Cloudflare Pages.
+  //
+  // Sprint 5 — version pill + GitHub stars pill in AppHeader.
+  // `version` reads `npm_package_version` (set automatically by npm during
+  // any script execution). `githubStars` is populated at build time by
+  // scripts/fetch-github-stars.mjs running as a `prebuild` / `predev` hook
+  // and exported as `NUXT_PUBLIC_GITHUB_STARS` env var.
   runtimeConfig: {
     public: {
       apiBase: 'https://claude-pokemon-api.benoit-dev.workers.dev',
+      version: process.env.npm_package_version || '0.1.0',
+      githubStars: process.env.NUXT_PUBLIC_GITHUB_STARS || '0',
     },
   },
   compatibilityDate: '2026-05-06',

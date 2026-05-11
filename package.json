@@ -7,6 +7,9 @@
   "type": "module",
   "scripts": {
     "build": "nuxt build",
+    "predev": "node scripts/fetch-github-stars.mjs",
+    "prebuild": "node scripts/fetch-github-stars.mjs",
+    "pregenerate": "node scripts/fetch-github-stars.mjs",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",

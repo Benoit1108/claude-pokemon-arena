@@ -18,18 +18,19 @@ if (import.meta.client) {
 </script>
 
 <template>
-  <div class="min-h-screen surface-bg text-primary font-mono transition-colors duration-150">
-    <!-- Sprint 3.6 — floating user menu, top-left. Persistent across pages,
-         lets the visitor see their identity at a glance and access their
-         profile / pair / unpair quickly. -->
-    <div class="fixed top-4 left-4 z-50">
-      <UserMenu />
+  <div class="min-h-screen surface-bg text-primary transition-colors duration-150">
+    <!-- Sprint 5 — global app chrome. AppHeader is sticky top, embeds the
+         primary nav tabs on desktop and the segmented theme toggle + user
+         pill. BottomNav owns the same nav on mobile (md:hidden). -->
+    <AppHeader />
+
+    <!-- Bottom padding so page content clears the mobile BottomNav. Desktop
+         padding stays 0 since the header takes top space only. -->
+    <div class="pb-20 md:pb-0">
+      <NuxtPage />
     </div>
-    <!-- Floating theme toggle, top-right -->
-    <div class="fixed top-4 right-4 z-50">
-      <ColorModeToggle />
-    </div>
-    <NuxtPage />
+
+    <BottomNav />
   </div>
 </template>
 
