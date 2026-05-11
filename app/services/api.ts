@@ -83,4 +83,33 @@ export class ApiClient {
       body: { anon_id: args.anonId, move_id: args.moveId },
     })
   }
+
+  /** Sprint 3.6 — partial profile update. Any field passed `null` clears it.
+   * Server intersects pinned_badges with the trainer's owned badges. */
+  trainerProfilePatch(args: {
+    anonId: string
+    arenaSecret: string
+    patch: {
+      display_name?: string | null
+      quote?: string | null
+      bio?: string | null
+      pinned_badges?: string[] | null
+    }
+  }): Promise<{
+    ok: true
+    trainer: {
+      anon_id: string
+      display_name: string | null
+      quote: string | null
+      bio: string | null
+      pinned_badges: string[]
+    }
+  }> {
+    return this.fetcher(`/v1/trainer/${args.anonId}/profile`, {
+      method: 'PATCH',
+      baseURL: this.baseUrl,
+      headers: { authorization: `Bearer ${args.arenaSecret}` },
+      body: args.patch,
+    })
+  }
 }
