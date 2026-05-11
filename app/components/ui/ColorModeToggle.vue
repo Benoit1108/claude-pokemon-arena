@@ -1,12 +1,8 @@
 <script setup lang="ts">
-// Sprint 4.9 — icon-only theme toggle. The previous version stacked an
-// emoji + a "dark" / "system" label, which was wider than the user pill
-// next to it and felt mismatched with modern app headers. Now : single
-// 36px square that cycles system → light → dark → retro on click ; the
-// label survives as a tooltip only.
-
 const colorMode = useColorMode()
 
+// 4-mode cycle : system → light → dark → retro → system → …
+// 'retro' = GameBoy DMG monochrome palette, mirrors the CLI's retro theme.
 type Mode = 'system' | 'light' | 'dark' | 'retro'
 const order: Mode[] = ['system', 'light', 'dark', 'retro']
 
@@ -30,14 +26,12 @@ const label = computed(() => {
 </script>
 
 <template>
-  <ClientOnly>
-    <button
-      :title="`Thème : ${label} — cliquer pour changer`"
-      :aria-label="`Thème actuel : ${label}. Cliquer pour changer.`"
-      class="w-9 h-9 rounded-full border surface-border surface-card surface-card-hover transition-default flex items-center justify-center text-base"
-      @click="cycle"
-    >
-      <span aria-hidden="true">{{ icon }}</span>
-    </button>
-  </ClientOnly>
+  <button
+    :title="`Theme: ${label} (click to cycle)`"
+    class="px-3 py-1.5 surface-card surface-card-hover surface-border border rounded-md text-sm font-mono text-secondary transition flex items-center gap-2"
+    @click="cycle"
+  >
+    <span class="text-base">{{ icon }}</span>
+    <span class="hidden sm:inline">{{ label }}</span>
+  </button>
 </template>

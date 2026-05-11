@@ -107,13 +107,14 @@ onBeforeUnmount(() => {
         <!-- Sprint 4.2 — two equal-weight CTAs : web signup OR CLI install.
              "Hero feature" = CLI (statusline pokémon), but web is now a full
              first-class entry point. -->
-        <!-- Sprint 4.9 — landing hero focuses on first-time visitor CTAs.
-             Section nav (Pokédex / Arena / Trail / Zones) is in the global
-             AppHeader, so we no longer duplicate it here. -->
         <NuxtLink to="/signup" class="btn-primary"> 🎮 Crée ton dresseur </NuxtLink>
         <a href="https://www.npmjs.com/package/claude-pokemon" class="btn-secondary">
           💻 Install the CLI →
         </a>
+        <NuxtLink to="/pokedex" class="btn-ghost"> 📖 Pokédex </NuxtLink>
+        <NuxtLink to="/arena" class="btn-ghost"> ⚔️ Arena </NuxtLink>
+        <NuxtLink to="/ladder" class="btn-ghost"> 🏞️ Trail </NuxtLink>
+        <NuxtLink to="/zones" class="btn-ghost"> 🗺️ Zones sauvages </NuxtLink>
         <a href="https://github.com/Benoit1108/claude-pokemon" class="btn-ghost"> GitHub </a>
       </div>
     </header>

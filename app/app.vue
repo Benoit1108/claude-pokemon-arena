@@ -19,20 +19,17 @@ if (import.meta.client) {
 
 <template>
   <div class="min-h-screen surface-bg text-primary font-mono transition-colors duration-150">
-    <!-- Sprint 4.9 — global header replaces the floating UserMenu +
-         ColorModeToggle. Sticky on top, embeds the primary nav tabs on
-         desktop. UserMenu + theme toggle live in its right cluster. -->
-    <AppHeader />
-
-    <!-- Bottom padding so the last page content isn't hidden under the
-         mobile BottomNav (only renders below `md`). 5rem ≈ nav height
-         + safe-area inset. Desktop gets 0 since BottomNav is hidden. -->
-    <div class="pb-20 md:pb-0">
-      <NuxtPage />
+    <!-- Sprint 3.6 — floating user menu, top-left. Persistent across pages,
+         lets the visitor see their identity at a glance and access their
+         profile / pair / unpair quickly. -->
+    <div class="fixed top-4 left-4 z-50">
+      <UserMenu />
     </div>
-
-    <!-- Mobile-only bottom navigation. -->
-    <BottomNav />
+    <!-- Floating theme toggle, top-right -->
+    <div class="fixed top-4 right-4 z-50">
+      <ColorModeToggle />
+    </div>
+    <NuxtPage />
   </div>
 </template>
 
