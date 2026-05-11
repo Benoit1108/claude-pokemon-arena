@@ -13,9 +13,23 @@ import type { ZoneSummary } from '~/types/api'
 const api = useApi()
 const { trainer } = useTrainerProfile()
 
-const { data: zonesData } = await useAsyncData('zones-list', () => api.zonesList())
+const {
+  data: zonesData,
+  error: zonesError,
+  pending: zonesPending,
+} = await useAsyncData('zones-list', () => api.zonesList())
 
 const zones = computed(() => zonesData.value?.zones ?? [])
+
+// Sprint 4.8 fix — surface fetch failures clearly. Common cause :
+// runtimeConfig.public.apiBase points at a worker that isn't running
+// or doesn't have /v1/zones (pre-Sprint-4.5 prod). Show the error
+// instead of a silent blank page.
+const errorMessage = computed(() => {
+  if (!zonesError.value) return null
+  const e = zonesError.value as { message?: string; statusCode?: number }
+  return e.message || `Erreur HTTP ${e.statusCode ?? '??'}`
+})
 const trainerLevel = computed(() => trainer.value?.stats.active.current_level ?? 0)
 
 function statusFor(z: ZoneSummary): {
@@ -70,7 +84,36 @@ useHead({
       </p>
     </header>
 
-    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <!-- Sprint 4.8 fix — explicit loading + error + empty states so we
+         never show a silent blank page when /v1/zones can't be reached. -->
+    <div v-if="zonesPending" class="surface-card border surface-border rounded-lg p-12 text-center">
+      <div class="text-3xl mb-2 animate-pulse" aria-hidden="true">🗺️</div>
+      <p class="text-secondary">Chargement de la carte des zones…</p>
+    </div>
+
+    <div
+      v-else-if="errorMessage"
+      class="surface-card border border-red-500/30 rounded-lg p-8 text-center"
+    >
+      <div class="text-3xl mb-2" aria-hidden="true">⚠️</div>
+      <p class="text-red-400 font-bold">Impossible de charger les zones.</p>
+      <p class="text-xs text-secondary mt-2">{{ errorMessage }}</p>
+      <p class="text-[10px] text-muted mt-4 max-w-md mx-auto">
+        Vérifie que le worker tourne (en local : <code>npm run dev</code> dans
+        <code>claude-pokemon/api/</code>) et que l'URL
+        <code>{{ String(useRuntimeConfig().public.apiBase) }}/v1/zones</code> répond.
+      </p>
+    </div>
+
+    <div
+      v-else-if="zones.length === 0"
+      class="surface-card border surface-border rounded-lg p-8 text-center"
+    >
+      <div class="text-3xl mb-2" aria-hidden="true">🌵</div>
+      <p class="text-secondary">Aucune zone catalog ée pour le moment.</p>
+    </div>
+
+    <div v-else class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
       <NuxtLink
         v-for="z in zones"
         :key="z.id"
