@@ -73,6 +73,16 @@ export interface PlayerStats {
   pokedex_seen_ids?: string[]
 }
 
+/** Sprint 4 — where the trainer's identity was created.
+ *
+ *  - 'cli'    — via `/pokemon arena enable --confirm` on the CLI
+ *  - 'web'    — via the web /signup page (Sprint 4.2)
+ *  - 'linked' — created on one side, linked to the other via the pair flow
+ *
+ * Optional in the response because pre-Sprint-4 records read as 'cli' by
+ * default in the Worker's lazy migration. Treat missing as 'cli'. */
+export type TrainerOrigin = 'cli' | 'web' | 'linked'
+
 export interface TrainerResponse {
   anon_id: string
   display_name: string | null
@@ -82,6 +92,9 @@ export interface TrainerResponse {
   bio: string | null
   /** Up to 3 badge ids the user pinned via `/pokemon pins set ...`. */
   pinned_badges: string[]
+  /** Sprint 4 — informational tag. May be omitted on the response if the
+   * legacy record hasn't been touched since migration. */
+  origin?: TrainerOrigin
   submitted_at: string
   client_version: string
   stats: PlayerStats
