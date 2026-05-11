@@ -137,6 +137,12 @@ onBeforeUnmount(() => {
         >
           🏞️ Trail
         </NuxtLink>
+        <NuxtLink
+          to="/zones"
+          class="px-5 py-2.5 border surface-border rounded-md surface-card-hover transition text-primary"
+        >
+          🗺️ Zones sauvages
+        </NuxtLink>
         <a
           href="https://github.com/Benoit1108/claude-pokemon"
           class="px-5 py-2.5 border surface-border rounded-md surface-card-hover transition text-primary"

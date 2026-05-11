@@ -151,6 +151,84 @@ export interface OpponentsResponse {
 export const REACTION_KEYS = ['clap', 'fire', 'party', 'lol', 'tear', 'love'] as const
 export type ReactionKey = (typeof REACTION_KEYS)[number]
 
+// ---------------------------------------------------------------------------
+// Wild zones (Sprint 4.5+)
+// ---------------------------------------------------------------------------
+
+export interface ZoneSummary {
+  id: string
+  name_fr: string
+  name_en: string
+  emoji: string
+  flavor_fr: string
+  level_min: number
+  level_max: number
+  wild_pool_size: number
+  rare_pool_size: number
+  legendary_pool_size: number
+}
+
+export interface ZoneDetail {
+  id: string
+  name_fr: string
+  name_en: string
+  emoji: string
+  flavor_fr: string
+  level_min: number
+  level_max: number
+  wild_pool: string[]
+  rare_pool: string[]
+  legendary_pool: string[]
+}
+
+export interface PendingEncounter {
+  zone_id: string
+  species_id: string
+  level: number
+  is_shiny: boolean
+  pool: 'common' | 'rare' | 'legendary'
+  combat_type: 'fire' | 'water' | 'grass' | 'electric' | 'normal'
+  created_at: string
+  expires_at: string
+}
+
+export interface ItemDrop {
+  kind: 'berry' | 'potion' | 'pokeball' | 'rare-candy'
+  emoji: string
+}
+
+export type ExploreOutcome =
+  | {
+      ok: true
+      zone_id: string
+      cooldown_remaining_s: number
+      kind: 'encounter'
+      encounter: PendingEncounter
+    }
+  | {
+      ok: true
+      zone_id: string
+      cooldown_remaining_s: number
+      kind: 'item'
+      item: ItemDrop
+    }
+  | { ok: true; zone_id: string; cooldown_remaining_s: number; kind: 'nothing' }
+
+export interface ZoneFightResult {
+  ok: true
+  won: boolean
+  battle: BattleResult
+  encounter: PendingEncounter
+  xp: {
+    amount: number
+    breakdown: { base: number; effectiveness_modifier: number; pool_modifier: number }
+  }
+  leveled_up: boolean
+  new_level: number
+  new_total_zone_xp: number
+  new_current_xp: number
+}
+
 export interface BattleResponse {
   battle: BattleResult
   /** Aggregated reaction counts (Sprint 2.8b). Optional for backward-compat. */

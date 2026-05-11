@@ -213,6 +213,14 @@ onBeforeUnmount(() => {
             type="button"
             class="block w-full text-left px-3 py-2 text-sm surface-card-hover text-primary transition"
             role="menuitem"
+            @click="goTo('/zones')"
+          >
+            🗺️ Zones sauvages
+          </button>
+          <button
+            type="button"
+            class="block w-full text-left px-3 py-2 text-sm surface-card-hover text-primary transition"
+            role="menuitem"
             @click="goTo('/pair')"
           >
             🔗 Gérer le pairing

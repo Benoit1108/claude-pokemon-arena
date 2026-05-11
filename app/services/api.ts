@@ -4,11 +4,15 @@
 import type {
   AggregateResponse,
   BattleResponse,
+  ExploreOutcome,
   LeaderboardMetric,
   LeaderboardResponse,
   LiveBattleView,
   OpponentsResponse,
   TrainerResponse,
+  ZoneDetail,
+  ZoneFightResult,
+  ZoneSummary,
 } from '~/types/api'
 
 export interface ApiClientConfig {
@@ -164,6 +168,54 @@ export class ApiClient {
     arenaSecret: string
   }): Promise<{ ok: true; code: string; expires_at: string; ttl_s: number }> {
     return this.fetcher('/v1/arena/pair/init', {
+      method: 'POST',
+      baseURL: this.baseUrl,
+      headers: { authorization: `Bearer ${args.arenaSecret}` },
+      body: { anon_id: args.anonId },
+    })
+  }
+
+  // Sprint 4.5+ — wild zones API
+  zonesList(): Promise<{ zones: ZoneSummary[] }> {
+    return this.fetcher('/v1/zones', { baseURL: this.baseUrl })
+  }
+
+  zoneDetail(id: string): Promise<ZoneDetail> {
+    return this.fetcher(`/v1/zones/${id}`, { baseURL: this.baseUrl })
+  }
+
+  zoneExplore(args: {
+    zoneId: string
+    anonId: string
+    arenaSecret: string
+  }): Promise<ExploreOutcome> {
+    return this.fetcher(`/v1/zone/${args.zoneId}/explore`, {
+      method: 'POST',
+      baseURL: this.baseUrl,
+      headers: { authorization: `Bearer ${args.arenaSecret}` },
+      body: { anon_id: args.anonId },
+    })
+  }
+
+  zoneFight(args: {
+    zoneId: string
+    anonId: string
+    arenaSecret: string
+  }): Promise<ZoneFightResult> {
+    return this.fetcher(`/v1/zone/${args.zoneId}/fight`, {
+      method: 'POST',
+      baseURL: this.baseUrl,
+      headers: { authorization: `Bearer ${args.arenaSecret}` },
+      body: { anon_id: args.anonId },
+    })
+  }
+
+  zoneFlee(args: {
+    zoneId: string
+    anonId: string
+    arenaSecret: string
+  }): Promise<{ ok: true; fled: boolean }> {
+    return this.fetcher(`/v1/zone/${args.zoneId}/flee`, {
       method: 'POST',
       baseURL: this.baseUrl,
       headers: { authorization: `Bearer ${args.arenaSecret}` },
