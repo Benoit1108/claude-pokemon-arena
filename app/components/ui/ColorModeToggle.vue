@@ -69,12 +69,12 @@ watch(current, () => {
   <ClientOnly>
     <div
       ref="groupRef"
-      class="theme-toggle relative inline-flex items-center p-[3px] rounded-pill border surface-border surface-elevated h-8"
+      class="theme-toggle relative inline-flex items-center p-[3px] rounded-full border surface-border surface-elevated h-8"
       role="radiogroup"
       aria-label="Thème"
     >
       <span
-        class="theme-thumb absolute top-[3px] bottom-[3px] left-0 surface-card rounded-pill shadow-sm transition-spring"
+        class="theme-thumb absolute top-[3px] bottom-[3px] left-0 surface-card rounded-full shadow-sm transition-spring"
         :style="thumbStyle"
         aria-hidden="true"
       />
@@ -86,7 +86,7 @@ watch(current, () => {
         :aria-pressed="current === opt.value"
         :aria-label="`Thème ${opt.label}`"
         :title="`Thème ${opt.label}`"
-        class="theme-option relative z-1 inline-flex items-center justify-center min-w-[30px] h-[26px] px-1.5 text-[13px] bg-transparent border-0 rounded-pill transition-default cursor-pointer"
+        class="theme-option relative z-1 inline-flex items-center justify-center min-w-[30px] h-[26px] px-1.5 text-[13px] bg-transparent border-0 rounded-full transition-default cursor-pointer"
         :class="current === opt.value ? 'text-primary' : 'text-tertiary hover:text-secondary'"
         @click="pick(opt.value)"
       >

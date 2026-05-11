@@ -54,19 +54,28 @@ export default defineConfig({
         info: { DEFAULT: '#2563eb', dark: '#3b82f6' },
       },
     },
-    fontFamily: {
-      // Sprint 5 — 3-font stack. Bricolage Grotesque for personality on
-      // headings, DM Sans for body readability, JetBrains Mono for code +
-      // numbers + ids.
+    // Sprint 5 — preset-wind4 follows Tailwind v4 theme key conventions
+    // (`theme.font`, `theme.radius`, `theme.ease` etc.), NOT the Tailwind v3
+    // names (`theme.fontFamily`, `theme.borderRadius`,
+    // `theme.transitionTimingFunction`). Using v3 keys here silently fails :
+    // `font-display`, `rounded-pill`, `ease-spring` all turn into unmatched
+    // utilities and the shortcuts that reference them drop their styles —
+    // visible regression: hero title pale, tile titles invisible. Source :
+    // node_modules/@unocss/preset-wind4/dist/rules.mjs uses theme.font[d],
+    // theme.radius[s], theme.ease[d].
+    font: {
+      // 3-font stack : Bricolage Grotesque (display) / DM Sans (body) /
+      // JetBrains Mono (code + numbers + ids).
       display: '"Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif',
       body: '"DM Sans", ui-sans-serif, system-ui, sans-serif',
       mono: '"JetBrains Mono", ui-monospace, "Cascadia Code", "SF Mono", Menlo, monospace',
       pixel: '"Press Start 2P", system-ui, monospace',
     },
-    borderRadius: {
-      // Sprint 5 — softer scale matching the mockup. Default rounded-md was
-      // 6px ; bumping to 10px gives the friendly "Pokémon canon" feel. Wide
-      // impact (every existing `rounded-md` / `rounded-lg` shifts) — intended.
+    radius: {
+      // Softer scale matching the mockup. Default rounded-md was 6px ;
+      // bumping to 10px gives the friendly "Pokémon canon" feel. Wide
+      // impact (every existing `rounded-md` / `rounded-lg` shifts) —
+      // intended.
       none: '0',
       sm: '6px',
       DEFAULT: '10px',
@@ -75,18 +84,8 @@ export default defineConfig({
       xl: '20px',
       '2xl': '28px',
       full: '9999px',
-      pill: '9999px',
     },
-    boxShadow: {
-      none: 'none',
-      sm: '0 1px 2px 0 rgb(0 0 0 / 0.04)',
-      DEFAULT: '0 1px 3px 0 rgb(0 0 0 / 0.06)',
-      md: '0 4px 12px -2px rgb(0 0 0 / 0.08), 0 2px 4px -1px rgb(0 0 0 / 0.04)',
-      lg: '0 14px 36px -8px rgb(0 0 0 / 0.14), 0 4px 10px -2px rgb(0 0 0 / 0.06)',
-      xl: '0 24px 48px -12px rgb(0 0 0 / 0.18)',
-      'glow-gold': '0 0 0 1px rgb(212 160 23 / 0.30), 0 12px 32px -10px rgb(212 160 23 / 0.45)',
-    },
-    transitionTimingFunction: {
+    ease: {
       // Smooth out — default for fades, color shifts.
       out: 'cubic-bezier(0.16, 1, 0.3, 1)',
       // Spring — for translate / scale (theme thumb, tile hover lift).
@@ -96,7 +95,15 @@ export default defineConfig({
   rules: [
     // Pixelated rendering for sprite images.
     ['pixel-render', { 'image-rendering': 'pixelated' }],
-    // Lineage-soft backgrounds (10% opacity). Static map so UnoCSS can
+    // Sprint 5 — branded glow shadow. preset-wind4 doesn't expose a
+    // `theme.shadow` slot, so the named `shadow-glow-gold` lives as a rule.
+    [
+      'shadow-glow-gold',
+      {
+        'box-shadow': '0 0 0 1px rgb(212 160 23 / 0.30), 0 12px 32px -10px rgb(212 160 23 / 0.45)',
+      },
+    ],
+    // Lineage-soft backgrounds (12-16% opacity). Static map so UnoCSS can
     // generate the rules at build time — `bg-lineage-fire/10` would force
     // a JIT pass per color which is what we want to avoid.
     [
@@ -186,7 +193,7 @@ export default defineConfig({
 
     // ── Pills & chips ──────────────────────────────────────────────────────
     /** Header chrome pill (version, GitHub stars, status). */
-    pill: 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-pill border surface-border surface-elevated text-xs font-medium text-secondary transition-default',
+    pill: 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border surface-border surface-elevated text-xs font-medium text-secondary transition-default',
     'pill-interactive': 'pill hover:surface-card hover:text-primary cursor-pointer',
     /** Tiny inline badge (tags, status labels). */
     chip: 'inline-flex items-center gap-1 px-2 py-0.5 rounded-sm text-[0.6875rem] font-mono font-medium tracking-wide',
