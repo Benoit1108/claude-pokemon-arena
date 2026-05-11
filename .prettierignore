@@ -4,3 +4,7 @@ node_modules
 .wrangler
 dist
 package-lock.json
+
+# Sprint 3 — vendored submodule, owned by another repo. Don't reformat it
+# from here — edit in claude-pokemon/shared/ and bump the submodule pointer.
+vendor/

@@ -1,0 +1,3 @@
+[submodule "vendor/claude-pokemon"]
+	path = vendor/claude-pokemon
+	url = https://github.com/Benoit1108/claude-pokemon.git

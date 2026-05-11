@@ -29,3 +29,7 @@ node_modules/
 
 # Claude Code local settings (per-machine permissions, not shared)
 .claude/settings.local.json
+
+# Build outputs from the vendored submodule's nested workspaces. The shared
+# package's dist/ IS committed in its own repo (intentional) ; everything
+# else in vendor/ is read-only from this repo.

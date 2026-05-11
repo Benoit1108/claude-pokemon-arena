@@ -265,3 +265,57 @@ read-modify-write paths needed mitigation :
 
 Both mitigations live in the Worker repo (`api/src/handlers/arena/`). The
 web side just calls the endpoints — no client-side concurrency logic.
+
+### ADR-010 : Shared code via git submodule, not npm publish (supersedes ADR-007)
+
+**2026-05-11 (Sprint 3).** ADR-007 planned to extract the duplicated
+battle engine / moves / stages / types into an npm package
+`claude-pokemon-shared` and consume it from both the Worker and the web.
+
+We **pivoted to a git submodule** instead :
+
+1. The shared package lives in
+   [`claude-pokemon/shared/`](https://github.com/Benoit1108/claude-pokemon/tree/main/shared).
+2. The Worker (same repo) consumes it via [npm workspaces](https://docs.npmjs.com/cli/v11/using-npm/workspaces).
+3. **This repo** clones `claude-pokemon` as a submodule under
+   `vendor/claude-pokemon/` and references it via a `file:` dependency :
+   ```json
+   "claude-pokemon-shared": "file:./vendor/claude-pokemon/shared"
+   ```
+4. Cloudflare Pages **must have "Include submodules" enabled** in the
+   build settings (Pages → claude-pokemon-arena → Settings → Build →
+   Submodules : on). Without it, the build fails because vendor/ is empty.
+
+**Rationale for the pivot** :
+
+- The shared package is purely internal. No external consumer would
+  `npm install claude-pokemon-shared`. Publishing would take an npm name
+  slot forever for marketing value the project doesn't need.
+- Per-change friction with npm publish (bump version, publish, bump
+  consumer dependency, install, push) is non-trivial — ~3 min vs. ~30 s
+  with the submodule (`git submodule update --remote && commit`).
+- The submodule pins to a specific commit SHA, so this repo's build is
+  stable until we explicitly bump — that's the semver guarantee, without
+  the registry overhead.
+
+**Workflow to bump shared code** :
+
+```bash
+# 1. Edit + commit in the claude-pokemon repo
+cd ../claude-pokemon/shared
+# edit src/...
+npm run build  # regenerate dist/
+git commit -am "feat(shared): X"
+git push
+
+# 2. Bump the submodule pointer in this repo
+cd ../../claude-pokemon-arena
+git submodule update --remote vendor/claude-pokemon
+git commit -am "chore: bump shared to <SHA>"
+git push  # Cloudflare Pages auto-deploys
+```
+
+**Trade-off** : `shared/dist/` is committed (vs. built at install time)
+because submodules don't run install scripts. Author discipline is
+required : whenever you edit `shared/src/`, run `npm run build` and
+commit the regenerated `dist/` in the same change.

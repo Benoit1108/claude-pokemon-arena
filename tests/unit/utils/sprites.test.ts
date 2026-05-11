@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { LINEAGE_STAGES, spriteUrl, stageFor, stageNameFor } from '~/utils/sprites'
+// Sprint 3 — LINEAGE_STAGES moved to claude-pokemon-shared/stages. We
+// import it directly from there ; the rest still flows through ~/utils/sprites.
+import { LINEAGE_STAGES } from 'claude-pokemon-shared/stages'
+import { spriteUrl, stageFor, stageNameFor } from '~/utils/sprites'
 
 describe('LINEAGE_STAGES', () => {
   it('has all 8 lineages from the CLI', () => {

@@ -1,103 +1,59 @@
-// Pokémon Showdown sprite resolution. Lineage + level → showdown_id, then
-// hot-link to play.pokemonshowdown.com. Same sprite system as the CLI.
+// Pokémon Showdown sprite URL resolution. The lineage stages + stageFor()
+// come from the shared package (Sprint 3) ; this file keeps :
+//   - STAGE_NAME_FR    : showdown_id → localized French stage name
+//   - spriteUrl(...)   : URL builder for the Showdown CDN (gen5/ + ani/ +
+//                        back/ + shiny variants)
+//   - stageNameFor(...) : convenience wrapper (lineage + level → FR name)
 //
-// Stages mirror lib/data/lineages/*.json from the claude-pokemon repo.
-// If the CLI changes thresholds, sync this file (or extract to a shared
-// npm package later).
+// We re-export `stageFor` and the LineageStage type so existing callers
+// (`from '~/utils/sprites'`) keep working without churn.
 
-import type { Lineage } from '~/types/api'
+import { stageFor, type LineageStage } from 'claude-pokemon-shared/stages'
 
-export interface LineageStage {
-  min_level: number
-  showdown_id: string
-  name: string
-}
-
-// prettier-ignore
-export const LINEAGE_STAGES: Record<Lineage, LineageStage[]> = {
-  fire: [
-    { min_level: 0,   showdown_id: 'egg',                name: 'Œuf' },
-    { min_level: 1,   showdown_id: 'charmander',         name: 'Salamèche' },
-    { min_level: 16,  showdown_id: 'charmeleon',         name: 'Reptincel' },
-    { min_level: 36,  showdown_id: 'charizard',          name: 'Dracaufeu' },
-    { min_level: 55,  showdown_id: 'charizard-megax',    name: 'Méga-Dracaufeu X' },
-    { min_level: 100, showdown_id: 'charizard-megay',    name: 'Méga-Dracaufeu Y' },
-  ],
-  water: [
-    { min_level: 0,   showdown_id: 'egg',                name: 'Œuf' },
-    { min_level: 1,   showdown_id: 'squirtle',           name: 'Carapuce' },
-    { min_level: 16,  showdown_id: 'wartortle',          name: 'Carabaffe' },
-    { min_level: 36,  showdown_id: 'blastoise',          name: 'Tortank' },
-    { min_level: 55,  showdown_id: 'blastoise-mega',     name: 'Méga-Tortank' },
-    { min_level: 100, showdown_id: 'blastoise-gmax',     name: 'Tortank Gigamax' },
-  ],
-  grass: [
-    { min_level: 0,   showdown_id: 'egg',                name: 'Œuf' },
-    { min_level: 1,   showdown_id: 'bulbasaur',          name: 'Bulbizarre' },
-    { min_level: 16,  showdown_id: 'ivysaur',            name: 'Herbizarre' },
-    { min_level: 32,  showdown_id: 'venusaur',           name: 'Florizarre' },
-    { min_level: 55,  showdown_id: 'venusaur-mega',      name: 'Méga-Florizarre' },
-    { min_level: 100, showdown_id: 'venusaur-gmax',      name: 'Florizarre Gigamax' },
-  ],
-  electric: [
-    { min_level: 0,   showdown_id: 'egg',                name: 'Œuf' },
-    { min_level: 1,   showdown_id: 'pichu',              name: 'Pichu' },
-    { min_level: 10,  showdown_id: 'pikachu',            name: 'Pikachu' },
-    { min_level: 30,  showdown_id: 'raichu',             name: 'Raichu' },
-    { min_level: 55,  showdown_id: 'raichu-alola',       name: "Raichu d'Alola" },
-    { min_level: 100, showdown_id: 'pikachu-gmax',       name: 'Pikachu Gigamax' },
-  ],
-  // Eevee evolves into ONE of 5 forms at Lv.30 (chosen via stones / friendship
-  // in the CLI, stored in state.eevee_form). The web doesn't currently submit
-  // that field, so we default to vaporeon — first stage in array order.
-  // TODO: extend submit payload with eevee_form to render the actual evolution.
-  eevee: [
-    { min_level: 0,   showdown_id: 'egg',                name: 'Œuf' },
-    { min_level: 1,   showdown_id: 'eevee',              name: 'Évoli' },
-    { min_level: 30,  showdown_id: 'vaporeon',           name: 'Aquali' },
-    { min_level: 30,  showdown_id: 'jolteon',            name: 'Voltali' },
-    { min_level: 30,  showdown_id: 'flareon',            name: 'Pyroli' },
-    { min_level: 30,  showdown_id: 'espeon',             name: 'Mentali' },
-    { min_level: 30,  showdown_id: 'umbreon',            name: 'Noctali' },
-  ],
-  chikorita: [
-    { min_level: 0,   showdown_id: 'egg',                name: 'Œuf' },
-    { min_level: 1,   showdown_id: 'chikorita',          name: 'Germignon' },
-    { min_level: 16,  showdown_id: 'bayleef',            name: 'Macronium' },
-    { min_level: 32,  showdown_id: 'meganium',           name: 'Méganium' },
-  ],
-  cyndaquil: [
-    { min_level: 0,   showdown_id: 'egg',                name: 'Œuf' },
-    { min_level: 1,   showdown_id: 'cyndaquil',          name: 'Héricendre' },
-    { min_level: 16,  showdown_id: 'quilava',            name: 'Feurisson' },
-    { min_level: 32,  showdown_id: 'typhlosion',         name: 'Typhlosion' },
-    { min_level: 55,  showdown_id: 'typhlosion-hisui',   name: "Typhlosion d'Hisui" },
-  ],
-  totodile: [
-    { min_level: 0,   showdown_id: 'egg',                name: 'Œuf' },
-    { min_level: 1,   showdown_id: 'totodile',           name: 'Kaiminus' },
-    { min_level: 16,  showdown_id: 'croconaw',           name: 'Crocrodil' },
-    { min_level: 32,  showdown_id: 'feraligatr',         name: 'Aligatueur' },
-  ],
-}
+export { stageFor, type LineageStage }
 
 const SHOWDOWN_BASE = 'https://play.pokemonshowdown.com/sprites'
 
-/**
- * Find the highest stage qualifying for the given level. On ties (multiple
- * stages share the same min_level — Eevee at Lv.30 has 5 forms), the first
- * one listed wins, so the default Eevee evolution is vaporeon. To get the
- * actual chosen form for a given trainer, the submit payload would need an
- * eevee_form field (TODO).
- */
-export function stageFor(lineage: string, level: number): LineageStage {
-  const stages = LINEAGE_STAGES[lineage as Lineage] ?? LINEAGE_STAGES.fire
-  let chosen = stages[0]!
-  for (const s of stages) {
-    if (s.min_level > level) break // stages are sorted by min_level ascending
-    if (s.min_level > chosen.min_level) chosen = s // strictly greater = new tier
-  }
-  return chosen
+/** Localized French names for every catalogued stage. Keep this in sync with
+ * the CLI's lib/data/lineages/*.json display labels. */
+export const STAGE_NAME_FR: Record<string, string> = {
+  egg: 'Œuf',
+  charmander: 'Salamèche',
+  charmeleon: 'Reptincel',
+  charizard: 'Dracaufeu',
+  'charizard-megax': 'Méga-Dracaufeu X',
+  'charizard-megay': 'Méga-Dracaufeu Y',
+  squirtle: 'Carapuce',
+  wartortle: 'Carabaffe',
+  blastoise: 'Tortank',
+  'blastoise-mega': 'Méga-Tortank',
+  'blastoise-gmax': 'Tortank Gigamax',
+  bulbasaur: 'Bulbizarre',
+  ivysaur: 'Herbizarre',
+  venusaur: 'Florizarre',
+  'venusaur-mega': 'Méga-Florizarre',
+  'venusaur-gmax': 'Florizarre Gigamax',
+  pichu: 'Pichu',
+  pikachu: 'Pikachu',
+  raichu: 'Raichu',
+  'raichu-alola': "Raichu d'Alola",
+  'pikachu-gmax': 'Pikachu Gigamax',
+  eevee: 'Évoli',
+  vaporeon: 'Aquali',
+  jolteon: 'Voltali',
+  flareon: 'Pyroli',
+  espeon: 'Mentali',
+  umbreon: 'Noctali',
+  chikorita: 'Germignon',
+  bayleef: 'Macronium',
+  meganium: 'Méganium',
+  cyndaquil: 'Héricendre',
+  quilava: 'Feurisson',
+  typhlosion: 'Typhlosion',
+  'typhlosion-hisui': "Typhlosion d'Hisui",
+  totodile: 'Kaiminus',
+  croconaw: 'Crocrodil',
+  feraligatr: 'Aligatueur',
 }
 
 /**
@@ -105,14 +61,13 @@ export function stageFor(lineage: string, level: number): LineageStage {
  *
  * @param animated  use animated GIF (only available for Gen 5+ Pokémon, falls
  *                  back gracefully via @error event on the <img> in the consumer).
+ * @param back      back-view sprite (Sprint 2.13 UA1 — BW battle style).
  */
 export function spriteUrl(opts: {
   lineage: string
   level: number
   isShiny?: boolean
   animated?: boolean
-  /** Sprint 2.13 (UA1) — back-view (player's pokémon seen from behind, BW
-   * battle-style). Showdown : /sprites/back/<id>.png + /sprites/ani-back/. */
   back?: boolean
 }): string {
   const stage = stageFor(opts.lineage, opts.level)
@@ -131,5 +86,6 @@ export function spriteUrl(opts: {
 
 /** Localized stage name (Salamèche / Reptincel / Dracaufeu / …). */
 export function stageNameFor(lineage: string, level: number): string {
-  return stageFor(lineage, level).name
+  const stage = stageFor(lineage, level)
+  return STAGE_NAME_FR[stage.showdown_id] ?? stage.showdown_id
 }

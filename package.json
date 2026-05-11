@@ -42,6 +42,7 @@
     "vue-tsc": "^2.0.0"
   },
   "dependencies": {
-    "canvas-confetti": "^1.9.4"
+    "canvas-confetti": "^1.9.4",
+    "claude-pokemon-shared": "file:./vendor/claude-pokemon/shared"
   }
 }
