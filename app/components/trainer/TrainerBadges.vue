@@ -11,10 +11,10 @@ const allBadgeIds = computed(() => Object.keys(BADGE_META))
 
 <template>
   <section class="mb-12">
-    <h2 class="text-sm uppercase tracking-wider text-muted mb-3">
+    <h2 class="text-label mb-3">
       🏆 Badges <span class="text-accent">{{ earned.length }}/{{ TOTAL_BADGES }}</span>
     </h2>
-    <div class="surface-card border surface-border rounded-lg p-4">
+    <div class="card p-4">
       <div class="grid grid-cols-3 sm:grid-cols-5 gap-3">
         <div
           v-for="id in allBadgeIds"

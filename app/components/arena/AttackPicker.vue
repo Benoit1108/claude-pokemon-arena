@@ -38,17 +38,15 @@ function effectivenessFor(move: Move): number {
 }
 
 function effectivenessLabel(eff: number): { text: string; color: string } {
-  if (eff >= 2) return { text: '↑ super eff.', color: 'text-emerald-400' }
-  if (eff <= 0.5) return { text: '↓ peu eff.', color: 'text-red-400' }
+  if (eff >= 2) return { text: '↑ super eff.', color: 'text-success' }
+  if (eff <= 0.5) return { text: '↓ peu eff.', color: 'text-danger' }
   return { text: '× neutre', color: 'text-zinc-400' }
 }
 </script>
 
 <template>
-  <div class="surface-card border surface-border rounded-lg p-4 mb-4">
-    <div class="text-xs uppercase tracking-widest text-secondary mb-3 text-center">
-      À toi de jouer — choisis ton attaque
-    </div>
+  <div class="card p-4 mb-4">
+    <div class="text-label mb-3 text-center">À toi de jouer — choisis ton attaque</div>
     <div class="grid grid-cols-2 gap-2">
       <button
         v-for="(move, i) in moves"

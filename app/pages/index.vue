@@ -77,7 +77,7 @@ onBeforeUnmount(() => {
         Phase 2 · MVP preview
       </div>
       <h1
-        class="text-5xl md:text-6xl font-bold mb-4 transition-transform flex items-center justify-center gap-3"
+        class="text-display mb-4 transition-transform flex items-center justify-center gap-3"
         :class="konamiTriggered ? 'scale-110' : ''"
       >
         <PokeballIcon
@@ -107,48 +107,15 @@ onBeforeUnmount(() => {
         <!-- Sprint 4.2 — two equal-weight CTAs : web signup OR CLI install.
              "Hero feature" = CLI (statusline pokémon), but web is now a full
              first-class entry point. -->
-        <NuxtLink
-          to="/signup"
-          class="px-5 py-2.5 bg-accent text-zinc-900 font-bold rounded-md hover:opacity-90 transition"
-        >
-          🎮 Crée ton dresseur
-        </NuxtLink>
-        <a
-          href="https://www.npmjs.com/package/claude-pokemon"
-          class="px-5 py-2.5 border-2 border-accent text-accent font-bold rounded-md hover:bg-accent/10 transition"
-        >
+        <NuxtLink to="/signup" class="btn-primary"> 🎮 Crée ton dresseur </NuxtLink>
+        <a href="https://www.npmjs.com/package/claude-pokemon" class="btn-secondary">
           💻 Install the CLI →
         </a>
-        <NuxtLink
-          to="/pokedex"
-          class="px-5 py-2.5 border surface-border rounded-md surface-card-hover transition text-primary"
-        >
-          📖 Pokédex
-        </NuxtLink>
-        <NuxtLink
-          to="/arena"
-          class="px-5 py-2.5 border surface-border rounded-md surface-card-hover transition text-primary"
-        >
-          ⚔️ Arena
-        </NuxtLink>
-        <NuxtLink
-          to="/ladder"
-          class="px-5 py-2.5 border surface-border rounded-md surface-card-hover transition text-primary"
-        >
-          🏞️ Trail
-        </NuxtLink>
-        <NuxtLink
-          to="/zones"
-          class="px-5 py-2.5 border surface-border rounded-md surface-card-hover transition text-primary"
-        >
-          🗺️ Zones sauvages
-        </NuxtLink>
-        <a
-          href="https://github.com/Benoit1108/claude-pokemon"
-          class="px-5 py-2.5 border surface-border rounded-md surface-card-hover transition text-primary"
-        >
-          GitHub
-        </a>
+        <NuxtLink to="/pokedex" class="btn-ghost"> 📖 Pokédex </NuxtLink>
+        <NuxtLink to="/arena" class="btn-ghost"> ⚔️ Arena </NuxtLink>
+        <NuxtLink to="/ladder" class="btn-ghost"> 🏞️ Trail </NuxtLink>
+        <NuxtLink to="/zones" class="btn-ghost"> 🗺️ Zones sauvages </NuxtLink>
+        <a href="https://github.com/Benoit1108/claude-pokemon" class="btn-ghost"> GitHub </a>
       </div>
     </header>
 

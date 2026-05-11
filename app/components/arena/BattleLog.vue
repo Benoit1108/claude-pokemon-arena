@@ -19,8 +19,8 @@ const lastRevealedTurn = computed(() => props.turns[props.turns.length - 1]?.tur
 </script>
 
 <template>
-  <div class="surface-card border surface-border rounded-lg p-4 mb-6">
-    <div class="text-xs uppercase tracking-widest text-secondary mb-3">Battle log</div>
+  <div class="card p-4 mb-6">
+    <div class="text-label mb-3">Battle log</div>
     <ol v-if="turns.length > 0" class="space-y-1.5 font-mono text-sm">
       <TransitionGroup name="turn-fade" tag="div" class="space-y-1.5">
         <li
