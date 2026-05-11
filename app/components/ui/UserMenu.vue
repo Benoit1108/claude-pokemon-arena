@@ -88,7 +88,7 @@ onBeforeUnmount(() => {
         <Transition name="menu-fade">
           <div
             v-if="open"
-            class="absolute left-0 mt-2 w-64 surface-card border surface-border rounded-md shadow-2xl py-1 z-50"
+            class="absolute right-0 mt-2 w-64 card-elevated rounded-md py-1 z-50"
             role="menu"
           >
             <NuxtLink
@@ -160,7 +160,7 @@ onBeforeUnmount(() => {
       <Transition name="menu-fade">
         <div
           v-if="isPaired && open"
-          class="absolute left-0 mt-2 w-64 surface-card border surface-border rounded-md shadow-2xl py-1 z-50"
+          class="absolute right-0 mt-2 w-64 card-elevated rounded-md py-1 z-50"
           role="menu"
         >
           <div class="px-3 py-2 border-b surface-border">
