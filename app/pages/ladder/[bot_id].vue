@@ -5,15 +5,20 @@ import { useSoundEffects } from '~/composables/useSoundEffects'
 import { useLadderProgress } from '~/composables/useLadderProgress'
 import { useManualBattle } from '~/composables/useManualBattle'
 import { useBattleJuice } from '~/composables/useBattleJuice'
+import { useArenaSession } from '~/composables/useArenaSession'
+import { useTrainerProfile } from '~/composables/useTrainerProfile'
 import { resolveBattle, hashSeed, LINEAGE_TO_TYPE } from '~/utils/battle-engine'
 import { lineageGradient } from '~/utils/lineage'
-import type { BattleParticipant, BattleSide } from '~/types/api'
+import type { BattleParticipant, BattleSide, Lineage } from '~/types/api'
 
 definePageMeta({ ssr: false })
 
 const route = useRoute()
+const router = useRouter()
 const ladder = useLadderProgress()
 const sfx = useSoundEffects()
+const { isPaired } = useArenaSession()
+const { trainer } = useTrainerProfile()
 
 const botId = route.params.bot_id as string
 const bot = findBot(botId)
@@ -22,18 +27,34 @@ if (!bot) {
   throw createError({ statusCode: 404, statusMessage: 'Bot not found' })
 }
 
+// Sprint 4.8 — ladder requires a real trainer. The previous "Vous Lv.(bot-3)
+// Salamèche" hardcoded snapshot has been removed. Anonymous visitors get
+// redirected to /signup so they can create or pair an account first.
+onMounted(() => {
+  if (!isPaired.value) {
+    void router.replace('/signup')
+  }
+})
+
 // Mode toggle via query : ?mode=manual for interactive play, default = auto.
 const mode = computed<'auto' | 'manual'>(() =>
   (route.query.mode as string) === 'manual' ? 'manual' : 'auto',
 )
 
-const playerSnapshot: BattleParticipant = {
-  anon_id: '00000000',
-  display_name: 'Vous',
-  lineage: 'fire',
-  level: Math.max(1, bot.level - 3),
-  is_shiny: false,
-}
+// Player snapshot built from the paired trainer's active companion.
+// Falls back to safe defaults during the initial render before
+// useTrainerProfile resolves — once the trainer record arrives, the
+// computed re-renders the battle with the real snapshot.
+const playerSnapshot = computed<BattleParticipant>(() => {
+  const t = trainer.value
+  return {
+    anon_id: t?.anon_id ?? '00000000',
+    display_name: t?.display_name ?? 'Toi',
+    lineage: (t?.stats.active.lineage ?? 'fire') as Lineage,
+    level: t?.stats.active.current_level ?? 1,
+    is_shiny: t?.stats.active.is_shiny ?? false,
+  }
+})
 
 const opponentSnapshot: BattleParticipant = {
   anon_id: bot.id
@@ -47,15 +68,21 @@ const opponentSnapshot: BattleParticipant = {
 }
 
 // ── AUTO MODE ─────────────────────────────────────────────────────────────
+// Sprint 4.8 — the battle resolves once with the trainer's snapshot at
+// page mount. If the trainer is still loading (first render), we wait
+// until the value stabilizes via the computed below — autoBattle is a
+// computed too so it re-resolves once playerSnapshot has real data.
 const seed = hashSeed(`${bot.id}|${Date.now()}|${Math.random()}`)
-const autoBattle = resolveBattle({
-  challenger: playerSnapshot,
-  defender: opponentSnapshot,
-  seed,
-  createdAt: new Date().toISOString(),
-})
+const autoBattle = computed(() =>
+  resolveBattle({
+    challenger: playerSnapshot.value,
+    defender: opponentSnapshot,
+    seed,
+    createdAt: new Date().toISOString(),
+  }),
+)
 
-const autoPlayer = useBattlePlayer(autoBattle.turns, { autoPlay: true, speed: 1 })
+const autoPlayer = useBattlePlayer(autoBattle.value.turns, { autoPlay: true, speed: 1 })
 
 watch(autoPlayer.lastTurn, t => {
   if (mode.value !== 'auto' || !t) return
@@ -68,10 +95,10 @@ let autoRecorded = false
 watch(autoPlayer.isFinished, finished => {
   if (mode.value !== 'auto' || !finished || autoRecorded) return
   autoRecorded = true
-  if (autoBattle.winner === 'challenger') {
+  if (autoBattle.value.winner === 'challenger') {
     sfx.playWin()
-    ladder.recordVictory(bot.id, autoBattle.turns.length, autoBattle.seed)
-  } else if (autoBattle.winner === 'defender') {
+    ladder.recordVictory(bot.id, autoBattle.value.turns.length, autoBattle.value.seed)
+  } else if (autoBattle.value.winner === 'defender') {
     sfx.playDefeat()
   } else {
     sfx.playDraw()
@@ -80,7 +107,7 @@ watch(autoPlayer.isFinished, finished => {
 
 // ── MANUAL MODE ───────────────────────────────────────────────────────────
 const manual = useManualBattle({
-  challenger: playerSnapshot,
+  challenger: playerSnapshot.value,
   defender: opponentSnapshot,
   seed,
   humanSide: 'challenger',
@@ -104,7 +131,7 @@ const opponentCombatType = LINEAGE_TO_TYPE[opponentSnapshot.lineage]
 
 // ── JUICE PACK — wired to whichever mode is active ────────────────────────
 const autoWinner = computed<BattleSide | 'draw' | null>(() =>
-  autoPlayer.isFinished.value ? autoBattle.winner : null,
+  autoPlayer.isFinished.value ? autoBattle.value.winner : null,
 )
 const autoJuice = useBattleJuice({
   lastTurn: autoPlayer.lastTurn,
