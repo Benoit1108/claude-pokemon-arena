@@ -106,22 +106,46 @@ async function startExplore() {
       exploreState.value = { kind: 'nothing' }
     }
   } catch (e) {
-    // 429 cooldown → display the countdown so the user knows when to retry.
-    const status =
-      (e as { statusCode?: number; response?: { status?: number } } | undefined)?.statusCode ??
-      (e as { response?: { status?: number } } | undefined)?.response?.status
-    const data =
-      (e as { data?: { cooldown_remaining_s?: number } } | undefined)?.data ??
-      (e as { response?: { _data?: { cooldown_remaining_s?: number } } } | undefined)?.response
-        ?._data
+    // Parse the worker's structured error body — different 403 codes need
+    // different user-facing messages (arena_not_enabled ≠ zone_locked).
+    const errObj = e as
+      | {
+          statusCode?: number
+          data?: { error?: string; cooldown_remaining_s?: number; message?: string }
+          response?: {
+            status?: number
+            _data?: { error?: string; cooldown_remaining_s?: number; message?: string }
+          }
+          message?: string
+        }
+      | undefined
+    const status = errObj?.statusCode ?? errObj?.response?.status
+    const data = errObj?.data ?? errObj?.response?._data
+    const code = data?.error
+
     if (status === 429 && data?.cooldown_remaining_s) {
       startCooldownTicker(data.cooldown_remaining_s)
       return
     }
-    if (status === 403) {
+    if (code === 'arena_not_enabled') {
       exploreState.value = {
         kind: 'error',
-        message: 'Cette zone est verrouillée — ton niveau est trop bas.',
+        message:
+          "Ton compte n'existe pas sur ce serveur. En local, crée un compte via /signup d'abord (les comptes prod n'existent pas dans le KV local).",
+      }
+      return
+    }
+    if (code === 'zone_locked') {
+      exploreState.value = {
+        kind: 'error',
+        message: data?.message ?? 'Cette zone est verrouillée — ton niveau est trop bas.',
+      }
+      return
+    }
+    if (code === 'invalid_secret') {
+      exploreState.value = {
+        kind: 'error',
+        message: 'Ton arena_secret est rejeté. Re-pair ton CLI ou crée un nouveau compte.',
       }
       return
     }
