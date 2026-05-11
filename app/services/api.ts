@@ -153,4 +153,21 @@ export class ApiClient {
       body: args,
     })
   }
+
+  /**
+   * Sprint 4.3 — web-side initiator of the pair flow. Same endpoint the CLI
+   * uses for CLI→web pairing ; this time the WEB issues the code and the
+   * CLI redeems it via `/pokemon arena link <code>`. Bearer auth.
+   */
+  arenaPairInit(args: {
+    anonId: string
+    arenaSecret: string
+  }): Promise<{ ok: true; code: string; expires_at: string; ttl_s: number }> {
+    return this.fetcher('/v1/arena/pair/init', {
+      method: 'POST',
+      baseURL: this.baseUrl,
+      headers: { authorization: `Bearer ${args.arenaSecret}` },
+      body: { anon_id: args.anonId },
+    })
+  }
 }

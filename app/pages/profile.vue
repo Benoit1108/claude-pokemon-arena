@@ -102,6 +102,34 @@ function unpair() {
   void router.push('/')
 }
 
+// Sprint 4.3 — Pair my CLI flow. Generates a 6-char code from the worker
+// that the user types into `/pokemon arena link <code>` on their CLI. The
+// CLI then receives this trainer's anon_id + secret, so the same account
+// is usable from both sides.
+const pairCode = ref<string | null>(null)
+const pairExpiresAt = ref<string | null>(null)
+const pairIssuing = ref(false)
+const pairError = ref<string | null>(null)
+
+async function issuePairCode() {
+  if (!session.value) return
+  pairIssuing.value = true
+  pairError.value = null
+  pairCode.value = null
+  try {
+    const res = await api.arenaPairInit({
+      anonId: session.value.anon_id,
+      arenaSecret: session.value.arena_secret,
+    })
+    pairCode.value = res.code
+    pairExpiresAt.value = res.expires_at
+  } catch (e) {
+    pairError.value = e instanceof Error ? e.message : 'Échec de génération du code'
+  } finally {
+    pairIssuing.value = false
+  }
+}
+
 useHead({
   title: 'Mon profil · claude-pokemon arena',
   meta: [{ name: 'robots', content: 'noindex' }],
@@ -288,6 +316,56 @@ useHead({
 
         <p v-if="saveMessage" class="text-sm text-emerald-400">{{ saveMessage }}</p>
         <p v-if="saveError" class="text-sm text-red-400">⚠ {{ saveError }}</p>
+      </section>
+
+      <!-- Sprint 4.3 — Pair my CLI : the inverse of /pair. Generates a
+           6-char code that the user types into `/pokemon arena link <code>`
+           on their CLI to import this trainer's identity locally. -->
+      <section class="surface-card border surface-border rounded-lg p-6 mb-6">
+        <h2 class="text-sm uppercase tracking-wider text-muted mb-2">🔗 Lier mon CLI</h2>
+        <p class="text-xs text-muted mb-4">
+          Tu utilises aussi <code>claude-pokemon</code> en local ? Génère un code à 6 caractères
+          puis lance <code class="text-secondary">/pokemon arena link &lt;code&gt;</code> sur ton
+          CLI pour importer ce compte. Ton state.json local sera réécrit à partir du compte web.
+        </p>
+        <div v-if="!pairCode" class="text-center">
+          <button
+            type="button"
+            class="px-5 py-2 bg-accent text-zinc-900 rounded-md font-bold hover:opacity-90 transition disabled:opacity-50"
+            :disabled="pairIssuing"
+            @click="issuePairCode"
+          >
+            {{ pairIssuing ? 'Génération...' : 'Générer un code de pairing' }}
+          </button>
+        </div>
+        <div v-else class="text-center space-y-2">
+          <p class="text-xs text-muted">Code à 6 caractères (expire dans 5 min) :</p>
+          <div
+            class="inline-block px-6 py-3 rounded-lg surface-card-hover border-2 border-accent text-3xl font-mono font-bold tracking-[0.4em] text-accent select-all"
+          >
+            {{ pairCode }}
+          </div>
+          <p class="text-xs text-secondary">
+            Sur ton CLI : <code>/pokemon arena link {{ pairCode }}</code>
+          </p>
+          <p v-if="pairExpiresAt" class="text-[10px] text-muted">
+            Expire à
+            {{ new Date(pairExpiresAt).toLocaleTimeString() }}
+          </p>
+          <button
+            type="button"
+            class="text-xs text-secondary underline hover:text-primary transition"
+            @click="
+              () => {
+                pairCode = null
+                pairExpiresAt = null
+              }
+            "
+          >
+            Générer un nouveau code
+          </button>
+        </div>
+        <p v-if="pairError" class="text-sm text-red-400 mt-3 text-center">⚠ {{ pairError }}</p>
       </section>
 
       <!-- Danger zone -->
