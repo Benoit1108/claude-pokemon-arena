@@ -6,15 +6,24 @@ on:
   pull_request:
     branches: [main]
 
+# Shared across jobs :
+#  - Node 22 (Object.groupBy used by eslint-flat-config-utils requires Node ≥21,
+#    and CF Pages now defaults to 22 too — keep parity with production).
+#  - submodules: true so `vendor/claude-pokemon` (the shared package source)
+#    gets checked out — otherwise `claude-pokemon-shared` fails to resolve at
+#    build/test time.
+
 jobs:
   lint-typecheck:
     name: ESLint + TypeScript + Prettier
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          submodules: true
       - uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
       - name: Install dependencies
         run: npm ci
@@ -30,9 +39,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          submodules: true
       - uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
       - name: Install dependencies
         run: npm ci
@@ -44,9 +55,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          submodules: true
       - uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
       - name: Install dependencies
         run: npm ci
