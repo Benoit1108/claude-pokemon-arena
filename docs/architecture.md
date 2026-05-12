@@ -7,8 +7,9 @@
 ## Overview
 
 `claude-pokemon-arena` is the web frontend for the [`claude-pokemon`](https://github.com/Benoit1108/claude-pokemon)
-ecosystem. It consumes the existing Worker API and renders trainer pages,
-the leaderboard, the global pokédex, and (Phase 2.3+) battle replays.
+ecosystem. It consumes the Cloudflare Worker API and renders trainer pages,
+the leaderboard, the pokédex, async + live PvP battles, wild zones, the
+trail ladder, and a web-native signup with recovery-key sign-in.
 
 ```
 ┌────────────────────────────────────────────────────────┐
@@ -17,44 +18,76 @@ the leaderboard, the global pokédex, and (Phase 2.3+) battle replays.
 └────────────────────────────────────────────────────────┘
 ```
 
-The site is **mostly read-only** today (Sprint 2.1-2.2). Writes (challenge
-a battle, etc.) come in Sprint 2.3 via the same Worker but with
-`arena_secret` Bearer auth.
+The site is **read + write** today (Phase 2.1 → 2.10 shipped). Writes go
+through the same Worker with Bearer auth via the `arena_secret` stored in
+`localStorage` (managed by `useArenaSession()`). The auth model is
+anonymous-by-default — Sprint 5 introduced the recovery-key flow so a user
+who clears localStorage can paste back their `anon_id` + `arena_secret` to
+recover.
+
+See [`../CHANGELOG.md`](../CHANGELOG.md) for what's shipped per sprint and
+[`../ROADMAP.md`](../ROADMAP.md) for what's next.
 
 ## Repository layout
 
 ```
 claude-pokemon-arena/
-├── app/                           Application source (Nuxt 4 convention).
-│   ├── app.vue                    Root layout with floating theme toggle.
-│   ├── pages/                     File-based routing (each file = one route).
-│   │   ├── index.vue              Homepage : hero + global stats + leaderboard.
-│   │   ├── trainer/[anonId].vue   (Sprint 2.2a) Public trainer card.
-│   │   ├── battle/[id].vue        (Sprint 2.3) Battle replay.
-│   │   └── pokedex.vue            (Sprint 2.2b) 251 Pokémon catalog.
-│   ├── components/                Vue components, organized by domain.
-│   │   ├── ui/                    Generic primitives (toggle, button, ...).
-│   │   ├── leaderboard/           LeaderboardTable + future filters.
-│   │   ├── stats/                 GlobalStatsCards, LineageDistribution.
-│   │   └── trainer/               (Sprint 2.2a) TrainerCard, badge grid.
-│   ├── composables/               Reusable Vue logic.
-│   │   └── useApi.ts              Wraps the API service for SSR + client.
-│   ├── services/                  Pure JS/TS code, no Vue dependency.
-│   │   └── api.ts                 ApiClient class targeting the Worker.
-│   ├── types/                     TypeScript contracts.
-│   │   └── api.ts                 Mirror of api/src/types.ts (worker).
-│   └── utils/                     Pure formatting/lookup helpers.
-│       ├── format.ts              fmt, fmtPct, rankPrefix, trainerLabel.
-│       └── lineage.ts             LINEAGE_EMOJI map.
-├── tests/                         Vitest suites.
-│   ├── unit/                      Pure functions (utils, services).
-│   └── components/                Vue components (with @nuxt/test-utils).
+├── app/                           Nuxt 4 src dir
+│   ├── app.vue                    Root layout : AppHeader + NuxtPage + BottomNav.
+│   ├── pages/                     File-based routing
+│   │   ├── index.vue              Hero + leaderboard + global stats + 4 tiles
+│   │   ├── arena.vue              Async PvP pool
+│   │   ├── battle/[id].vue        Battle replay (animated turn-by-turn)
+│   │   ├── ladder/[bot_id].vue    PvE trail bot duel (auto + manual mode)
+│   │   ├── live/[id].vue          Live PvP (Durable Object-backed)
+│   │   ├── login.vue              Recovery-key sign-in (Sprint 5)
+│   │   ├── pair.vue               CLI ↔ web pairing redeem
+│   │   ├── pokedex/[id].vue       Wild Pokémon detail
+│   │   ├── profile.vue            Editable trainer profile
+│   │   ├── signup.vue             Web-native trainer creation
+│   │   ├── trainer/[anonId].vue   Public trainer card
+│   │   └── zones/[id].vue         Wild zone explore + fight + flee
+│   ├── components/                pathPrefix: false → flat naming
+│   │   ├── arena/                 11 battle UI parts (Stage, Log, AttackPicker, ...)
+│   │   ├── ladder/                BotTrainerTile
+│   │   ├── leaderboard/           LeaderboardTable
+│   │   ├── pokedex/               PokedexCard, PokedexFilters
+│   │   ├── stats/                 GlobalStatsCards, LineageDistribution
+│   │   ├── trainer/               Hero, Badges, StatsCards
+│   │   └── ui/                    AppHeader, BottomNav, UserMenu, ColorModeToggle, ...
+│   ├── composables/               useApi, useArenaSession, useBattlePlayer,
+│   │                              useBattleJuice, useLadderProgress, useLiveBattle,
+│   │                              useManualBattle, useSoundEffects, useTrainerProfile
+│   ├── data/                      bot-trainers, moves, wild-pool-gen{1,2}.json
+│   ├── services/api.ts            Single ApiClient class
+│   ├── types/                     api.ts (Worker contracts), pokedex.ts
+│   ├── utils/                     battle-engine, manual-battle, sprites, format,
+│   │                              lineage, badges, pokedex (filters)
+│   └── assets/css/global.css      Body bg, fonts baseline, reveal keyframes
+├── i18n/locales/{fr,en}.json      ~543 keys per locale, parity-enforced in CI
+├── tests/
+│   ├── setup.ts                   Vitest setup — installs vue-i18n plugin globally
+│   ├── components/                Mount-based (LeaderboardTable, PokedexCard, ...)
+│   └── unit/                      composables/, services/, utils/
+├── scripts/
+│   ├── fetch-github-stars.mjs     predev/prebuild hook
+│   ├── check-i18n-parity.mjs      FR/EN parity gate
+│   └── ci-pre-push.sh             Full local CI suite (mirrors GitHub Actions)
+├── .claude/
+│   ├── settings.json              PreToolUse hook → pre-push.sh
+│   └── hooks/pre-push.sh          Runs ci-pre-push.sh on `git push`
 ├── docs/
-│   └── architecture.md            ← this file
-├── public/                        Static assets served as-is.
-├── nuxt.config.ts                 Modules, runtimeConfig, eslint config.
-├── uno.config.ts                  UnoCSS theme + semantic shortcuts.
-├── tsconfig.json, eslint.config.mjs (auto), .prettierrc.json
+│   ├── architecture.md            ← this file
+│   └── mockups/                   Design pass mockups (Sprint 5)
+├── vendor/claude-pokemon/         Git submodule — source of claude-pokemon-shared
+├── nuxt.config.ts                 Modules (i18n, color-mode, eslint, unocss),
+│                                  runtimeConfig, fonts head links
+├── uno.config.ts                  Design tokens + shortcuts (card, pill, btn-*, surface-*)
+├── vitest.config.ts               setupFiles: ['./tests/setup.ts']
+├── knip.json                      Dead-code config (Nuxt-aware)
+├── .nvmrc                         Node 22
+├── .editorconfig                  Shared editor settings
+├── .prettierrc.json               Prettier config
 └── package.json
 ```
 

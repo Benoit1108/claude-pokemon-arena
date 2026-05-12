@@ -81,6 +81,8 @@ claude-pokemon-arena/
 ## Conventions
 
 - **Commits** : Conventional Commits. Scope `arena` for web changes, `api` for worker (when touching `vendor/`). No `Co-Authored-By`.
+- **PR workflow** : feature branches off `main`, squash on merge. Don't push direct to `main` (branch-protected). One commit per merged PR.
+- **CHANGELOG discipline** : every PR adds an entry to `[Unreleased]` in `CHANGELOG.md`. Don't defer to release time — write the entry while the context is fresh. Sections : `Added` / `Changed` / `Fixed` / `Removed` / `Security`.
 - **Comments** : default to none. Only justify hidden constraints, subtle invariants, or behavior that would surprise. Never narrate WHAT the code does (the names already do).
 - **Components** : SFC `<script setup lang="ts">`, defineProps with types, `useI18n()` for any string the user sees.
 - **i18n keys** : kebab/snake-mixed, nested by section (`section.subsection.leaf`). Strings displayed to users go through `t(key)`. Hardcoded strings allowed for proper nouns (Pallet Town, Claude Code, Pokémon Showdown), technical IDs (anon_id, arena_secret), and CLI commands. **Never put literal `{` or `}` in i18n message values** — vue-i18n parses them as placeholders and throws at compile time. Rephrase or use `{'{'}{ '}' }` escaping.
