@@ -35,6 +35,18 @@ cd "$(git rev-parse --show-toplevel)"
 
 run "ESLint"         npm run -s lint
 run "Prettier check" npm run -s format:check
+
+# Nuxt typecheck swallows the underlying vue-tsc exit code locally — exits 0
+# even when there are real TS errors. CI catches it on a different exit path.
+# We work around it by capturing output and failing on the error string.
+run "Nuxt typecheck" bash -c '
+  out=$(npm run -s typecheck 2>&1)
+  echo "$out"
+  if echo "$out" | grep -qE "(error TS[0-9]+|Process exited with non-zero status)"; then
+    exit 1
+  fi
+'
+
 run "Vitest"         npm run -s test
 run "Nuxt build (cloudflare-pages preset)" env NITRO_PRESET=cloudflare-pages npm run -s build
 

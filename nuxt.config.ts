@@ -13,15 +13,11 @@ export default defineNuxtConfig({
       { code: 'fr', name: 'Français', file: 'fr.json' },
       { code: 'en', name: 'English', file: 'en.json' },
     ],
-    lazy: true,
     detectBrowserLanguage: {
       useCookie: true,
       cookieKey: 'arena-i18n',
       redirectOn: 'root',
       fallbackLocale: 'fr',
-    },
-    bundle: {
-      optimizeTranslationDirective: false,
     },
   },
   devtools: { enabled: true },
