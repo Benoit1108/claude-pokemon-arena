@@ -17,6 +17,8 @@ const emit = defineEmits<{
   pick: [moveIndex: number]
 }>()
 
+const { t } = useI18n()
+
 const TYPE_BG: Record<CombatType, string> = {
   fire: 'bg-orange-500/20 border-orange-500/40 hover:bg-orange-500/30',
   water: 'bg-blue-500/20 border-blue-500/40 hover:bg-blue-500/30',
@@ -25,28 +27,22 @@ const TYPE_BG: Record<CombatType, string> = {
   normal: 'bg-zinc-500/20 border-zinc-500/40 hover:bg-zinc-500/30',
 }
 
-const TYPE_LABEL: Record<CombatType, string> = {
-  fire: 'Feu',
-  water: 'Eau',
-  grass: 'Plante',
-  electric: 'Élec',
-  normal: 'Normal',
-}
+const typeLabel = (type: CombatType): string => t(`attack_picker.type_${type}`)
 
 function effectivenessFor(move: Move): number {
   return TYPE_CHART[move.type][props.defenderType]
 }
 
 function effectivenessLabel(eff: number): { text: string; color: string } {
-  if (eff >= 2) return { text: '↑ super eff.', color: 'text-success' }
-  if (eff <= 0.5) return { text: '↓ peu eff.', color: 'text-danger' }
-  return { text: '× neutre', color: 'text-zinc-400' }
+  if (eff >= 2) return { text: t('attack_picker.super_eff'), color: 'text-success' }
+  if (eff <= 0.5) return { text: t('attack_picker.weak_eff'), color: 'text-danger' }
+  return { text: t('attack_picker.neutral_eff'), color: 'text-zinc-400' }
 }
 </script>
 
 <template>
   <div class="card p-4 mb-4">
-    <div class="text-label mb-3 text-center">À toi de jouer — choisis ton attaque</div>
+    <div class="text-label mb-3 text-center">{{ t('attack_picker.title') }}</div>
     <div class="grid grid-cols-2 gap-2">
       <button
         v-for="(move, i) in moves"
@@ -60,11 +56,13 @@ function effectivenessLabel(eff: number): { text: string; color: string } {
         <div class="flex items-baseline justify-between gap-2 mb-1">
           <span class="font-bold text-primary truncate">{{ move.name }}</span>
           <span class="text-xs uppercase tracking-wider text-secondary flex-shrink-0">
-            {{ TYPE_LABEL[move.type] }}
+            {{ typeLabel(move.type) }}
           </span>
         </div>
         <div class="flex items-center justify-between text-xs">
-          <span class="text-muted">Puissance {{ move.power.toFixed(1) }}</span>
+          <span class="text-muted">{{
+            t('attack_picker.power', { value: move.power.toFixed(1) })
+          }}</span>
           <span :class="effectivenessLabel(effectivenessFor(move)).color">
             {{ effectivenessLabel(effectivenessFor(move)).text }}
           </span>

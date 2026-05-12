@@ -16,14 +16,16 @@ const props = defineProps<{
   initialCounts: Record<ReactionKey, number>
 }>()
 
-const REACTIONS: { key: ReactionKey; emoji: string; label: string }[] = [
-  { key: 'clap', emoji: '👏', label: 'Bien joué' },
-  { key: 'fire', emoji: '🔥', label: 'En feu' },
-  { key: 'party', emoji: '🎉', label: 'Bravo' },
-  { key: 'lol', emoji: '😂', label: 'Hilarant' },
-  { key: 'tear', emoji: '🥲', label: 'Touchant' },
-  { key: 'love', emoji: '❤️', label: 'Coup de cœur' },
-]
+const { t } = useI18n()
+
+const REACTIONS = computed<{ key: ReactionKey; emoji: string; label: string }[]>(() => [
+  { key: 'clap', emoji: '👏', label: t('reactions.label_clap') },
+  { key: 'fire', emoji: '🔥', label: t('reactions.label_fire') },
+  { key: 'party', emoji: '🎉', label: t('reactions.label_party') },
+  { key: 'lol', emoji: '😂', label: t('reactions.label_lol') },
+  { key: 'tear', emoji: '🥲', label: t('reactions.label_tear') },
+  { key: 'love', emoji: '❤️', label: t('reactions.label_love') },
+])
 
 const counts = ref<Record<ReactionKey, number>>({ ...props.initialCounts })
 const myReaction = ref<ReactionKey | null>(null)
@@ -76,7 +78,7 @@ onMounted(() => {
   // emoji persists across reloads.
   try {
     const stored = localStorage.getItem(VOTE_KEY_PREFIX + props.battleId)
-    if (stored && REACTIONS.find(r => r.key === stored) !== undefined) {
+    if (stored && REACTIONS.value.find(r => r.key === stored) !== undefined) {
       myReaction.value = stored as ReactionKey
     }
   } catch {
@@ -122,7 +124,7 @@ async function react(reaction: ReactionKey) {
       counts.value[reaction] = Math.max(0, (counts.value[reaction] ?? 0) - 1)
       myReaction.value = null
     }
-    error.value = e instanceof Error ? e.message : 'network error'
+    error.value = e instanceof Error ? e.message : t('reactions.err_network')
   } finally {
     submitting.value = false
   }
@@ -132,7 +134,7 @@ async function react(reaction: ReactionKey) {
 <template>
   <div class="card p-4 mb-6">
     <div class="text-xs uppercase tracking-widest text-secondary mb-3 text-center">
-      GG — réagissez au combat
+      {{ t('reactions.title') }}
     </div>
     <div class="flex flex-wrap justify-center gap-2">
       <button

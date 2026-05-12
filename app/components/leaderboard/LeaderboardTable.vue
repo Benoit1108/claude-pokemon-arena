@@ -2,17 +2,18 @@
 import { fmt, rankPrefix, trainerLabel } from '~/utils/format'
 import type { LeaderboardEntry } from '~/types/api'
 
-defineProps<{
+const props = defineProps<{
   entries: LeaderboardEntry[]
   title?: string
 }>()
+
+const { t } = useI18n()
+const displayTitle = computed(() => props.title || t('leaderboard.title_default'))
 </script>
 
 <template>
   <section class="mb-12">
-    <h2 class="text-sm uppercase tracking-wider text-muted mb-3">
-      🏆 {{ title || 'Leaderboard — total tokens' }}
-    </h2>
+    <h2 class="text-sm uppercase tracking-wider text-muted mb-3">🏆 {{ displayTitle }}</h2>
     <div class="card overflow-hidden">
       <table class="w-full">
         <tbody>
@@ -57,7 +58,7 @@ defineProps<{
           </tr>
           <tr v-if="!entries.length">
             <td colspan="5" class="px-4 py-12 text-center text-muted">
-              No trainer has submitted stats yet. Be the first :
+              {{ t('leaderboard.empty') }}
               <code class="text-accent">/pokemon stats-share enable --confirm</code>
             </td>
           </tr>

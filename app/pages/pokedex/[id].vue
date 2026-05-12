@@ -12,6 +12,7 @@
 import { nextPokemon, pokemonById, previousPokemon, typeColor } from '~/utils/pokedex'
 
 const route = useRoute()
+const { t } = useI18n()
 
 const id = computed(() => {
   const v = route.params.id
@@ -53,14 +54,22 @@ const shinyFailed = ref(false)
 useHead({
   title: () =>
     species.value
-      ? `${species.value.name_fr} · #${species.value.national_dex.toString().padStart(3, '0')} · pokédex`
-      : 'Pokémon introuvable · pokédex',
+      ? t('pokedex_detail.page_title_meta', {
+          name: species.value.name_fr,
+          dex: species.value.national_dex.toString().padStart(3, '0'),
+        })
+      : t('pokedex_detail.page_title_not_found'),
   meta: [
     {
       name: 'description',
       content: () =>
         species.value
-          ? `${species.value.name_fr} (${species.value.name_en}) · type ${species.value.type} · rareté ${species.value.rarity}`
+          ? t('pokedex_detail.page_desc', {
+              name_fr: species.value.name_fr,
+              name_en: species.value.name_en,
+              type: species.value.type,
+              rarity: species.value.rarity,
+            })
           : '',
     },
   ],
@@ -71,23 +80,32 @@ useHead({
   <main class="max-w-3xl mx-auto px-6 py-12">
     <div class="mb-6 flex items-center gap-4">
       <NuxtLink to="/pokedex" class="text-secondary hover:text-primary text-sm transition">
-        ← Pokédex
+        {{ t('pokedex_detail.back') }}
       </NuxtLink>
     </div>
 
     <div v-if="!species" class="card p-12 text-center">
       <div class="text-6xl mb-4" aria-hidden="true">🔍</div>
-      <h1 class="text-2xl font-bold text-primary mb-2">Pokémon introuvable</h1>
+      <h1 class="text-2xl font-bold text-primary mb-2">{{ t('pokedex_detail.not_found_title') }}</h1>
       <p class="text-secondary">
-        Aucune espèce avec l'id <code class="text-accent">{{ id }}</code> dans Gen 1 + Gen 2.
+        <i18n-t keypath="pokedex_detail.not_found_body" tag="span">
+          <template #id>
+            <code class="text-accent">{{ id }}</code>
+          </template>
+        </i18n-t>
       </p>
     </div>
 
     <template v-else>
       <header class="text-center mb-8">
         <div class="text-xs uppercase tracking-widest text-muted mb-1">
-          #{{ species.national_dex.toString().padStart(3, '0') }} · {{ region }} (Gen
-          {{ generation }})
+          {{
+            t('pokedex_detail.region_gen', {
+              dex: species.national_dex.toString().padStart(3, '0'),
+              region,
+              gen: generation,
+            })
+          }}
         </div>
         <h1 class="text-4xl md:text-5xl font-bold text-primary">
           {{ species.name_fr }}
@@ -97,11 +115,13 @@ useHead({
 
       <div class="grid sm:grid-cols-3 gap-4 mb-8">
         <div class="card p-4 flex flex-col items-center">
-          <div class="text-xs uppercase tracking-widest text-muted mb-2">Front</div>
+          <div class="text-xs uppercase tracking-widest text-muted mb-2">
+            {{ t('pokedex_detail.front') }}
+          </div>
           <img
             v-if="!frontFailed"
             :src="frontUrl"
-            :alt="`${species.name_en} front sprite`"
+            :alt="t('pokedex_detail.front_alt', { name: species.name_en })"
             loading="lazy"
             decoding="async"
             class="w-32 h-32 object-contain pixel-render"
@@ -111,11 +131,13 @@ useHead({
         </div>
 
         <div class="card p-4 flex flex-col items-center">
-          <div class="text-xs uppercase tracking-widest text-muted mb-2">Back</div>
+          <div class="text-xs uppercase tracking-widest text-muted mb-2">
+            {{ t('pokedex_detail.back_sprite') }}
+          </div>
           <img
             v-if="!backFailed"
             :src="backUrl"
-            :alt="`${species.name_en} back sprite`"
+            :alt="t('pokedex_detail.back_alt', { name: species.name_en })"
             loading="lazy"
             decoding="async"
             class="w-32 h-32 object-contain pixel-render"
@@ -125,11 +147,13 @@ useHead({
         </div>
 
         <div class="card p-4 flex flex-col items-center">
-          <div class="text-xs uppercase tracking-widest text-muted mb-2">✦ Shiny</div>
+          <div class="text-xs uppercase tracking-widest text-muted mb-2">
+            {{ t('pokedex_detail.shiny') }}
+          </div>
           <img
             v-if="!shinyFailed"
             :src="shinyUrl"
-            :alt="`${species.name_en} shiny sprite`"
+            :alt="t('pokedex_detail.shiny_alt', { name: species.name_en })"
             loading="lazy"
             decoding="async"
             class="w-32 h-32 object-contain pixel-render"
@@ -140,40 +164,46 @@ useHead({
       </div>
 
       <div class="card p-6 mb-8">
-        <h2 class="text-sm uppercase tracking-wider text-muted mb-4">Caractéristiques</h2>
+        <h2 class="text-sm uppercase tracking-wider text-muted mb-4">
+          {{ t('pokedex_detail.characteristics') }}
+        </h2>
         <dl class="grid sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
           <div class="flex justify-between">
-            <dt class="text-secondary">Type</dt>
+            <dt class="text-secondary">{{ t('pokedex_detail.type') }}</dt>
             <dd class="font-semibold" :class="typeColor(species.type)">{{ species.type }}</dd>
           </div>
           <div class="flex justify-between">
-            <dt class="text-secondary">Rareté</dt>
+            <dt class="text-secondary">{{ t('pokedex_detail.rarity') }}</dt>
             <dd>
               <span
                 v-if="species.rarity === 'legendary'"
                 class="text-accent font-bold tracking-wider"
-                >★ légendaire</span
+                >{{ t('pokedex_detail.rarity_legendary') }}</span
               >
               <span
                 v-else-if="species.rarity === 'rare'"
                 class="text-purple-400 dark:text-purple-300 font-bold tracking-wider"
-                >◆ rare</span
+                >{{ t('pokedex_detail.rarity_rare') }}</span
               >
-              <span v-else class="text-primary">commune</span>
+              <span v-else class="text-primary">{{ t('pokedex_detail.rarity_common') }}</span>
             </dd>
           </div>
           <div class="flex justify-between">
-            <dt class="text-secondary">Numéro Pokédex</dt>
+            <dt class="text-secondary">{{ t('pokedex_detail.dex_number') }}</dt>
             <dd class="font-mono text-primary">
-              #{{ species.national_dex.toString().padStart(3, '0') }} / 251
+              {{
+                t('pokedex_detail.dex_number_value', {
+                  dex: species.national_dex.toString().padStart(3, '0'),
+                })
+              }}
             </dd>
           </div>
           <div class="flex justify-between">
-            <dt class="text-secondary">Région d'origine</dt>
+            <dt class="text-secondary">{{ t('pokedex_detail.origin_region') }}</dt>
             <dd class="text-primary">{{ region }}</dd>
           </div>
           <div class="flex justify-between sm:col-span-2">
-            <dt class="text-secondary">Identifiant Showdown</dt>
+            <dt class="text-secondary">{{ t('pokedex_detail.showdown_id') }}</dt>
             <dd>
               <code class="text-secondary text-xs">{{ species.id }}</code>
             </dd>
@@ -209,7 +239,7 @@ useHead({
         <span v-else class="invisible">—</span>
       </nav>
 
-      <div class="text-xs text-muted text-center">Sprite source : Pokémon Showdown.</div>
+      <div class="text-xs text-muted text-center">{{ t('pokedex_detail.sprite_source') }}</div>
     </template>
   </main>
 </template>

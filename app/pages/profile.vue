@@ -16,6 +16,7 @@ import { LINEAGE_LABELS, lineageAccent } from '~/utils/lineage'
 
 const router = useRouter()
 const api = useApi()
+const { t } = useI18n()
 const { session, isPaired, clear } = useArenaSession()
 const { trainer, fetching, error: fetchError, refresh } = useTrainerProfile()
 
@@ -88,10 +89,10 @@ async function save() {
         pinned_badges: formPinned.value,
       },
     })
-    saveMessage.value = '✓ Profil mis à jour.'
+    saveMessage.value = t('profile.save_ok')
     await refresh()
   } catch (e) {
-    saveError.value = e instanceof Error ? e.message : 'Échec de la sauvegarde'
+    saveError.value = e instanceof Error ? e.message : t('profile.save_error')
   } finally {
     saving.value = false
   }
@@ -124,14 +125,14 @@ async function issuePairCode() {
     pairCode.value = res.code
     pairExpiresAt.value = res.expires_at
   } catch (e) {
-    pairError.value = e instanceof Error ? e.message : 'Échec de génération du code'
+    pairError.value = e instanceof Error ? e.message : t('profile.pair_cli_error')
   } finally {
     pairIssuing.value = false
   }
 }
 
 useHead({
-  title: 'Mon profil · claude-pokemon arena',
+  title: () => `${t('profile.title')} · claude-pokemon arena`,
   meta: [{ name: 'robots', content: 'noindex' }],
 })
 </script>
@@ -140,18 +141,19 @@ useHead({
   <main class="max-w-3xl mx-auto px-6 py-12">
     <div class="mb-6">
       <NuxtLink to="/" class="text-secondary hover:text-primary text-sm transition">
-        ← Retour
+        ← {{ t('profile.back') }}
       </NuxtLink>
     </div>
 
     <header class="text-center mb-8">
       <h1 class="text-3xl font-bold text-primary flex items-center justify-center gap-3">
         <PokeballIcon size="lg" />
-        <span>Mon profil</span>
+        <span>{{ t('profile.title') }}</span>
       </h1>
       <p v-if="session" class="text-xs text-muted mt-2">
-        anon_id <code class="text-secondary">{{ session.anon_id }}</code>
-        · paired
+        {{ t('profile.anon_id_label') }}
+        <code class="text-secondary">{{ session.anon_id }}</code>
+        · {{ t('profile.paired') }}
         <time :datetime="session.paired_at">{{
           new Date(session.paired_at).toLocaleDateString()
         }}</time>
@@ -159,11 +161,11 @@ useHead({
     </header>
 
     <div v-if="!isPaired" class="card p-8 text-center">
-      <p class="text-secondary">Redirection vers <code>/pair</code>...</p>
+      <p class="text-secondary">{{ t('profile.redirect_pair', { path: '/pair' }) }}</p>
     </div>
 
     <div v-else-if="fetching && !trainer" class="card p-8 text-center">
-      <p class="text-secondary">Chargement de ton profil...</p>
+      <p class="text-secondary">{{ t('profile.loading') }}</p>
     </div>
 
     <div v-else-if="fetchError" class="card p-6 mb-6 text-center">
@@ -173,7 +175,7 @@ useHead({
         class="mt-3 px-4 py-1.5 border surface-border rounded-md surface-card-hover text-sm"
         @click="refresh"
       >
-        Réessayer
+        {{ t('profile.retry') }}
       </button>
     </div>
 
@@ -204,19 +206,20 @@ useHead({
 
       <!-- Editable form -->
       <section class="card p-6 mb-6 space-y-5">
-        <h2 class="text-sm uppercase tracking-wider text-muted">Informations publiques</h2>
+        <h2 class="text-sm uppercase tracking-wider text-muted">{{ t('profile.section_public') }}</h2>
 
         <!-- Display name -->
         <div>
           <label for="display-name" class="block text-xs text-secondary mb-1">
-            Display name <span class="text-muted">(2-24 chars, alphanum + _ - )</span>
+            {{ t('profile.display_name_label') }}
+            <span class="text-muted">{{ t('profile.display_name_hint') }}</span>
           </label>
           <input
             id="display-name"
             v-model="formDisplayName"
             type="text"
             maxlength="24"
-            placeholder="(laisse vide pour rester anonyme)"
+            :placeholder="t('profile.display_name_placeholder')"
             class="w-full px-3 py-2 rounded-md border surface-border surface-card text-primary"
           />
         </div>
@@ -224,15 +227,15 @@ useHead({
         <!-- Quote -->
         <div>
           <label for="quote" class="block text-xs text-secondary mb-1">
-            Citation
-            <span class="text-muted">({{ quoteCharCount }}/80, single-line)</span>
+            {{ t('profile.quote_label') }}
+            <span class="text-muted">{{ t('profile.quote_hint', { count: quoteCharCount }) }}</span>
           </label>
           <input
             id="quote"
             v-model="formQuote"
             type="text"
             maxlength="80"
-            placeholder="Catch 'em all!"
+            :placeholder="t('profile.quote_placeholder')"
             class="w-full px-3 py-2 rounded-md border surface-border surface-card text-primary"
             :class="quoteCharCount > 80 ? 'border-red-500' : ''"
           />
@@ -241,15 +244,17 @@ useHead({
         <!-- Bio -->
         <div>
           <label for="bio" class="block text-xs text-secondary mb-1">
-            Bio
-            <span class="text-muted"> ({{ bioCharCount }}/160, {{ bioLineCount }}/4 lignes) </span>
+            {{ t('profile.bio_label') }}
+            <span class="text-muted">
+              {{ t('profile.bio_hint', { count: bioCharCount, lines: bioLineCount }) }}
+            </span>
           </label>
           <textarea
             id="bio"
             v-model="formBio"
             rows="4"
             maxlength="160"
-            placeholder="Dresseur de Pallet Town. Spécialiste feu depuis 2026."
+            :placeholder="t('profile.bio_placeholder')"
             class="w-full px-3 py-2 rounded-md border surface-border surface-card text-primary font-mono text-sm"
             :class="bioCharCount > 160 || bioLineCount > 4 ? 'border-red-500' : ''"
           />
@@ -258,11 +263,13 @@ useHead({
         <!-- Pinned badges -->
         <div>
           <label class="block text-xs text-secondary mb-2">
-            Badges épinglés
-            <span class="text-muted"> ({{ formPinned.length }}/{{ pinnedLimit }} max) </span>
+            {{ t('profile.badges_label') }}
+            <span class="text-muted">
+              {{ t('profile.badges_hint', { count: formPinned.length, max: pinnedLimit }) }}
+            </span>
           </label>
           <div v-if="ownedBadges.length === 0" class="text-xs text-muted italic">
-            Tu n'as pas encore débloqué de badge. Joue pour en gagner !
+            {{ t('profile.badges_empty') }}
           </div>
           <div v-else class="grid grid-cols-3 sm:grid-cols-5 gap-2">
             <button
@@ -286,7 +293,7 @@ useHead({
             </button>
           </div>
           <p v-if="tooManyPinned" class="text-xs text-red-400 mt-1">
-            Trop de badges épinglés (max {{ pinnedLimit }}).
+            {{ t('profile.badges_too_many', { max: pinnedLimit }) }}
           </p>
         </div>
 
@@ -297,14 +304,14 @@ useHead({
             :disabled="saving || tooManyPinned"
             @click="save"
           >
-            {{ saving ? 'Sauvegarde...' : 'Enregistrer' }}
+            {{ saving ? t('profile.saving') : t('profile.save') }}
           </button>
           <NuxtLink
             v-if="session"
             :to="`/trainer/${session.anon_id}`"
             class="text-sm text-secondary hover:text-primary underline transition"
           >
-            Voir ma trainer card publique
+            {{ t('profile.view_public_card') }}
           </NuxtLink>
         </div>
 
@@ -316,12 +323,10 @@ useHead({
            6-char code that the user types into `/pokemon arena link <code>`
            on their CLI to import this trainer's identity locally. -->
       <section class="card p-6 mb-6">
-        <h2 class="text-sm uppercase tracking-wider text-muted mb-2">🔗 Lier mon CLI</h2>
-        <p class="text-xs text-muted mb-4">
-          Tu utilises aussi <code>claude-pokemon</code> en local ? Génère un code à 6 caractères
-          puis lance <code class="text-secondary">/pokemon arena link &lt;code&gt;</code> sur ton
-          CLI pour importer ce compte. Ton state.json local sera réécrit à partir du compte web.
-        </p>
+        <h2 class="text-sm uppercase tracking-wider text-muted mb-2">
+          {{ t('profile.section_pair_cli') }}
+        </h2>
+        <p class="text-xs text-muted mb-4">{{ t('profile.pair_cli_intro') }}</p>
         <div v-if="!pairCode" class="text-center">
           <button
             type="button"
@@ -329,22 +334,22 @@ useHead({
             :disabled="pairIssuing"
             @click="issuePairCode"
           >
-            {{ pairIssuing ? 'Génération...' : 'Générer un code de pairing' }}
+            {{ pairIssuing ? t('profile.pair_cli_generating') : t('profile.pair_cli_button') }}
           </button>
         </div>
         <div v-else class="text-center space-y-2">
-          <p class="text-xs text-muted">Code à 6 caractères (expire dans 5 min) :</p>
+          <p class="text-xs text-muted">{{ t('profile.pair_cli_code_hint') }}</p>
           <div
             class="inline-block px-6 py-3 rounded-lg surface-card-hover border-2 border-accent text-3xl font-mono font-bold tracking-[0.4em] text-accent select-all"
           >
             {{ pairCode }}
           </div>
           <p class="text-xs text-secondary">
-            Sur ton CLI : <code>/pokemon arena link {{ pairCode }}</code>
+            {{ t('profile.pair_cli_cli_hint') }}
+            <code>/pokemon arena link {{ pairCode }}</code>
           </p>
           <p v-if="pairExpiresAt" class="text-[10px] text-muted">
-            Expire à
-            {{ new Date(pairExpiresAt).toLocaleTimeString() }}
+            {{ t('profile.pair_cli_expires_at', { time: new Date(pairExpiresAt).toLocaleTimeString() }) }}
           </p>
           <button
             type="button"
@@ -356,7 +361,7 @@ useHead({
               }
             "
           >
-            Générer un nouveau code
+            {{ t('profile.pair_cli_regen') }}
           </button>
         </div>
         <p v-if="pairError" class="text-sm text-red-400 mt-3 text-center">⚠ {{ pairError }}</p>
@@ -364,18 +369,14 @@ useHead({
 
       <!-- Danger zone -->
       <section class="surface-card border border-red-500/30 rounded-lg p-6 text-center">
-        <h2 class="text-sm uppercase tracking-wider text-red-400 mb-2">Zone sensible</h2>
-        <p class="text-xs text-muted mb-4">
-          Déconnecter ce navigateur retire ton arena_secret du localStorage. Tu pourras te re-pair
-          quand tu veux via <code class="text-secondary">/pokemon arena pair</code>
-          sur ton CLI.
-        </p>
+        <h2 class="text-sm uppercase tracking-wider text-red-400 mb-2">{{ t('profile.danger_zone') }}</h2>
+        <p class="text-xs text-muted mb-4">{{ t('profile.danger_zone_intro') }}</p>
         <button
           type="button"
           class="px-4 py-2 border border-red-500/50 text-red-400 rounded-md hover:bg-red-500/10 transition text-sm"
           @click="unpair"
         >
-          🚪 Déconnecter ce navigateur
+          {{ t('profile.danger_disconnect') }}
         </button>
       </section>
     </template>

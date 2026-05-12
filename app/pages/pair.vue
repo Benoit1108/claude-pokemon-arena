@@ -7,6 +7,7 @@
 const route = useRoute()
 const router = useRouter()
 const api = useApi()
+const { t } = useI18n()
 const { session, isPaired, set, clear } = useArenaSession()
 
 const queryCode = computed(() => {
@@ -23,7 +24,7 @@ const CODE_RE = /^[A-HJ-NP-TV-Z2-9]{6}$/
 async function redeem(code: string) {
   if (!CODE_RE.test(code)) {
     status.value = 'error'
-    errorMsg.value = 'Code invalide (6 caractères, lettres + chiffres).'
+    errorMsg.value = t('pair.invalid_code')
     return
   }
   status.value = 'redeeming'
@@ -37,13 +38,13 @@ async function redeem(code: string) {
     })
     if (!stored) {
       status.value = 'error'
-      errorMsg.value = 'Réponse Worker invalide (anon_id ou secret malformé).'
+      errorMsg.value = t('pair.invalid_response')
       return
     }
     status.value = 'paired'
   } catch (e) {
     status.value = 'error'
-    errorMsg.value = e instanceof Error ? e.message : 'Échec de la redemption.'
+    errorMsg.value = e instanceof Error ? e.message : t('pair.redeem_failed')
   }
 }
 
@@ -68,13 +69,8 @@ function unpair() {
 }
 
 useHead({
-  title: 'Pairing CLI ↔ web · claude-pokemon arena',
-  meta: [
-    {
-      name: 'description',
-      content: 'Pair your local CLI install with this browser to commit live PvP moves.',
-    },
-  ],
+  title: () => `${t('pair.title')} · claude-pokemon arena`,
+  meta: [{ name: 'description', content: () => t('pair.subtitle') }],
 })
 </script>
 
@@ -82,24 +78,22 @@ useHead({
   <main class="max-w-xl mx-auto px-6 py-12">
     <div class="mb-6">
       <NuxtLink to="/arena" class="text-secondary hover:text-primary text-sm transition">
-        ← Arena pool
+        ← {{ t('pair.back_arena') }}
       </NuxtLink>
     </div>
 
     <header class="text-center mb-8">
-      <h1 class="text-3xl font-bold text-primary">🔗 Pairing CLI ↔ web</h1>
-      <p class="text-muted text-sm mt-2">
-        Lie ton install CLI à ce navigateur pour jouer les coups live PvP depuis la page combat.
-      </p>
+      <h1 class="text-3xl font-bold text-primary">{{ t('pair.title') }}</h1>
+      <p class="text-muted text-sm mt-2">{{ t('pair.subtitle') }}</p>
     </header>
 
     <div v-if="isPaired" class="card p-6 text-center">
       <div class="text-4xl mb-2" aria-hidden="true">✓</div>
-      <p class="text-lg font-semibold text-primary">Navigateur appairé</p>
+      <p class="text-lg font-semibold text-primary">{{ t('pair.paired_title') }}</p>
       <p class="text-sm text-secondary mt-1">
-        Trainer
+        {{ t('pair.paired_trainer') }}
         <code class="text-accent">{{ session?.anon_id.slice(0, 8) }}</code>
-        · paired
+        · {{ t('pair.paired_at') }}
         <time :datetime="session?.paired_at">{{
           new Date(session?.paired_at ?? '').toLocaleString()
         }}</time>
@@ -109,30 +103,25 @@ useHead({
         class="mt-4 px-4 py-2 border surface-border rounded-md surface-card-hover text-sm transition"
         @click="unpair"
       >
-        Déconnecter ce navigateur
+        {{ t('pair.disconnect') }}
       </button>
     </div>
 
     <div v-else-if="status === 'redeeming'" class="card p-6 text-center">
       <div class="text-3xl mb-2" aria-hidden="true">⏳</div>
-      <p class="text-secondary">Redemption en cours…</p>
+      <p class="text-secondary">{{ t('pair.redeeming') }}</p>
     </div>
 
     <div v-else class="space-y-4">
       <div class="card p-6">
-        <p class="text-sm text-secondary mb-4">
-          Étape 1 : sur ton install CLI, lance
-          <code class="text-accent">/pokemon arena pair</code>. Tu obtiens un code à 6 caractères.
-        </p>
-        <p class="text-sm text-secondary mb-4">
-          Étape 2 : entre le code ci-dessous (ou clique sur le lien généré par le CLI).
-        </p>
+        <p class="text-sm text-secondary mb-4">{{ t('pair.step1') }}</p>
+        <p class="text-sm text-secondary mb-4">{{ t('pair.step2') }}</p>
         <div class="flex flex-col sm:flex-row gap-2">
           <input
             v-model="codeInput"
             type="text"
             maxlength="6"
-            placeholder="ABCDEF"
+            :placeholder="t('pair.code_placeholder')"
             autocomplete="off"
             spellcheck="false"
             class="flex-1 px-4 py-2 rounded-md border surface-border surface-card text-primary tracking-[0.3em] font-mono text-center uppercase"
@@ -142,17 +131,14 @@ useHead({
             class="px-4 py-2 bg-accent text-zinc-900 rounded-md font-bold hover:opacity-90 transition"
             @click="submitManual"
           >
-            Pair
+            {{ t('pair.submit') }}
           </button>
         </div>
       </div>
 
       <p v-if="status === 'error'" class="text-center text-red-400 text-sm">⚠ {{ errorMsg }}</p>
 
-      <div class="card p-4 text-xs text-muted">
-        🔒 Ton arena_secret est stocké dans le localStorage du navigateur uniquement. Pour le
-        retirer, clique « Déconnecter » ici, ou efface les données du site.
-      </div>
+      <div class="card p-4 text-xs text-muted">{{ t('pair.secret_notice') }}</div>
     </div>
   </main>
 </template>

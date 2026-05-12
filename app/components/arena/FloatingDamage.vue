@@ -9,6 +9,8 @@ defineProps<{
   effectiveness: number
   critical: boolean
 }>()
+
+const { t } = useI18n()
 </script>
 
 <template>
@@ -22,7 +24,7 @@ defineProps<{
     }"
   >
     <span v-if="critical" class="block text-xs uppercase tracking-widest text-yellow-300 mb-0.5">
-      CRIT!
+      {{ t('floating_damage.crit') }}
     </span>
     −{{ damage }}
   </div>

@@ -27,6 +27,7 @@
     "@nuxt/eslint": "^1.0.0",
     "@nuxt/test-utils": "^4.0.3",
     "@nuxtjs/color-mode": "^4.0.0",
+    "@nuxtjs/i18n": "^10.3.0",
     "@types/canvas-confetti": "^1.9.0",
     "@unocss/nuxt": "^66.0.0",
     "@unocss/preset-wind4": "^66.0.0",

@@ -7,23 +7,29 @@
 // Mockup reference : docs/mockups/sprint-5/03-mobile.html.
 
 const route = useRoute()
+const { t } = useI18n()
 
 interface Entry {
   to: string
-  label: string
+  labelKey: string
   icon: 'pokedex' | 'arena' | 'trail' | 'zones' | 'profile'
   match: string[]
 }
 const entries: Entry[] = [
-  { to: '/pokedex', label: 'Dex', icon: 'pokedex', match: ['/pokedex'] },
-  { to: '/arena', label: 'Arena', icon: 'arena', match: ['/arena', '/battle'] },
-  { to: '/zones', label: 'Zones', icon: 'zones', match: ['/zones'] },
-  { to: '/ladder', label: 'Trail', icon: 'trail', match: ['/ladder'] },
+  { to: '/pokedex', labelKey: 'bottom_nav.pokedex', icon: 'pokedex', match: ['/pokedex'] },
+  {
+    to: '/arena',
+    labelKey: 'bottom_nav.arena',
+    icon: 'arena',
+    match: ['/arena', '/battle'],
+  },
+  { to: '/zones', labelKey: 'bottom_nav.zones', icon: 'zones', match: ['/zones'] },
+  { to: '/ladder', labelKey: 'bottom_nav.trail', icon: 'trail', match: ['/ladder'] },
   {
     to: '/profile',
-    label: 'Moi',
+    labelKey: 'bottom_nav.profile',
     icon: 'profile',
-    match: ['/profile', '/trainer', '/pair', '/signup'],
+    match: ['/profile', '/trainer', '/pair', '/signup', '/login'],
   },
 ]
 
@@ -35,7 +41,7 @@ function isActive(entry: Entry): boolean {
 <template>
   <nav
     class="bottom-nav md:hidden fixed bottom-0 left-0 right-0 z-40 surface-overlay backdrop-blur-md backdrop-saturate-150 border-t surface-border"
-    aria-label="Navigation principale"
+    :aria-label="t('header.brand_aria')"
   >
     <div class="grid grid-cols-5">
       <NuxtLink
@@ -46,7 +52,7 @@ function isActive(entry: Entry): boolean {
         :aria-current="isActive(entry) ? 'page' : undefined"
       >
         <SectionIcon :name="entry.icon" :size="22" :stroke="2" />
-        <span class="text-[10px] font-medium leading-none">{{ entry.label }}</span>
+        <span class="text-[10px] font-medium leading-none">{{ t(entry.labelKey) }}</span>
       </NuxtLink>
     </div>
     <div class="safe-area-inset" />

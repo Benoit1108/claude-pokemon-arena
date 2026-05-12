@@ -5,6 +5,7 @@ const props = defineProps<{
   earned: string[]
 }>()
 
+const { t } = useI18n()
 const earnedSet = computed(() => new Set(props.earned))
 const allBadgeIds = computed(() => Object.keys(BADGE_META))
 </script>
@@ -12,7 +13,8 @@ const allBadgeIds = computed(() => Object.keys(BADGE_META))
 <template>
   <section class="mb-12">
     <h2 class="text-label mb-3">
-      🏆 Badges <span class="text-accent">{{ earned.length }}/{{ TOTAL_BADGES }}</span>
+      {{ t('trainer.badges_title') }}
+      <span class="text-accent">{{ earned.length }}/{{ TOTAL_BADGES }}</span>
     </h2>
     <div class="card p-4">
       <div class="grid grid-cols-3 sm:grid-cols-5 gap-3">

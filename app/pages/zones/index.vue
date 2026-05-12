@@ -10,6 +10,7 @@ import type { ZoneSummary } from '~/types/api'
 
 const api = useApi()
 const { trainer } = useTrainerProfile()
+const { t } = useI18n()
 
 const {
   data: zonesData,
@@ -23,7 +24,7 @@ const trainerLevel = computed(() => trainer.value?.stats.active.current_level ??
 const errorMessage = computed(() => {
   if (!zonesError.value) return null
   const e = zonesError.value as { message?: string; statusCode?: number }
-  return e.message || `Erreur HTTP ${e.statusCode ?? '??'}`
+  return e.message || t('zones.load_error_http', { status: e.statusCode ?? '??' })
 })
 
 type ZoneState = 'locked' | 'sweet' | 'outclassed' | 'preview'
@@ -36,19 +37,27 @@ interface ZoneStatus {
 
 function statusFor(z: ZoneSummary): ZoneStatus {
   if (!trainer.value) {
-    return { state: 'preview', label: 'Aperçu — connecte-toi pour explorer', short: 'Aperçu' }
+    return {
+      state: 'preview',
+      label: t('zones.preview_locked_label'),
+      short: t('zones.status_preview'),
+    }
   }
   if (trainerLevel.value < z.level_min - 10) {
     return {
       state: 'locked',
-      label: `Verrouillé — niveau min ${Math.max(1, z.level_min - 10)}`,
-      short: 'Verrouillé',
+      label: t('zones.locked_min_label', { level: Math.max(1, z.level_min - 10) }),
+      short: t('zones.status_locked'),
     }
   }
   if (trainerLevel.value > z.level_max + 10) {
-    return { state: 'outclassed', label: 'Trop facile — XP réduit', short: 'XP réduit' }
+    return {
+      state: 'outclassed',
+      label: t('zones.outclassed_label'),
+      short: t('zones.status_xp_reduced'),
+    }
   }
-  return { state: 'sweet', label: 'XP optimal', short: 'Sweet spot' }
+  return { state: 'sweet', label: t('zones.sweet_label'), short: t('zones.status_sweet') }
 }
 
 // Map a zone's emoji to a lineage type for the bg gradient. The wild_pool
@@ -64,11 +73,11 @@ function zoneColor(z: ZoneSummary): string {
 }
 
 useHead({
-  title: 'Zones sauvages · claude-pokemon arena',
+  title: t('zones.title_meta'),
   meta: [
     {
       name: 'description',
-      content: "Explore les zones sauvages de claude-pokemon — capture, combat, gagne de l'XP.",
+      content: t('zones.meta_description'),
     },
   ],
 })
@@ -79,14 +88,13 @@ useHead({
     <!-- Page head : left-aligned title + paired-trainer level pill on the right -->
     <header class="flex items-end justify-between gap-6 flex-wrap mb-10 reveal reveal-1">
       <div>
-        <h1 class="text-h1">Zones sauvages</h1>
+        <h1 class="text-h1">{{ t('zones.title') }}</h1>
         <p class="text-body max-w-xl mt-2">
-          8 zones thématiques, chacune avec son écosystème de Pokémon sauvages. Combats pour gagner
-          de l'XP et grimper en niveau.
+          {{ t('zones.subtitle') }}
         </p>
       </div>
       <div v-if="trainer" class="pill">
-        <span class="text-caption">Toi</span>
+        <span class="text-caption">{{ t('zones.you_label') }}</span>
         <span class="font-display font-bold text-primary text-base leading-none">
           Lv.<span class="text-accent">{{ trainerLevel }}</span>
         </span>
@@ -96,7 +104,7 @@ useHead({
     <!-- Loading / error / empty states -->
     <div v-if="zonesPending" class="card p-12 text-center">
       <div class="text-3xl mb-2 animate-pulse" aria-hidden="true">🗺️</div>
-      <p class="text-secondary">Chargement de la carte des zones…</p>
+      <p class="text-secondary">{{ t('zones.loading') }}</p>
     </div>
 
     <div
@@ -105,18 +113,21 @@ useHead({
       style="border-color: rgb(220 38 38 / 0.4)"
     >
       <div class="text-3xl mb-2" aria-hidden="true">⚠️</div>
-      <p class="text-danger font-bold">Impossible de charger les zones.</p>
+      <p class="text-danger font-bold">{{ t('zones.load_error_title') }}</p>
       <p class="text-xs text-secondary mt-2">{{ errorMessage }}</p>
       <p class="text-caption mt-4 max-w-md mx-auto">
-        Vérifie que le worker tourne (<code>npm run dev</code> dans
-        <code>claude-pokemon/api/</code>) et que l'URL
-        <code>{{ String(useRuntimeConfig().public.apiBase) }}/v1/zones</code> répond.
+        {{ t('zones.load_error_hint_pre') }}<code>{{ t('zones.load_error_hint_dev') }}</code>
+        {{ t('zones.load_error_hint_mid') }}
+        <code>{{ t('zones.load_error_hint_pkg') }}</code>
+        {{ t('zones.load_error_hint_url') }}
+        <code>{{ String(useRuntimeConfig().public.apiBase) }}/v1/zones</code>
+        {{ t('zones.load_error_hint_responds') }}
       </p>
     </div>
 
     <div v-else-if="zones.length === 0" class="card p-8 text-center">
       <div class="text-3xl mb-2" aria-hidden="true">🌵</div>
-      <p class="text-secondary">Aucune zone cataloguée pour le moment.</p>
+      <p class="text-secondary">{{ t('zones.empty_title') }}</p>
     </div>
 
     <div v-else class="zones-grid">
@@ -145,14 +156,18 @@ useHead({
             <span class="zone-meta-div" />
             <span class="zone-pool" :class="z.rare_pool_size > 0 ? 'has-rare' : ''">
               <span class="dot" />
-              {{ z.wild_pool_size }} communes
-              <template v-if="z.rare_pool_size > 0">· {{ z.rare_pool_size }} rares</template>
-              <template v-if="z.legendary_pool_size > 0"> · ★ {{ z.legendary_pool_size }}</template>
+              {{ t('zones.pool_commons', { count: z.wild_pool_size }) }}
+              <template v-if="z.rare_pool_size > 0">{{
+                t('zones.pool_rares', { count: z.rare_pool_size })
+              }}</template>
+              <template v-if="z.legendary_pool_size > 0">{{
+                t('zones.pool_legendary', { count: z.legendary_pool_size })
+              }}</template>
             </span>
           </div>
 
           <span class="zone-cta">
-            Explorer
+            {{ t('zones.explore') }}
             <svg
               width="13"
               height="13"
@@ -191,22 +206,24 @@ useHead({
 
     <!-- Legend / footnote -->
     <div class="legend mt-10 reveal reveal-5">
-      <span class="text-caption">Légende</span>
+      <span class="text-caption">{{ t('zones.legend_title') }}</span>
       <div class="legend-row">
-        <span class="status-badge status-badge--sweet">Sweet spot</span>
-        XP optimal pour ton niveau actuel.
+        <span class="status-badge status-badge--sweet">{{ t('zones.status_sweet') }}</span>
+        {{ t('zones.legend_sweet') }}
       </div>
       <div class="legend-row">
-        <span class="status-badge status-badge--outclassed">XP réduit</span>
-        Trop facile — l'XP gagné est réduit.
+        <span class="status-badge status-badge--outclassed">{{
+          t('zones.status_xp_reduced')
+        }}</span>
+        {{ t('zones.legend_outclassed') }}
       </div>
       <div class="legend-row">
-        <span class="status-badge status-badge--locked">Verrouillé</span>
-        Niveau trop bas. Reviens après avoir gagné de l'XP ailleurs.
+        <span class="status-badge status-badge--locked">{{ t('zones.status_locked') }}</span>
+        {{ t('zones.legend_locked') }}
       </div>
       <div class="legend-row">
-        <span class="status-badge status-badge--preview">Aperçu</span>
-        Crée un compte ou pair ton CLI pour explorer.
+        <span class="status-badge status-badge--preview">{{ t('zones.status_preview') }}</span>
+        {{ t('zones.legend_preview') }}
       </div>
     </div>
   </main>

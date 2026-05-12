@@ -7,13 +7,14 @@
 // control : it's a niche flavor that lives in the UserMenu dropdown.
 
 const colorMode = useColorMode()
+const { t } = useI18n()
 
 type Mode = 'light' | 'dark' | 'system'
-const options: { value: Mode; icon: string; label: string }[] = [
-  { value: 'light', icon: '☀', label: 'Clair' },
-  { value: 'dark', icon: '🌙', label: 'Sombre' },
-  { value: 'system', icon: '🖥', label: 'Système' },
-]
+const options = computed<{ value: Mode; icon: string; label: string }[]>(() => [
+  { value: 'light', icon: '☀', label: t('theme.label_light') },
+  { value: 'dark', icon: '🌙', label: t('theme.label_dark') },
+  { value: 'system', icon: '🖥', label: t('theme.label_system') },
+])
 
 const groupRef = ref<HTMLElement | null>(null)
 const thumbStyle = ref<{ width: string; transform: string }>({
@@ -71,7 +72,7 @@ watch(current, () => {
       ref="groupRef"
       class="theme-toggle relative inline-flex items-center p-[3px] rounded-full border surface-border surface-elevated h-8"
       role="radiogroup"
-      aria-label="Thème"
+      :aria-label="t('theme.aria_group')"
     >
       <span
         class="theme-thumb absolute top-[3px] bottom-[3px] left-0 surface-card rounded-full shadow-sm transition-spring"
@@ -84,8 +85,8 @@ watch(current, () => {
         type="button"
         :data-theme-value="opt.value"
         :aria-pressed="current === opt.value"
-        :aria-label="`Thème ${opt.label}`"
-        :title="`Thème ${opt.label}`"
+        :aria-label="`${t('theme.title_prefix')} ${opt.label}`"
+        :title="`${t('theme.title_prefix')} ${opt.label}`"
         class="theme-option relative z-1 inline-flex items-center justify-center min-w-[30px] h-[26px] px-1.5 text-[13px] bg-transparent border-0 rounded-full transition-default cursor-pointer"
         :class="current === opt.value ? 'text-primary' : 'text-tertiary hover:text-secondary'"
         @click="pick(opt.value)"

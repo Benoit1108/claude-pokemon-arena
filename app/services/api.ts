@@ -159,6 +159,34 @@ export class ApiClient {
   }
 
   /**
+   * Sprint 5 — recovery-key sign-in. Validates a {anon_id, arena_secret}
+   * pair against the stored ArenaRecord without mutating anything. Used by
+   * /login to verify pasted credentials before persisting to localStorage.
+   * Returns the team snapshot on success ; throws on 400/401/404 so the
+   * caller can show a precise error message.
+   */
+  arenaWhoami(args: { anonId: string; arenaSecret: string }): Promise<{
+    ok: true
+    anon_id: string
+    enabled_at: string
+    updated_at: string
+    origin: 'cli' | 'web' | 'linked'
+    team_snapshot: {
+      anon_id: string
+      display_name: string | null
+      lineage: string
+      level: number
+      is_shiny: boolean
+    }
+  }> {
+    return this.fetcher(`/v1/arena/whoami?anon_id=${encodeURIComponent(args.anonId)}`, {
+      method: 'GET',
+      baseURL: this.baseUrl,
+      headers: { authorization: `Bearer ${args.arenaSecret}` },
+    })
+  }
+
+  /**
    * Sprint 4.3 — web-side initiator of the pair flow. Same endpoint the CLI
    * uses for CLI→web pairing ; this time the WEB issues the code and the
    * CLI redeems it via `/pokemon arena link <code>`. Bearer auth.

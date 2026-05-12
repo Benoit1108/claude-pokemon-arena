@@ -10,6 +10,7 @@ const filters = defineModel<{
   lang: 'fr' | 'en'
 }>({ required: true })
 
+const { t } = useI18n()
 const types = ['all', ...uniqueTypes(WILD_POKEMON)]
 
 function reset() {
@@ -23,7 +24,7 @@ function reset() {
       <input
         v-model="filters.query"
         type="search"
-        placeholder="Search name…"
+        :placeholder="t('pokedex_filters.search_placeholder')"
         class="px-3 py-2 surface-card-hover border surface-border rounded-md text-sm flex-grow min-w-[200px] outline-none focus:ring-2 focus:ring-accent text-primary"
       />
 
@@ -31,17 +32,17 @@ function reset() {
         v-model="filters.gen"
         class="px-3 py-2 surface-card-hover border surface-border rounded-md text-sm text-primary cursor-pointer"
       >
-        <option value="all">All gens</option>
-        <option :value="1">Gen 1 (#1-151)</option>
-        <option :value="2">Gen 2 (#152-251)</option>
+        <option value="all">{{ t('pokedex_filters.all_gens') }}</option>
+        <option :value="1">{{ t('pokedex_filters.gen1') }}</option>
+        <option :value="2">{{ t('pokedex_filters.gen2') }}</option>
       </select>
 
       <select
         v-model="filters.type"
         class="px-3 py-2 surface-card-hover border surface-border rounded-md text-sm text-primary cursor-pointer"
       >
-        <option v-for="t in types" :key="t" :value="t">
-          {{ t === 'all' ? 'All types' : t }}
+        <option v-for="ty in types" :key="ty" :value="ty">
+          {{ ty === 'all' ? t('pokedex_filters.all_types') : ty }}
         </option>
       </select>
 
@@ -49,19 +50,19 @@ function reset() {
         v-model="filters.rarity"
         class="px-3 py-2 surface-card-hover border surface-border rounded-md text-sm text-primary cursor-pointer"
       >
-        <option value="all">All rarities</option>
-        <option value="common">Common</option>
-        <option value="rare">Rare</option>
-        <option value="legendary">Legendary</option>
+        <option value="all">{{ t('pokedex_filters.all_rarities') }}</option>
+        <option value="common">{{ t('pokedex_filters.rarity_common') }}</option>
+        <option value="rare">{{ t('pokedex_filters.rarity_rare') }}</option>
+        <option value="legendary">{{ t('pokedex_filters.rarity_legendary') }}</option>
       </select>
 
       <select
         v-model="filters.lang"
         class="px-3 py-2 surface-card-hover border surface-border rounded-md text-sm text-primary cursor-pointer"
-        title="Display language for Pokémon names"
+        :title="t('pokedex_filters.lang_title')"
       >
-        <option value="fr">FR names</option>
-        <option value="en">EN names</option>
+        <option value="fr">{{ t('pokedex_filters.lang_fr') }}</option>
+        <option value="en">{{ t('pokedex_filters.lang_en') }}</option>
       </select>
 
       <button
@@ -69,7 +70,7 @@ function reset() {
         class="px-3 py-2 text-sm text-secondary hover:text-primary transition"
         @click="reset"
       >
-        Reset
+        {{ t('pokedex_filters.reset') }}
       </button>
     </div>
   </div>

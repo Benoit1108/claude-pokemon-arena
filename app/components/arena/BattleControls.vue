@@ -19,6 +19,8 @@ const emit = defineEmits<{
   toggleSound: []
 }>()
 
+const { t } = useI18n()
+
 const speeds: PlaybackSpeed[] = [0.5, 1, 2, 4]
 </script>
 
@@ -30,9 +32,9 @@ const speeds: PlaybackSpeed[] = [0.5, 1, 2, 4]
         class="px-3 py-1.5 text-sm font-medium border surface-border rounded-md surface-card-hover transition text-primary min-w-[88px]"
         @click="emit('toggle')"
       >
-        <span v-if="isFinished">↻ Replay</span>
-        <span v-else-if="isPlaying">⏸ Pause</span>
-        <span v-else>▶ Play</span>
+        <span v-if="isFinished">{{ t('battle_controls.replay') }}</span>
+        <span v-else-if="isPlaying">{{ t('battle_controls.pause') }}</span>
+        <span v-else>{{ t('battle_controls.play') }}</span>
       </button>
 
       <button
@@ -41,7 +43,7 @@ const speeds: PlaybackSpeed[] = [0.5, 1, 2, 4]
         :disabled="isFinished"
         @click="emit('skipToEnd')"
       >
-        ⏭ Skip
+        {{ t('battle_controls.skip') }}
       </button>
 
       <button
@@ -50,21 +52,25 @@ const speeds: PlaybackSpeed[] = [0.5, 1, 2, 4]
         class="px-3 py-1.5 text-sm border surface-border rounded-md surface-card-hover transition text-secondary"
         @click="emit('restart')"
       >
-        ⏮ Restart
+        {{ t('battle_controls.restart') }}
       </button>
 
       <button
         type="button"
         class="px-3 py-1.5 text-sm border surface-border rounded-md surface-card-hover transition"
         :class="soundEnabled ? 'text-accent' : 'text-muted'"
-        :title="soundEnabled ? 'Sound on (click to mute)' : 'Sound off (click to enable)'"
+        :title="
+          soundEnabled ? t('battle_controls.sound_on_title') : t('battle_controls.sound_off_title')
+        "
         @click="emit('toggleSound')"
       >
         {{ soundEnabled ? '🔊' : '🔇' }}
       </button>
 
       <div class="flex items-center gap-1.5 ml-auto">
-        <span class="text-xs text-muted uppercase tracking-wider">Speed</span>
+        <span class="text-xs text-muted uppercase tracking-wider">{{
+          t('battle_controls.speed_label')
+        }}</span>
         <div class="flex gap-1">
           <button
             v-for="s in speeds"
@@ -88,7 +94,12 @@ const speeds: PlaybackSpeed[] = [0.5, 1, 2, 4]
     <div class="mt-3">
       <div class="flex justify-between text-xs text-muted mb-1">
         <span class="tabular-nums">
-          Turn {{ Math.max(0, currentTurnIdx + 1) }} / {{ totalTurns }}
+          {{
+            t('battle_controls.turn_progress', {
+              current: Math.max(0, currentTurnIdx + 1),
+              total: totalTurns,
+            })
+          }}
         </span>
         <span class="tabular-nums">{{ Math.round(progress * 100) }}%</span>
       </div>

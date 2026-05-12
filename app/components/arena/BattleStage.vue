@@ -21,6 +21,8 @@ import { stageNameFor } from '~/utils/sprites'
 import type { BattleParticipant, BattleSide, BattleTurn } from '~/types/api'
 import type { FloatingDamage } from '~/composables/useBattleJuice'
 
+const { t } = useI18n()
+
 const props = defineProps<{
   challenger: BattleParticipant
   defender: BattleParticipant
@@ -250,7 +252,9 @@ function dismissIntro() {
       class="absolute top-2 left-2 right-2 flex justify-between text-xs uppercase tracking-widest text-muted pointer-events-none"
     >
       <span class="bg-black/40 backdrop-blur px-2 py-0.5 rounded">{{ defenderName }}</span>
-      <span class="bg-black/40 backdrop-blur px-2 py-0.5 rounded">{{ challengerName }} (toi)</span>
+      <span class="bg-black/40 backdrop-blur px-2 py-0.5 rounded"
+        >{{ challengerName }} {{ t('battle_stage.you_suffix') }}</span
+      >
     </div>
 
     <!-- Draw banner. Win/loss tinting handled by the sprite-victory/defeat
@@ -260,7 +264,7 @@ function dismissIntro() {
       class="absolute inset-0 flex items-center justify-center pointer-events-none"
     >
       <div class="px-4 py-2 rounded-md bg-black/70 text-white text-2xl font-bold tracking-widest">
-        ⊘ DRAW
+        {{ t('battle_stage.draw_label') }}
       </div>
     </div>
   </div>

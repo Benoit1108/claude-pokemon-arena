@@ -1,26 +1,35 @@
 <script setup lang="ts">
 // Sprint 5 — global app header. Sticky 56px, backdrop-blur, three clusters :
 // left (brand + version pill + GitHub stars pill), centre (4 nav tabs),
-// right (theme segmented toggle + user pill). The 4 nav tabs duplicate as
-// the gameplay sections — on mobile they collapse and BottomNav takes
-// over.
-//
-// Mockup reference : docs/mockups/sprint-5/01-header.html.
+// right (theme segmented toggle + lang switch + user pill). The 4 nav tabs
+// duplicate as the gameplay sections — on mobile they collapse and
+// BottomNav takes over.
 
 const route = useRoute()
 const runtimeConfig = useRuntimeConfig()
+const { t, locale, locales, setLocale } = useI18n()
 
 interface Tab {
   to: string
-  label: string
+  labelKey: string
   match: string[]
 }
 const tabs: Tab[] = [
-  { to: '/pokedex', label: 'Pokédex', match: ['/pokedex'] },
-  { to: '/arena', label: 'Arena', match: ['/arena', '/battle'] },
-  { to: '/ladder', label: 'Trail', match: ['/ladder'] },
-  { to: '/zones', label: 'Zones', match: ['/zones'] },
+  { to: '/pokedex', labelKey: 'header.tab_pokedex', match: ['/pokedex'] },
+  { to: '/arena', labelKey: 'header.tab_arena', match: ['/arena', '/battle'] },
+  { to: '/ladder', labelKey: 'header.tab_trail', match: ['/ladder'] },
+  { to: '/zones', labelKey: 'header.tab_zones', match: ['/zones'] },
 ]
+
+// Locales available for the FR/EN switch chip. Cast keeps the chip type-safe
+// against the @nuxtjs/i18n LocaleObject shape (code + name).
+const availableLocales = computed(
+  () => (locales.value as { code: string; name: string }[]).filter(l => l.code !== locale.value),
+)
+
+async function switchLocale(code: string): Promise<void> {
+  await setLocale(code as 'fr' | 'en')
+}
 
 function isActive(tab: Tab): boolean {
   return tab.match.some(prefix => route.path === prefix || route.path.startsWith(`${prefix}/`))
@@ -51,14 +60,14 @@ const starsLabel = computed(() => {
       <NuxtLink
         to="/"
         class="header-brand inline-flex items-center gap-2 px-1 py-1 rounded-md transition-default hover:surface-elevated"
-        aria-label="claude-pokemon arena — accueil"
+        :aria-label="t('header.brand_aria')"
       >
         <PokeballIcon size="md" class="pokeball-spin-target" />
         <span class="header-wordmark hidden sm:inline">
           claude-<span class="header-wordmark-accent">pokemon</span>
         </span>
       </NuxtLink>
-      <span class="pill font-mono text-[0.6875rem] text-tertiary" :title="`Version ${version}`">
+      <span class="pill font-mono text-[0.6875rem] text-tertiary" :title="t('header.version_title', { version })">
         v{{ version }}
       </span>
       <a
@@ -66,7 +75,7 @@ const starsLabel = computed(() => {
         target="_blank"
         rel="noopener"
         class="pill pill-interactive hidden md:inline-flex"
-        :aria-label="`${stars} étoiles sur GitHub`"
+        :aria-label="t('header.stars_aria', { count: stars })"
       >
         <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
           <path
@@ -79,7 +88,7 @@ const starsLabel = computed(() => {
     </div>
 
     <!-- CENTRE cluster — nav tabs (desktop only ; BottomNav owns mobile) -->
-    <nav class="nav-tabs hidden md:flex items-center gap-0.5" aria-label="Navigation principale">
+    <nav class="nav-tabs hidden md:flex items-center gap-0.5" :aria-label="t('header.brand_aria')">
       <NuxtLink
         v-for="tab in tabs"
         :key="tab.to"
@@ -87,13 +96,24 @@ const starsLabel = computed(() => {
         class="nav-tab"
         :aria-current="isActive(tab) ? 'page' : undefined"
       >
-        {{ tab.label }}
+        {{ t(tab.labelKey) }}
       </NuxtLink>
     </nav>
 
-    <!-- RIGHT cluster — theme toggle + user pill -->
+    <!-- RIGHT cluster — theme toggle + lang switch + user pill -->
     <div class="flex items-center gap-2">
       <ColorModeToggle />
+      <button
+        v-for="l in availableLocales"
+        :key="l.code"
+        type="button"
+        class="pill pill-interactive font-mono text-[0.6875rem] uppercase hidden sm:inline-flex"
+        :aria-label="t('header.lang_switch_aria') + ' → ' + l.name"
+        :title="l.name"
+        @click="switchLocale(l.code)"
+      >
+        {{ l.code }}
+      </button>
       <UserMenu />
     </div>
   </header>

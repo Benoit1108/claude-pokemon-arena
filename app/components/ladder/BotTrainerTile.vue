@@ -10,6 +10,7 @@ const props = defineProps<{
   isNext: boolean
 }>()
 
+const { t } = useI18n()
 const tileGradient = computed(() => lineageGradient(props.bot.lineage))
 </script>
 
@@ -54,9 +55,9 @@ const tileGradient = computed(() => lineageGradient(props.bot.lineage))
         </div>
       </div>
       <div class="flex-shrink-0 text-2xl">
-        <span v-if="isBeaten" title="Vaincu" class="text-emerald-500">✓</span>
-        <span v-else-if="isLocked" title="Verrouillé" class="text-muted">🔒</span>
-        <span v-else-if="isNext" title="Suivant" class="text-accent">▶</span>
+        <span v-if="isBeaten" :title="t('ladder.bot_tile_beaten')" class="text-emerald-500">✓</span>
+        <span v-else-if="isLocked" :title="t('ladder.bot_tile_locked')" class="text-muted">🔒</span>
+        <span v-else-if="isNext" :title="t('ladder.bot_tile_next')" class="text-accent">▶</span>
         <span v-else class="text-secondary">⚔️</span>
       </div>
     </div>

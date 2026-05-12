@@ -7,6 +7,7 @@ import type { BattleResponse, BattleSide, BattleTurn, ReactionKey } from '~/type
 
 const route = useRoute()
 const api = useApi()
+const { t } = useI18n()
 
 const battleId = computed(() => route.params.id as string)
 
@@ -80,13 +81,12 @@ const backdropGradient = computed(() => {
 useHead({
   title: () =>
     battle.value
-      ? `Battle ${battleId.value.slice(0, 8)} · claude-pokemon arena`
-      : 'Battle not found',
+      ? t('battle.page_title_meta', { id: battleId.value.slice(0, 8) })
+      : t('battle.page_title_not_found'),
   meta: [
     {
       name: 'description',
-      content:
-        'Replay an arena battle in claude-pokemon — turn-by-turn animation, type effectiveness, winner.',
+      content: t('battle.page_desc'),
     },
   ],
 })
@@ -101,31 +101,36 @@ useHead({
   >
     <div class="mb-6">
       <NuxtLink to="/arena" class="text-secondary hover:text-primary text-sm transition">
-        ← Arena pool
+        {{ t('battle.back') }}
       </NuxtLink>
     </div>
 
     <div v-if="error" class="card p-12 text-center">
       <div class="text-6xl mb-4" aria-hidden="true">🥺</div>
-      <h1 class="text-2xl font-bold text-primary mb-2">Battle not found</h1>
+      <h1 class="text-2xl font-bold text-primary mb-2">{{ t('battle.not_found_title') }}</h1>
       <p class="text-secondary">
-        No battle with id <code class="text-accent">{{ battleId }}</code
-        >.
+        <i18n-t keypath="battle.not_found_body" tag="span">
+          <template #id>
+            <code class="text-accent">{{ battleId }}</code>
+          </template>
+        </i18n-t>
       </p>
       <p class="text-muted text-sm mt-4">
-        Battles are kept for 30 days. This one may have expired.
+        {{ t('battle.not_found_expired') }}
       </p>
     </div>
 
     <template v-else-if="battle">
       <header class="text-center mb-8">
-        <div class="text-xs uppercase tracking-widest text-secondary mb-1">Battle replay</div>
-        <h1 class="text-3xl font-bold text-primary">⚔️ Arena</h1>
+        <div class="text-xs uppercase tracking-widest text-secondary mb-1">
+          {{ t('battle.header_eyebrow') }}
+        </div>
+        <h1 class="text-3xl font-bold text-primary">{{ t('battle.header_title') }}</h1>
         <p class="text-muted text-sm mt-2">
           <time :datetime="battle.created_at">{{
             battle.created_at.slice(0, 16).replace('T', ' ')
           }}</time>
-          · seed
+          · {{ t('battle.seed_label') }}
           <code class="text-secondary">{{ battle.seed }}</code>
         </p>
       </header>
@@ -178,8 +183,7 @@ useHead({
 
       <footer class="text-center text-muted text-sm mt-12 pt-8 border-t surface-border">
         <p>
-          Battles are deterministic — given the same seed + snapshots, the engine will always
-          produce this exact log.
+          {{ t('battle.footer_deterministic') }}
         </p>
       </footer>
     </template>

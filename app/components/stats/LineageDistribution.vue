@@ -4,11 +4,13 @@ import { lineageEmoji } from '~/utils/lineage'
 defineProps<{
   distribution: Record<string, number> | undefined
 }>()
+
+const { t } = useI18n()
 </script>
 
 <template>
   <section v-if="distribution && Object.keys(distribution).length" class="mb-12">
-    <h2 class="text-sm uppercase tracking-wider text-muted mb-3">🧬 Active lineages</h2>
+    <h2 class="text-sm uppercase tracking-wider text-muted mb-3">{{ t('lineage_dist.title') }}</h2>
     <div class="card p-4 flex flex-wrap gap-3">
       <div
         v-for="(count, lineage) in distribution"

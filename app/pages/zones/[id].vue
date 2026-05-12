@@ -30,6 +30,7 @@ const router = useRouter()
 const api = useApi()
 const { session, isPaired } = useArenaSession()
 const { trainer, refresh: refreshTrainer } = useTrainerProfile()
+const { t } = useI18n()
 
 const zoneId = computed(() => route.params.id as string)
 
@@ -130,28 +131,27 @@ async function startExplore() {
     if (code === 'arena_not_enabled') {
       exploreState.value = {
         kind: 'error',
-        message:
-          "Ton compte n'existe pas sur ce serveur. En local, crée un compte via /signup d'abord (les comptes prod n'existent pas dans le KV local).",
+        message: t('zones.err_account_missing'),
       }
       return
     }
     if (code === 'zone_locked') {
       exploreState.value = {
         kind: 'error',
-        message: data?.message ?? 'Cette zone est verrouillée — ton niveau est trop bas.',
+        message: data?.message ?? t('zones.err_zone_locked'),
       }
       return
     }
     if (code === 'invalid_secret') {
       exploreState.value = {
         kind: 'error',
-        message: 'Ton arena_secret est rejeté. Re-pair ton CLI ou crée un nouveau compte.',
+        message: t('zones.err_invalid_secret'),
       }
       return
     }
     exploreState.value = {
       kind: 'error',
-      message: e instanceof Error ? e.message : "Échec de l'exploration",
+      message: e instanceof Error ? e.message : t('zones.err_explore_failed'),
     }
   }
 }
@@ -170,7 +170,7 @@ async function fight() {
   } catch (e) {
     exploreState.value = {
       kind: 'error',
-      message: e instanceof Error ? e.message : 'Échec du combat',
+      message: e instanceof Error ? e.message : t('zones.err_fight_failed'),
     }
   }
 }
@@ -211,7 +211,8 @@ const backdropStyle = computed(() => {
 })
 
 useHead({
-  title: () => (zone.value ? `${zone.value.name_fr} · zones` : 'Zone introuvable'),
+  title: () =>
+    zone.value ? t('zones.detail_title_meta', { name: zone.value.name_fr }) : t('zones.title_not_found'),
 })
 </script>
 
@@ -219,13 +220,13 @@ useHead({
   <main class="max-w-3xl mx-auto px-6 py-12" :style="{ background: backdropStyle }">
     <div class="mb-6">
       <NuxtLink to="/zones" class="text-secondary hover:text-primary text-sm transition">
-        ← Toutes les zones
+        {{ t('zones.back_all') }}
       </NuxtLink>
     </div>
 
     <div v-if="zoneError || !zone" class="card p-8 text-center">
       <div class="text-4xl mb-2" aria-hidden="true">🗺️</div>
-      <p class="text-secondary">Zone introuvable.</p>
+      <p class="text-secondary">{{ t('zones.zone_not_found') }}</p>
     </div>
 
     <template v-else>
@@ -234,9 +235,11 @@ useHead({
         <h1 class="text-3xl font-bold text-primary">{{ zone.name_fr }}</h1>
         <p class="text-sm text-secondary mt-2">{{ zone.flavor_fr }}</p>
         <p class="text-xs text-muted mt-2">
-          Niveaux :
-          <strong class="text-primary">Lv.{{ zone.level_min }} — Lv.{{ zone.level_max }}</strong>
-          <span v-if="trainerLevel"> · ton niveau : Lv.{{ trainerLevel }}</span>
+          {{ t('zones.level_range') }}
+          <strong class="text-primary">{{
+            t('zones.level_range_value', { min: zone.level_min, max: zone.level_max })
+          }}</strong>
+          <span v-if="trainerLevel"> · {{ t('zones.your_level', { level: trainerLevel }) }}</span>
         </p>
       </header>
 
@@ -246,20 +249,20 @@ useHead({
         class="surface-card border border-accent/40 rounded-lg p-6 mb-6 text-center"
       >
         <p class="text-secondary mb-3">
-          Pour explorer cette zone, tu as besoin d'un compte trainer.
+          {{ t('zones.intro_pair') }}
         </p>
         <div class="flex justify-center gap-2 flex-wrap">
           <NuxtLink
             to="/signup"
             class="px-4 py-2 bg-accent text-zinc-900 rounded-md font-bold hover:opacity-90 transition text-sm"
           >
-            🎮 Créer mon dresseur
+            {{ t('zones.create_trainer') }}
           </NuxtLink>
           <NuxtLink
             to="/pair"
             class="px-4 py-2 border surface-border rounded-md surface-card-hover transition text-sm"
           >
-            🔗 Pair mon CLI
+            {{ t('zones.pair_cli') }}
           </NuxtLink>
         </div>
       </div>
@@ -271,40 +274,38 @@ useHead({
       >
         <div class="text-4xl mb-2" aria-hidden="true">🔒</div>
         <p class="text-secondary">
-          Cette zone exige au moins le niveau <strong>{{ zone.level_min - 10 }}</strong
-          >. Tu es niveau {{ trainerLevel }}. Explore les zones plus faciles pour monter en niveau.
+          {{ t('zones.locked_body', { min: zone.level_min - 10, current: trainerLevel }) }}
         </p>
         <NuxtLink to="/zones" class="text-accent underline text-sm mt-4 inline-block">
-          ← Choisir une autre zone
+          {{ t('zones.choose_other_zone') }}
         </NuxtLink>
       </div>
 
       <!-- Idle : explore button -->
       <div v-else-if="exploreState.kind === 'idle'" class="card p-8 text-center">
         <p class="text-sm text-secondary mb-4">
-          Plonge dans les hautes herbes pour rencontrer un Pokémon sauvage.
+          {{ t('zones.idle_hint') }}
         </p>
         <button
           type="button"
           class="px-8 py-3 bg-accent text-zinc-900 rounded-md font-bold hover:opacity-90 transition"
           @click="startExplore"
         >
-          🌿 Explorer
+          {{ t('zones.explore_short') }}
         </button>
       </div>
 
       <!-- Exploring -->
       <div v-else-if="exploreState.kind === 'exploring'" class="card p-8 text-center">
         <div class="text-3xl mb-2 animate-pulse" aria-hidden="true">🌿</div>
-        <p class="text-secondary">Tu fouilles les hautes herbes…</p>
+        <p class="text-secondary">{{ t('zones.exploring_grass') }}</p>
       </div>
 
       <!-- Cooldown -->
       <div v-else-if="exploreState.kind === 'cooldown'" class="card p-8 text-center">
         <div class="text-3xl mb-2" aria-hidden="true">⏳</div>
         <p class="text-secondary">
-          Repos avant la prochaine exploration :
-          <strong class="text-primary">{{ exploreState.secondsLeft }}s</strong>
+          {{ t('zones.cooldown_hint', { seconds: exploreState.secondsLeft }) }}
         </p>
       </div>
 
@@ -316,15 +317,20 @@ useHead({
         <div class="text-xs uppercase tracking-widest text-muted mb-2">
           {{
             exploreState.encounter.pool === 'legendary'
-              ? '★ Pokémon légendaire !'
+              ? t('zones.encounter_pool_legendary')
               : exploreState.encounter.pool === 'rare'
-                ? '◆ Pokémon rare'
-                : 'Pokémon sauvage'
+                ? t('zones.encounter_pool_rare')
+                : t('zones.encounter_pool_wild')
           }}
         </div>
         <h2 class="text-2xl font-bold text-primary mb-1 capitalize">
           {{ exploreState.encounter.species_id }}
-          <span v-if="exploreState.encounter.is_shiny" class="text-accent" title="Shiny">✦</span>
+          <span
+            v-if="exploreState.encounter.is_shiny"
+            class="text-accent"
+            :title="t('zones.shiny_title')"
+            >✦</span
+          >
         </h2>
         <p class="text-sm text-secondary mb-4">Lv.{{ exploreState.encounter.level }}</p>
         <div class="flex justify-center mb-6">
@@ -347,14 +353,14 @@ useHead({
             class="px-5 py-2 bg-accent text-zinc-900 rounded-md font-bold hover:opacity-90 transition"
             @click="fight"
           >
-            ⚔️ Combattre
+            {{ t('zones.fight_short') }}
           </button>
           <button
             type="button"
             class="px-5 py-2 border surface-border rounded-md surface-card-hover transition text-sm text-secondary"
             @click="flee"
           >
-            💨 Fuir
+            {{ t('zones.flee_short') }}
           </button>
         </div>
       </div>
@@ -362,37 +368,37 @@ useHead({
       <!-- Item -->
       <div v-else-if="exploreState.kind === 'item'" class="card p-8 text-center">
         <div class="text-5xl mb-2" aria-hidden="true">{{ exploreState.item.emoji }}</div>
-        <p class="text-primary font-bold">Tu as trouvé un objet !</p>
+        <p class="text-primary font-bold">{{ t('zones.item_found') }}</p>
         <p class="text-xs text-secondary mt-1 capitalize">{{ exploreState.item.kind }}</p>
         <p class="text-[10px] text-muted mt-2 italic">
-          (système d'inventaire à venir — l'objet est purement décoratif pour l'instant)
+          {{ t('zones.item_decorative_note') }}
         </p>
         <button
           type="button"
           class="mt-4 px-5 py-2 border surface-border rounded-md surface-card-hover transition text-sm"
           @click="backToIdle"
         >
-          Continuer
+          {{ t('zones.continue') }}
         </button>
       </div>
 
       <!-- Nothing -->
       <div v-else-if="exploreState.kind === 'nothing'" class="card p-8 text-center">
         <div class="text-3xl mb-2" aria-hidden="true">🍃</div>
-        <p class="text-secondary">Rien n'a bougé dans les herbes…</p>
+        <p class="text-secondary">{{ t('zones.no_encounter_grass') }}</p>
         <button
           type="button"
           class="mt-4 px-5 py-2 border surface-border rounded-md surface-card-hover transition text-sm"
           @click="backToIdle"
         >
-          Réessayer
+          {{ t('zones.retry') }}
         </button>
       </div>
 
       <!-- Fighting -->
       <div v-else-if="exploreState.kind === 'fighting'" class="card p-8 text-center">
         <div class="text-3xl mb-2 animate-pulse" aria-hidden="true">⚔️</div>
-        <p class="text-secondary">Combat en cours…</p>
+        <p class="text-secondary">{{ t('zones.fighting') }}</p>
       </div>
 
       <!-- Fight result -->
@@ -410,23 +416,27 @@ useHead({
           v-if="exploreState.result.won"
           class="surface-card border-2 border-emerald-500/40 rounded-lg p-5 text-center"
         >
-          <p class="text-emerald-400 font-bold text-lg">🎉 Victoire !</p>
+          <p class="text-emerald-400 font-bold text-lg">{{ t('zones.victory_banner') }}</p>
           <p class="text-sm text-secondary mt-2">
-            +{{ exploreState.result.xp.amount }} XP
+            {{ t('zones.xp_gained', { xp: exploreState.result.xp.amount }) }}
             <span class="text-xs text-muted">
-              ({{ exploreState.result.xp.breakdown.base }} base ×
-              {{ exploreState.result.xp.breakdown.effectiveness_modifier }} eff ×
-              {{ exploreState.result.xp.breakdown.pool_modifier }} pool)
+              {{
+                t('zones.xp_breakdown', {
+                  base: exploreState.result.xp.breakdown.base,
+                  eff: exploreState.result.xp.breakdown.effectiveness_modifier,
+                  pool: exploreState.result.xp.breakdown.pool_modifier,
+                })
+              }}
             </span>
           </p>
           <p v-if="exploreState.result.leveled_up" class="mt-3 text-accent font-bold">
-            ⬆ Niveau {{ exploreState.result.new_level }} atteint !
+            {{ t('zones.level_up_banner', { level: exploreState.result.new_level }) }}
           </p>
         </div>
         <div v-else class="surface-card border border-red-500/30 rounded-lg p-5 text-center">
-          <p class="text-red-400 font-bold">💔 Défaite</p>
+          <p class="text-red-400 font-bold">{{ t('zones.defeat_banner') }}</p>
           <p class="text-xs text-secondary mt-1">
-            Pas de XP cette fois. Le Pokémon sauvage s'enfuit.
+            {{ t('zones.defeat_hint') }}
           </p>
         </div>
         <div class="text-center">
@@ -435,7 +445,7 @@ useHead({
             class="px-5 py-2 bg-accent text-zinc-900 rounded-md font-bold hover:opacity-90 transition"
             @click="backToIdle"
           >
-            Continuer à explorer
+            {{ t('zones.continue_explore') }}
           </button>
         </div>
       </div>
@@ -451,7 +461,7 @@ useHead({
           class="mt-3 px-4 py-2 border surface-border rounded-md surface-card-hover transition text-sm"
           @click="backToIdle"
         >
-          Retour
+          {{ t('common.back') }}
         </button>
       </div>
     </template>

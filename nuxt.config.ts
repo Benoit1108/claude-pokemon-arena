@@ -1,6 +1,29 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  modules: ['@unocss/nuxt', '@nuxtjs/color-mode', '@nuxt/eslint'],
+  modules: ['@unocss/nuxt', '@nuxtjs/color-mode', '@nuxt/eslint', '@nuxtjs/i18n'],
+
+  // Sprint 5 — i18n. Mirrors the CLI's lib/locales/{fr,en}.json split.
+  // strategy: 'no_prefix' keeps URLs language-agnostic ; the user's chosen
+  // locale lives in a cookie + the <html lang="..."> attribute. Switching is
+  // exposed in AppHeader via a small chip.
+  i18n: {
+    defaultLocale: 'fr',
+    strategy: 'no_prefix',
+    locales: [
+      { code: 'fr', name: 'Français', file: 'fr.json' },
+      { code: 'en', name: 'English', file: 'en.json' },
+    ],
+    lazy: true,
+    detectBrowserLanguage: {
+      useCookie: true,
+      cookieKey: 'arena-i18n',
+      redirectOn: 'root',
+      fallbackLocale: 'fr',
+    },
+    bundle: {
+      optimizeTranslationDirective: false,
+    },
+  },
   devtools: { enabled: true },
 
   // Sprint 5 — register the small global stylesheet (fonts baseline +

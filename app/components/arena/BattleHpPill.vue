@@ -13,6 +13,8 @@ const props = defineProps<{
   side: 'challenger' | 'defender'
 }>()
 
+const { t } = useI18n()
+
 const pct = computed(() => Math.max(0, Math.min(1, props.hp / props.maxHp)))
 const barColor = computed(() => {
   if (pct.value > 0.5) return 'bg-emerald-400'
@@ -33,7 +35,9 @@ const barColor = computed(() => {
       <span class="text-xs text-muted tabular-nums">Lv.{{ level }}</span>
     </div>
     <div class="mt-1 flex items-center gap-2">
-      <span class="text-[10px] tracking-widest text-secondary font-bold">PV</span>
+      <span class="text-[10px] tracking-widest text-secondary font-bold">{{
+        t('battle_stage.hp_label')
+      }}</span>
       <div class="flex-1 h-1.5 bg-zinc-300/60 dark:bg-zinc-800/60 rounded-full overflow-hidden">
         <div
           class="h-full transition-all duration-500 ease-out"

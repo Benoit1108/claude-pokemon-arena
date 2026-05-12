@@ -20,6 +20,7 @@ import { LINEAGE_LABELS } from '~/utils/lineage'
 
 const router = useRouter()
 const api = useApi()
+const { t } = useI18n()
 const { isPaired, set } = useArenaSession()
 
 onMounted(() => {
@@ -84,6 +85,57 @@ const displayName = ref('')
 const submitting = ref(false)
 const errorMsg = ref<string | null>(null)
 
+// Sprint 5 — recovery key modal. After /v1/arena/enable succeeds we display
+// the anon_id + arena_secret ONCE so the user can save them as their only
+// way to re-sign in if they clear localStorage. Redirect to /profile only
+// after the user confirms they have saved the key.
+const recoveryKey = ref<{ anonId: string; arenaSecret: string } | null>(null)
+const copied = ref<'anonId' | 'secret' | 'combined' | null>(null)
+const acknowledged = ref(false)
+
+const combinedKey = computed(() =>
+  recoveryKey.value ? `${recoveryKey.value.anonId}.${recoveryKey.value.arenaSecret}` : '',
+)
+
+async function copyToClipboard(text: string, slot: 'anonId' | 'secret' | 'combined') {
+  try {
+    await navigator.clipboard.writeText(text)
+    copied.value = slot
+    setTimeout(() => {
+      if (copied.value === slot) copied.value = null
+    }, 1800)
+  } catch {
+    // Clipboard refused (insecure context, no permission) — user can still
+    // select + copy manually. Silent fail is acceptable here.
+  }
+}
+
+function downloadRecoveryKey() {
+  if (!recoveryKey.value) return
+  const payload = {
+    type: 'claude-pokemon-arena.recovery-key.v1',
+    anon_id: recoveryKey.value.anonId,
+    arena_secret: recoveryKey.value.arenaSecret,
+    generated_at: new Date().toISOString(),
+    note: 'Keep this file safe. It is the ONLY way to recover this account if you clear the browser.',
+  }
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(blob)
+  a.download = `claude-pokemon-arena-${recoveryKey.value.anonId.slice(0, 8)}.json`
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  URL.revokeObjectURL(a.href)
+}
+
+function continueAfterRecovery() {
+  recoveryKey.value = null
+  acknowledged.value = false
+  copied.value = null
+  void router.push('/profile')
+}
+
 const DISPLAY_NAME_RE = /^[a-zA-Z0-9_-]{2,24}$/
 
 const displayNameValid = computed(() => {
@@ -101,12 +153,11 @@ function generateAnonId(): string {
 
 async function signup() {
   if (!selectedLineage.value) {
-    errorMsg.value = 'Choisis un starter pour commencer.'
+    errorMsg.value = t('signup.error_pick_starter')
     return
   }
   if (!displayNameValid.value) {
-    errorMsg.value =
-      'Display name invalide (2-24 chars, alphanumérique + _ -). Laisse vide pour rester anonyme.'
+    errorMsg.value = t('signup.error_displayname')
     return
   }
   submitting.value = true
@@ -130,19 +181,19 @@ async function signup() {
     if (!stored) {
       throw new Error('localStorage refused the session (private browsing ?)')
     }
-    // First-time bootstrap : the trainer record won't exist until the
-    // first /v1/submit or profile PATCH. Send the user to /profile so
-    // they can edit + the PATCH bootstrap will create their KVRecord.
-    await router.push('/profile')
+    // Sprint 5 — show the recovery key modal BEFORE redirecting to /profile.
+    // The arena_secret is returned exactly once by the worker ; if the user
+    // ever clears localStorage they lose access for good unless they saved
+    // it. We block the navigation behind an explicit "j'ai sauvé" checkbox.
+    recoveryKey.value = { anonId, arenaSecret: res.arena_secret }
   } catch (e) {
     const status =
       (e as { statusCode?: number; response?: { status?: number } } | undefined)?.statusCode ??
       (e as { response?: { status?: number } } | undefined)?.response?.status
     if (status === 409) {
-      errorMsg.value =
-        'Cet anon_id existe déjà (collision rarissime). Réessaie — un nouveau sera tiré.'
+      errorMsg.value = t('signup.error_collision')
     } else {
-      errorMsg.value = e instanceof Error ? e.message : 'Échec de la création'
+      errorMsg.value = e instanceof Error ? e.message : t('signup.error_creation')
     }
   } finally {
     submitting.value = false
@@ -150,14 +201,8 @@ async function signup() {
 }
 
 useHead({
-  title: 'Créer un compte · claude-pokemon arena',
-  meta: [
-    {
-      name: 'description',
-      content:
-        "Crée ton dresseur dans l'arène claude-pokemon — sans installer le CLI. Choisis un starter, joue, progresse.",
-    },
-  ],
+  title: () => `${t('signup.title')} · claude-pokemon arena`,
+  meta: [{ name: 'description', content: () => t('signup.subtitle') }],
 })
 </script>
 
@@ -165,7 +210,7 @@ useHead({
   <main class="max-w-2xl mx-auto px-6 py-12">
     <div class="mb-6">
       <NuxtLink to="/" class="text-secondary hover:text-primary text-sm transition">
-        ← Retour à l'accueil
+        ← {{ t('common.back_home') }}
       </NuxtLink>
     </div>
 
@@ -174,16 +219,17 @@ useHead({
         class="text-3xl md:text-4xl font-bold text-primary flex items-center justify-center gap-3"
       >
         <PokeballIcon size="lg" />
-        <span>Créer mon dresseur</span>
+        <span>{{ t('signup.title') }}</span>
       </h1>
       <p class="text-sm text-secondary mt-2 max-w-md mx-auto">
-        Pas besoin de Claude Code. Choisis un starter, joue contre les bots de l'arène et fais
-        progresser ton Pokémon dans les zones sauvages (à venir).
+        {{ t('signup.subtitle') }}
       </p>
     </header>
 
     <section class="card p-6 mb-6">
-      <h2 class="text-sm uppercase tracking-wider text-muted mb-4">1. Choisis ton starter</h2>
+      <h2 class="text-sm uppercase tracking-wider text-muted mb-4">
+        {{ t('signup.section_starter') }}
+      </h2>
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         <button
           v-for="s in starters"
@@ -212,32 +258,27 @@ useHead({
 
     <section class="card p-6 mb-6">
       <h2 class="text-sm uppercase tracking-wider text-muted mb-4">
-        2. Display name <span class="text-muted">(optionnel)</span>
+        {{ t('signup.section_displayname') }}
+        <span class="text-muted">{{ t('signup.displayname_optional') }}</span>
       </h2>
       <input
         v-model="displayName"
         type="text"
         maxlength="24"
-        placeholder="(laisse vide pour rester anonyme)"
+        :placeholder="t('signup.displayname_placeholder')"
         autocomplete="off"
         class="w-full px-3 py-2 rounded-md border surface-border surface-card text-primary"
         :class="!displayNameValid ? 'border-red-500' : ''"
       />
       <p class="text-xs text-muted mt-1">
-        2-24 caractères, alphanumérique + <code>_</code> <code>-</code>. Tu peux le changer plus
-        tard depuis ton profil.
+        {{ t('signup.displayname_hint') }}
       </p>
     </section>
 
     <section
       class="surface-card border border-accent/30 rounded-lg p-4 mb-6 text-xs text-secondary"
     >
-      <p>
-        🔒 Ton compte est <strong>anonyme</strong> par défaut — on génère un
-        <code>anon_id</code> aléatoire côté navigateur, aucun email requis. La clé
-        d'authentification (<code>arena_secret</code>) est stockée dans le localStorage. Tu pourras
-        plus tard lier ton install CLI <code>claude-pokemon</code> à ce compte.
-      </p>
+      <p>{{ t('signup.privacy_notice') }}</p>
     </section>
 
     <div class="flex flex-col items-center gap-3">
@@ -247,12 +288,123 @@ useHead({
         :disabled="submitting || !selectedLineage || !displayNameValid"
         @click="signup"
       >
-        {{ submitting ? 'Création en cours...' : 'Créer mon dresseur' }}
+        {{ submitting ? t('signup.submitting') : t('signup.submit') }}
       </button>
       <p v-if="errorMsg" class="text-sm text-red-400">⚠ {{ errorMsg }}</p>
-      <NuxtLink to="/pair" class="text-xs text-secondary underline hover:text-primary transition">
-        J'ai déjà un compte CLI — je veux pair
-      </NuxtLink>
+      <div class="flex flex-col items-center gap-1 mt-2">
+        <NuxtLink
+          to="/login"
+          class="text-xs text-secondary underline hover:text-primary transition"
+        >
+          {{ t('signup.have_account_login') }}
+        </NuxtLink>
+        <NuxtLink to="/pair" class="text-xs text-secondary underline hover:text-primary transition">
+          {{ t('signup.have_account_pair') }}
+        </NuxtLink>
+      </div>
     </div>
+
+    <!-- Sprint 5 — recovery key modal. Shown after a successful signup,
+         blocks the redirect to /profile until the user confirms they have
+         saved the anon_id + arena_secret. This is the user's ONLY way back
+         in if they clear localStorage (no email, no password reset). -->
+    <Teleport to="body">
+      <div
+        v-if="recoveryKey"
+        class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="recovery-key-title"
+      >
+        <div class="card-elevated max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
+          <h2
+            id="recovery-key-title"
+            class="text-xl font-bold text-primary flex items-center gap-2"
+          >
+            {{ t('signup.recovery_title') }}
+          </h2>
+          <p class="text-sm text-secondary mt-2">{{ t('signup.recovery_intro') }}</p>
+
+          <div class="mt-4 space-y-3">
+            <div>
+              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">
+                {{ t('signup.recovery_label_anonid') }}
+              </label>
+              <div class="flex gap-2">
+                <code
+                  class="flex-1 font-mono text-sm px-3 py-2 rounded-md surface-card border surface-border break-all"
+                >
+                  {{ recoveryKey.anonId }}
+                </code>
+                <button
+                  type="button"
+                  class="px-3 py-2 rounded-md border surface-border surface-card-hover text-xs transition"
+                  @click="copyToClipboard(recoveryKey.anonId, 'anonId')"
+                >
+                  {{ copied === 'anonId' ? '✓' : '📋' }}
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1">
+                {{ t('signup.recovery_label_secret') }}
+              </label>
+              <div class="flex gap-2">
+                <code
+                  class="flex-1 font-mono text-sm px-3 py-2 rounded-md surface-card border surface-border break-all"
+                >
+                  {{ recoveryKey.arenaSecret }}
+                </code>
+                <button
+                  type="button"
+                  class="px-3 py-2 rounded-md border surface-border surface-card-hover text-xs transition"
+                  @click="copyToClipboard(recoveryKey.arenaSecret, 'secret')"
+                >
+                  {{ copied === 'secret' ? '✓' : '📋' }}
+                </button>
+              </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-2 pt-2">
+              <button
+                type="button"
+                class="flex-1 px-4 py-2 rounded-md border surface-border surface-card-hover text-sm transition"
+                @click="copyToClipboard(combinedKey, 'combined')"
+              >
+                {{ copied === 'combined' ? '✓ ' + t('common.copied') : '📋 ' + t('signup.recovery_copy_both') }}
+              </button>
+              <button
+                type="button"
+                class="flex-1 px-4 py-2 rounded-md border surface-border surface-card-hover text-sm transition"
+                @click="downloadRecoveryKey"
+              >
+                ⬇ {{ t('signup.recovery_download') }}
+              </button>
+            </div>
+          </div>
+
+          <label
+            class="flex items-start gap-2 mt-6 p-3 rounded-md surface-card border surface-border cursor-pointer"
+          >
+            <input
+              v-model="acknowledged"
+              type="checkbox"
+              class="mt-0.5 flex-shrink-0"
+            />
+            <span class="text-sm text-primary">{{ t('signup.recovery_acknowledge') }}</span>
+          </label>
+
+          <button
+            type="button"
+            class="w-full mt-4 px-4 py-3 bg-accent text-zinc-900 rounded-md font-bold hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            :disabled="!acknowledged"
+            @click="continueAfterRecovery"
+          >
+            {{ t('signup.recovery_continue') }}
+          </button>
+        </div>
+      </div>
+    </Teleport>
   </main>
 </template>

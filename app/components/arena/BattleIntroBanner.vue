@@ -34,7 +34,11 @@ onMounted(() => {
       <div
         class="px-4 py-3 rounded-md shadow-2xl bg-black/85 backdrop-blur-sm border-l-4 border-accent text-white max-w-xs w-full text-sm"
       >
-        Un combat est lancé par <span class="font-bold text-accent">{{ challengerName }}</span> !
+        <i18n-t keypath="battle_stage.intro_banner" tag="span">
+          <template #name>
+            <span class="font-bold text-accent">{{ challengerName }}</span>
+          </template>
+        </i18n-t>
       </div>
     </div>
   </Transition>

@@ -10,6 +10,8 @@ const props = defineProps<{
   seenByTrainer?: boolean | undefined
 }>()
 
+const { t } = useI18n()
+
 const displayName = computed(() =>
   props.lang === 'en' ? props.pokemon.name_en : props.pokemon.name_fr,
 )
@@ -37,7 +39,7 @@ const spriteFailed = ref(false)
     <span
       v-if="seenByTrainer === true"
       class="absolute top-1 left-1 text-xs"
-      title="Seen by this trainer"
+      :title="t('pokedex_card.seen_by_trainer')"
       >✓</span
     >
     <div class="text-xs text-muted text-right tabular-nums">
@@ -68,7 +70,11 @@ const spriteFailed = ref(false)
           pokemon.rarity === 'legendary' ? 'text-accent' : 'text-purple-400 dark:text-purple-300'
         "
       >
-        {{ pokemon.rarity === 'legendary' ? '★ legendary' : '◆ rare' }}
+        {{
+          pokemon.rarity === 'legendary'
+            ? t('pokedex_card.rarity_legendary')
+            : t('pokedex_card.rarity_rare')
+        }}
       </span>
     </div>
   </NuxtLink>

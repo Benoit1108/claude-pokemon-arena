@@ -3,14 +3,14 @@ import { BOT_TRAINERS } from '~/data/bot-trainers'
 import { useLadderProgress } from '~/composables/useLadderProgress'
 
 const ladder = useLadderProgress()
+const { t } = useI18n()
 
 useHead({
-  title: 'Ladder · claude-pokemon arena',
+  title: t('ladder.page_title_meta'),
   meta: [
     {
       name: 'description',
-      content:
-        'Battle through 15 NPC trainers to earn the Trail Conqueror title. Solo gameplay loop, offline-friendly.',
+      content: t('ladder.page_desc'),
     },
   ],
 })
@@ -25,7 +25,7 @@ function isLocked(idx: number): boolean {
 
 function confirmReset() {
   if (typeof window === 'undefined') return
-  if (window.confirm('Reset all ladder progress? This cannot be undone.')) {
+  if (window.confirm(t('ladder.reset_confirm'))) {
     ladder.reset()
   }
 }
@@ -35,16 +35,16 @@ function confirmReset() {
   <main class="max-w-5xl mx-auto px-6 py-12">
     <div class="mb-6">
       <NuxtLink to="/" class="text-secondary hover:text-primary text-sm transition">
-        ← Home
+        {{ t('ladder.back_home') }}
       </NuxtLink>
     </div>
 
     <header class="text-center mb-10">
-      <h1 class="text-4xl md:text-5xl font-bold text-primary mb-3">🏞️ Trail Ladder</h1>
+      <h1 class="text-4xl md:text-5xl font-bold text-primary mb-3">{{ t('ladder.title_long') }}</h1>
       <p class="text-secondary max-w-2xl mx-auto mb-4">
-        Battle through 15 NPC trainers, each tougher than the last. Beat the Champion to earn the
-        <strong class="text-accent">Trail Conqueror</strong> title — displayed on your public
-        trainer card and the leaderboard. Progress is saved locally (offline-friendly).
+        {{ t('ladder.intro_pre') }}
+        <strong class="text-accent">{{ t('ladder.intro_title') }}</strong>
+        {{ t('ladder.intro_post') }}
       </p>
     </header>
 
@@ -52,10 +52,12 @@ function confirmReset() {
     <div class="card p-4 mb-6">
       <div class="flex items-center justify-between text-sm text-secondary mb-2">
         <span class="font-mono">
-          {{ ladder.beatenCount.value }} / {{ ladder.totalCount }} beaten
+          {{
+            t('ladder.progress', { beaten: ladder.beatenCount.value, total: ladder.totalCount })
+          }}
         </span>
         <span v-if="ladder.isComplete.value" class="text-accent font-bold">
-          🏆 Trail Conqueror
+          {{ t('ladder.trail_conqueror') }}
         </span>
         <span v-else-if="ladder.beatenCount.value > 0">
           <button
@@ -63,7 +65,7 @@ function confirmReset() {
             class="text-xs text-muted hover:text-secondary underline"
             @click="confirmReset"
           >
-            Reset progress
+            {{ t('ladder.reset_progress') }}
           </button>
         </span>
       </div>
@@ -90,8 +92,7 @@ function confirmReset() {
 
     <footer class="text-center text-muted text-sm mt-12 pt-8 border-t surface-border">
       <p>
-        Solo ladder battles run entirely client-side — no Worker roundtrip, no internet required
-        once the page is loaded.
+        {{ t('ladder.footer_offline') }}
       </p>
     </footer>
   </main>

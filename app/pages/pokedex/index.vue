@@ -2,17 +2,25 @@
 import { TOTAL_POKEDEX, WILD_POKEMON, filterPokedex } from '~/utils/pokedex'
 import type { Rarity } from '~/types/pokedex'
 import type { TrainerResponse } from '~/types/api'
+import { useArenaSession } from '~/composables/useArenaSession'
 
 const route = useRoute()
 const api = useApi()
+const { t } = useI18n()
+const { session } = useArenaSession()
 
 // Sprint 2.11 — optional ?trainer=<anonId> query param drives a "seen by this
-// trainer" overlay. When present we fetch the trainer's pokedex_seen_ids
-// and grey out anything they haven't encountered yet.
+// trainer" overlay. When absent, we fall back to the currently-paired session
+// so the logged-in user's own pokédex greys out species they haven't seen
+// yet. The explicit ?trainer= path stays for sharing someone else's pokédex.
 const trainerAnonId = computed(() => {
   const q = route.query.trainer
-  return typeof q === 'string' && /^[a-f0-9]{8,16}$/.test(q) ? q : null
+  if (typeof q === 'string' && /^[a-f0-9]{8,16}$/.test(q)) return q
+  return session.value?.anon_id ?? null
 })
+const isOwnPokedex = computed(
+  () => !route.query.trainer && session.value?.anon_id === trainerAnonId.value,
+)
 
 // Sprint 2.13 (Q8) — distinguish "trainer doesn't exist" from "Worker error".
 // The 404 path renders a friendly "Trainer not found" hint ; anything else
@@ -86,9 +94,9 @@ const filtered = computed(() => {
 
 useHead({
   title: () =>
-    trainerAnonId.value
-      ? `Pokédex · trainer ${trainerAnonId.value.slice(0, 8)}`
-      : 'Pokédex · claude-pokemon arena',
+    trainerAnonId.value && !isOwnPokedex.value
+      ? `${t('pokedex.title')} · trainer ${trainerAnonId.value.slice(0, 8)}`
+      : `${t('pokedex.title')} · claude-pokemon arena`,
   meta: [
     {
       name: 'description',
@@ -102,28 +110,33 @@ useHead({
   <main class="max-w-6xl mx-auto px-6 py-12">
     <div class="mb-6">
       <NuxtLink to="/" class="text-secondary hover:text-primary text-sm transition">
-        ← Back to leaderboard
+        ← {{ t('common.back_home') }}
       </NuxtLink>
     </div>
 
     <header class="mb-8">
-      <h1 class="text-4xl font-bold text-primary">📖 Pokédex</h1>
+      <h1 class="text-4xl font-bold text-primary">{{ t('pokedex.title') }}</h1>
       <p class="text-secondary mt-2">
-        {{ filtered.length }} / {{ TOTAL_POKEDEX }} Pokémon
-        <span v-if="filtered.length !== TOTAL_POKEDEX" class="text-muted">(filtered)</span>
+        {{ t('pokedex.summary_short', { count: filtered.length, total: TOTAL_POKEDEX }) }}
+        <span v-if="filtered.length !== TOTAL_POKEDEX" class="text-muted">
+          {{ t('pokedex.filtered') }}
+        </span>
       </p>
-      <p v-if="trainerAnonId && trainer" class="mt-2 text-sm text-accent">
-        👀 Trainer view :
+      <p v-if="trainerAnonId && trainer && !isOwnPokedex" class="mt-2 text-sm text-accent">
+        {{ t('pokedex.trainer_view') }}
         <NuxtLink :to="`/trainer/${trainerAnonId}`" class="underline hover:text-primary">
           {{ trainer.display_name || trainerAnonId.slice(0, 8) }}
         </NuxtLink>
-        — {{ seenCount }} / {{ TOTAL_POKEDEX }} encountered
+        {{ t('pokedex.trainer_view_count', { seen: seenCount, total: TOTAL_POKEDEX }) }}
+      </p>
+      <p v-else-if="isOwnPokedex && trainer" class="mt-2 text-sm text-accent">
+        {{ t('pokedex.own_pokedex', { seen: seenCount, total: TOTAL_POKEDEX }) }}
       </p>
       <p v-else-if="trainerError === 'not_found'" class="mt-2 text-sm text-red-400">
-        ⚠ Dresseur introuvable ({{ trainerAnonId }})
+        {{ t('pokedex.trainer_not_found', { id: trainerAnonId }) }}
       </p>
       <p v-else-if="trainerError" class="mt-2 text-sm text-red-400">
-        ⚠ Erreur de chargement ({{ trainerError }}). Réessaie dans un instant.
+        {{ t('pokedex.trainer_load_error', { message: trainerError }) }}
       </p>
     </header>
 
@@ -137,7 +150,7 @@ useHead({
         class="rounded surface-border"
       />
       <label for="seen-only" class="text-secondary cursor-pointer">
-        Show only species this trainer has seen
+        {{ isOwnPokedex ? t('pokedex.show_only_mine') : t('pokedex.show_only_trainer') }}
       </label>
     </div>
 
@@ -156,7 +169,7 @@ useHead({
 
     <div v-else class="card p-12 text-center">
       <div class="text-6xl mb-4" aria-hidden="true">🔍</div>
-      <p class="text-secondary">No Pokémon matches the filters.</p>
+      <p class="text-secondary">{{ t('pokedex.empty') }}</p>
     </div>
   </main>
 </template>

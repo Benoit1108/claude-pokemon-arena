@@ -17,12 +17,18 @@ import { useArenaSession } from '~/composables/useArenaSession'
 import { useTrainerProfile } from '~/composables/useTrainerProfile'
 import { LINEAGE_LABELS, lineageAccent, lineageEmoji } from '~/utils/lineage'
 
+const { t } = useI18n()
 const { session, isPaired, clear } = useArenaSession()
 const { trainer } = useTrainerProfile()
 const colorMode = useColorMode()
 
 const open = ref(false)
 const menuRef = ref<HTMLElement | null>(null)
+// Sprint 5 — recovery key warning before unpairing. The arena_secret is only
+// shown once at signup. If the user clears localStorage without having saved
+// it, the account is permanently inaccessible (no email reset). We block the
+// destructive button behind a small confirmation panel.
+const showUnpairConfirm = ref(false)
 
 const displayName = computed(() => {
   if (trainer.value?.display_name) return trainer.value.display_name
@@ -41,7 +47,15 @@ const router = useRouter()
 function unpair(): void {
   clear()
   open.value = false
+  showUnpairConfirm.value = false
   void router.push('/')
+}
+
+function requestUnpair(): void {
+  showUnpairConfirm.value = true
+}
+function cancelUnpair(): void {
+  showUnpairConfirm.value = false
 }
 
 function goTo(path: string): void {
@@ -82,11 +96,11 @@ onBeforeUnmount(() => {
         <button
           type="button"
           class="pill pill-interactive"
-          title="Créer un compte ou pair ton CLI"
+          :title="t('user_menu.connect_title')"
           @click="open = !open"
         >
           <PokeballIcon size="xs" />
-          <span class="hidden sm:inline">Se connecter</span>
+          <span class="hidden sm:inline">{{ t('user_menu.connect') }}</span>
           <span class="transition-transform" :class="open ? 'rotate-180' : ''" aria-hidden="true"
             >▾</span
           >
@@ -103,8 +117,17 @@ onBeforeUnmount(() => {
               role="menuitem"
               @click="open = false"
             >
-              <div class="font-bold">🎮 Créer mon dresseur</div>
-              <div class="text-xs text-muted">Pas besoin de CLI — joue tout de suite</div>
+              <div class="font-bold">{{ t('user_menu.signup_title') }}</div>
+              <div class="text-xs text-muted">{{ t('user_menu.signup_subtitle') }}</div>
+            </NuxtLink>
+            <NuxtLink
+              to="/login"
+              class="block px-3 py-2 text-sm surface-card-hover text-primary transition-default border-t surface-border"
+              role="menuitem"
+              @click="open = false"
+            >
+              <div class="font-bold">{{ t('user_menu.login_title') }}</div>
+              <div class="text-xs text-muted">{{ t('user_menu.login_subtitle') }}</div>
             </NuxtLink>
             <NuxtLink
               to="/pair"
@@ -112,8 +135,8 @@ onBeforeUnmount(() => {
               role="menuitem"
               @click="open = false"
             >
-              <div class="font-bold">🔗 Pair mon CLI</div>
-              <div class="text-xs text-muted">J'utilise déjà claude-pokemon en local</div>
+              <div class="font-bold">{{ t('user_menu.pair_title') }}</div>
+              <div class="text-xs text-muted">{{ t('user_menu.pair_subtitle') }}</div>
             </NuxtLink>
           </div>
         </Transition>
@@ -124,7 +147,7 @@ onBeforeUnmount(() => {
         v-else
         type="button"
         class="user-pill"
-        :title="`Connecté en tant que ${displayName}`"
+        :title="t('user_menu.connected_as', { name: displayName })"
         @click="open = !open"
       >
         <span
@@ -157,7 +180,7 @@ onBeforeUnmount(() => {
           role="menu"
         >
           <div class="px-3 py-2 border-b surface-border">
-            <div class="text-caption">Connecté</div>
+            <div class="text-caption">{{ t('user_menu.connected') }}</div>
             <div class="font-display font-bold text-primary truncate text-base mt-0.5">
               {{ displayName }}
             </div>
@@ -173,7 +196,7 @@ onBeforeUnmount(() => {
 
           <button type="button" class="menu-item" role="menuitem" @click="goTo('/profile')">
             <SectionIcon name="profile" :size="16" />
-            Mon profil
+            {{ t('user_menu.menu_profile') }}
           </button>
           <button
             v-if="session"
@@ -183,11 +206,11 @@ onBeforeUnmount(() => {
             @click="goTo(`/trainer/${session.anon_id}`)"
           >
             <span class="w-4 inline-flex justify-center" aria-hidden="true">🪪</span>
-            Ma trainer card (publique)
+            {{ t('user_menu.menu_trainer_card') }}
           </button>
           <button type="button" class="menu-item" role="menuitem" @click="goTo('/pair')">
             <span class="w-4 inline-flex justify-center" aria-hidden="true">🔗</span>
-            Gérer le pairing
+            {{ t('user_menu.menu_pair_manage') }}
           </button>
 
           <div class="border-t surface-border my-1" />
@@ -202,15 +225,45 @@ onBeforeUnmount(() => {
             @click="toggleRetro"
           >
             <span class="w-4 inline-flex justify-center" aria-hidden="true">🎮</span>
-            Thème retro GameBoy
+            {{ t('user_menu.menu_retro') }}
             <span v-if="retroActive" class="ml-auto text-accent" aria-hidden="true">✓</span>
           </button>
 
           <div class="border-t surface-border my-1" />
 
-          <button type="button" class="menu-item menu-item-danger" role="menuitem" @click="unpair">
+          <div v-if="showUnpairConfirm" class="px-3 py-3 surface-card border-t border-b surface-border">
+            <p class="text-xs text-primary mb-2">
+              <strong>{{ t('user_menu.unpair_confirm_title') }}</strong>
+            </p>
+            <p class="text-xs text-secondary mb-3">
+              {{ t('user_menu.unpair_confirm_body') }}
+            </p>
+            <div class="flex gap-2">
+              <button
+                type="button"
+                class="flex-1 px-2 py-1.5 text-xs rounded-md border surface-border surface-card-hover transition"
+                @click="cancelUnpair"
+              >
+                {{ t('common.cancel') }}
+              </button>
+              <button
+                type="button"
+                class="flex-1 px-2 py-1.5 text-xs rounded-md bg-red-500/10 text-red-500 border border-red-500/30 hover:bg-red-500/20 transition"
+                @click="unpair"
+              >
+                {{ t('user_menu.unpair_confirm_yes') }}
+              </button>
+            </div>
+          </div>
+          <button
+            v-else
+            type="button"
+            class="menu-item menu-item-danger"
+            role="menuitem"
+            @click="requestUnpair"
+          >
             <span class="w-4 inline-flex justify-center" aria-hidden="true">🚪</span>
-            Déconnecter ce navigateur
+            {{ t('user_menu.menu_disconnect') }}
           </button>
         </div>
       </Transition>

@@ -8,9 +8,11 @@ const props = defineProps<{
   defender: BattleParticipant
 }>()
 
+const { t } = useI18n()
+
 function effectivenessLabel(eff: number): string {
-  if (eff >= 2) return 'super effective'
-  if (eff <= 0.5) return 'not very effective'
+  if (eff >= 2) return t('battle_log.effectiveness_super')
+  if (eff <= 0.5) return t('battle_log.effectiveness_weak')
   return ''
 }
 
@@ -20,34 +22,47 @@ const lastRevealedTurn = computed(() => props.turns[props.turns.length - 1]?.tur
 
 <template>
   <div class="card p-4 mb-6">
-    <div class="text-label mb-3">Battle log</div>
+    <div class="text-label mb-3">{{ t('battle_log.title') }}</div>
     <ol v-if="turns.length > 0" class="space-y-1.5 font-mono text-sm">
       <TransitionGroup name="turn-fade" tag="div" class="space-y-1.5">
         <li
-          v-for="t in turns"
-          :key="t.turn"
+          v-for="turnItem in turns"
+          :key="turnItem.turn"
           class="flex flex-wrap gap-2 items-center"
-          :class="{ 'turn-typewriter': t.turn === lastRevealedTurn }"
+          :class="{ 'turn-typewriter': turnItem.turn === lastRevealedTurn }"
         >
-          <span class="text-muted w-12 tabular-nums"
-            >Turn {{ t.turn.toString().padStart(2, '0') }}</span
-          >
+          <span class="text-muted w-12 tabular-nums">{{
+            t('battle_log.turn_label', { n: turnItem.turn.toString().padStart(2, '0') })
+          }}</span>
           <span class="text-2xl">
-            {{ lineageEmoji(t.actor === 'challenger' ? challenger.lineage : defender.lineage) }}
+            {{
+              lineageEmoji(
+                turnItem.actor === 'challenger' ? challenger.lineage : defender.lineage,
+              )
+            }}
           </span>
-          <span class="text-primary">attacks for</span>
-          <span class="font-bold text-accent">−{{ t.damage }} HP</span>
-          <span v-if="t.effectiveness !== 1" class="text-secondary text-xs">
-            ({{ effectivenessLabel(t.effectiveness) }} ×{{ t.effectiveness }})
+          <span class="text-primary">{{ t('battle_log.attacks_for') }}</span>
+          <span class="font-bold text-accent">{{
+            t('battle_log.damage_hp', { damage: turnItem.damage })
+          }}</span>
+          <span v-if="turnItem.effectiveness !== 1" class="text-secondary text-xs">
+            {{
+              t('battle_log.effectiveness_with_mult', {
+                label: effectivenessLabel(turnItem.effectiveness),
+                mult: turnItem.effectiveness,
+              })
+            }}
           </span>
-          <span v-if="t.critical" class="text-accent font-bold text-xs">CRIT!</span>
+          <span v-if="turnItem.critical" class="text-accent font-bold text-xs">{{
+            t('battle_log.critical')
+          }}</span>
           <span class="text-muted text-xs ml-auto tabular-nums">
-            → opp. HP {{ t.defender_hp_after }}
+            {{ t('battle_log.opp_hp', { hp: turnItem.defender_hp_after }) }}
           </span>
         </li>
       </TransitionGroup>
     </ol>
-    <p v-else class="text-secondary text-sm italic">Press ▶ to start the replay…</p>
+    <p v-else class="text-secondary text-sm italic">{{ t('battle_log.press_play') }}</p>
   </div>
 </template>
 

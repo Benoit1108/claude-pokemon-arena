@@ -7,6 +7,8 @@ const props = defineProps<{
   trainer: TrainerResponse
 }>()
 
+const { t } = useI18n()
+
 const label = computed(() =>
   props.trainer.display_name
     ? `${props.trainer.display_name}#${props.trainer.anon_id.slice(0, 4)}`
@@ -43,7 +45,7 @@ const pinned = computed(() =>
     <div
       class="inline-block px-3 py-1 mb-4 text-xs uppercase tracking-widest border surface-border rounded-full text-secondary"
     >
-      Trainer card
+      {{ t('trainer.card_label') }}
     </div>
 
     <div class="flex justify-center mb-4">
@@ -67,7 +69,7 @@ const pinned = computed(() =>
     >
       <PokeballIcon size="lg" :variant="isShiny ? 'shiny' : 'default'" />
       <span>{{ label }}</span>
-      <span v-if="isShiny" class="text-accent" title="Active companion is shiny">✦</span>
+      <span v-if="isShiny" class="text-accent" :title="t('trainer.active_companion_shiny')">✦</span>
     </h1>
 
     <p class="text-lg text-secondary">
@@ -78,7 +80,7 @@ const pinned = computed(() =>
     <p
       v-if="trainer.quote"
       class="mt-3 text-sm italic text-muted max-w-xl mx-auto"
-      :title="`Quote set via /pokemon quote in the CLI`"
+      :title="t('trainer.quote_title')"
     >
       💬 "{{ trainer.quote }}"
     </p>
@@ -86,7 +88,7 @@ const pinned = computed(() =>
     <div
       v-if="bioLines.length"
       class="mt-3 text-sm text-secondary max-w-xl mx-auto whitespace-pre-line"
-      :title="`Bio set via /pokemon bio in the CLI`"
+      :title="t('trainer.bio_title')"
     >
       <span v-for="(line, idx) in bioLines" :key="idx" class="block">{{ line }}</span>
     </div>

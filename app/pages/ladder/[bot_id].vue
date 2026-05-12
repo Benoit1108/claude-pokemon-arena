@@ -19,6 +19,7 @@ const ladder = useLadderProgress()
 const sfx = useSoundEffects()
 const { isPaired } = useArenaSession()
 const { trainer } = useTrainerProfile()
+const { t } = useI18n()
 
 const botId = route.params.bot_id as string
 const bot = findBot(botId)
@@ -46,13 +47,13 @@ const mode = computed<'auto' | 'manual'>(() =>
 // useTrainerProfile resolves — once the trainer record arrives, the
 // computed re-renders the battle with the real snapshot.
 const playerSnapshot = computed<BattleParticipant>(() => {
-  const t = trainer.value
+  const tr = trainer.value
   return {
-    anon_id: t?.anon_id ?? '00000000',
-    display_name: t?.display_name ?? 'Toi',
-    lineage: (t?.stats.active.lineage ?? 'fire') as Lineage,
-    level: t?.stats.active.current_level ?? 1,
-    is_shiny: t?.stats.active.is_shiny ?? false,
+    anon_id: tr?.anon_id ?? '00000000',
+    display_name: tr?.display_name ?? t('ladder.you_label'),
+    lineage: (tr?.stats.active.lineage ?? 'fire') as Lineage,
+    level: tr?.stats.active.current_level ?? 1,
+    is_shiny: tr?.stats.active.is_shiny ?? false,
   }
 })
 
@@ -154,7 +155,7 @@ const manualJuice = useBattleJuice({
 const tileGradient = lineageGradient(bot.lineage)
 
 useHead({
-  title: `vs ${bot.title} ${bot.name} · Trail`,
+  title: t('ladder.bot_title_meta', { title: bot.title, name: bot.name }),
 })
 </script>
 
@@ -169,12 +170,14 @@ useHead({
   >
     <div class="mb-6">
       <NuxtLink to="/ladder" class="text-secondary hover:text-primary text-sm transition">
-        ← Trail
+        {{ t('ladder.back_trail') }}
       </NuxtLink>
     </div>
 
     <header class="text-center mb-6">
-      <div class="text-xs uppercase tracking-widest text-secondary mb-1">Trail challenge</div>
+      <div class="text-xs uppercase tracking-widest text-secondary mb-1">
+        {{ t('ladder.challenge_label') }}
+      </div>
       <h1 class="text-3xl font-bold text-primary">
         {{ bot.title }} {{ bot.name }}
         <span v-if="bot.is_shiny" class="text-accent">★</span>
@@ -184,7 +187,7 @@ useHead({
         v-if="isFinalBoss(bot.id) && !ladder.isBeaten(bot.id)"
         class="text-xs uppercase tracking-widest text-accent font-bold mt-3"
       >
-        ⚠ Champion fight — beat to earn Trail Conqueror
+        {{ t('ladder.champion_warning') }}
       </p>
     </header>
 
@@ -200,7 +203,7 @@ useHead({
             : 'surface-card-hover text-secondary'
         "
       >
-        🎬 Auto
+        {{ t('ladder.mode_auto') }}
       </NuxtLink>
       <NuxtLink
         :to="{ query: { mode: 'manual' } }"
@@ -212,7 +215,7 @@ useHead({
             : 'surface-card-hover text-secondary'
         "
       >
-        ⚔️ Manual
+        {{ t('ladder.mode_manual') }}
       </NuxtLink>
     </div>
 
@@ -257,13 +260,13 @@ useHead({
         class="surface-card border-2 border-accent rounded-lg p-6 mb-6 text-center"
       >
         <div class="text-3xl mb-2">🎉</div>
-        <p class="font-bold text-primary mb-1">Victory!</p>
+        <p class="font-bold text-primary mb-1">{{ t('ladder.victory_title') }}</p>
         <p class="text-secondary text-sm">{{ bot.reward }}</p>
         <NuxtLink
           to="/ladder"
           class="inline-block mt-4 px-5 py-2.5 bg-accent text-zinc-900 font-bold rounded-md hover:opacity-90 transition"
         >
-          ← Back to trail
+          {{ t('ladder.back_to_trail') }}
         </NuxtLink>
       </div>
 
@@ -295,7 +298,7 @@ useHead({
         <HpBar
           :hp="manual.challengerHp.value"
           :max-hp="manual.challengerMaxHp.value"
-          label="Vous"
+          :label="t('ladder.you_label')"
         />
         <HpBar
           :hp="manual.defenderHp.value"
@@ -315,7 +318,9 @@ useHead({
         v-else-if="!manual.state.value.finished"
         class="card p-4 mb-4 text-center text-secondary"
       >
-        <span class="inline-block animate-pulse">⏳ {{ bot.name }} réfléchit...</span>
+        <span class="inline-block animate-pulse">{{
+          t('ladder.bot_thinking', { name: bot.name })
+        }}</span>
       </div>
 
       <BattleResultBanner
@@ -332,7 +337,7 @@ useHead({
         class="surface-card border-2 border-accent rounded-lg p-6 mb-6 text-center"
       >
         <div class="text-3xl mb-2">🎉</div>
-        <p class="font-bold text-primary mb-1">Victory!</p>
+        <p class="font-bold text-primary mb-1">{{ t('ladder.victory_title') }}</p>
         <p class="text-secondary text-sm">{{ bot.reward }}</p>
         <div class="flex gap-3 justify-center mt-4">
           <button
@@ -340,7 +345,7 @@ useHead({
             class="px-5 py-2.5 border surface-border rounded-md surface-card-hover transition text-primary"
             @click="manual.reset()"
           >
-            ↻ Rejouer
+            {{ t('ladder.replay') }}
           </button>
           <NuxtLink
             to="/ladder"
@@ -352,13 +357,13 @@ useHead({
       </div>
 
       <div v-else-if="manual.state.value.finished" class="card p-6 mb-6 text-center">
-        <p class="text-secondary text-sm mb-3">{{ bot.name }} t'a vaincu·e cette fois.</p>
+        <p class="text-secondary text-sm mb-3">{{ t('ladder.bot_won', { name: bot.name }) }}</p>
         <button
           type="button"
           class="px-5 py-2.5 bg-accent text-zinc-900 font-bold rounded-md hover:opacity-90 transition"
           @click="manual.reset()"
         >
-          ↻ Réessayer
+          {{ t('ladder.retry') }}
         </button>
       </div>
 
