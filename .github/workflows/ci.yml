@@ -6,16 +6,27 @@ on:
   pull_request:
     branches: [main]
 
-# Shared across jobs :
-#  - Node 22 (Object.groupBy used by eslint-flat-config-utils requires Node ≥21,
-#    and CF Pages now defaults to 22 too — keep parity with production).
-#  - submodules: true so `vendor/claude-pokemon` (the shared package source)
-#    gets checked out — otherwise `claude-pokemon-shared` fails to resolve at
-#    build/test time.
+# Pipeline shape (mirrors GitLab-style stages, fail-fast across stages) :
+#
+#   security  ──┐
+#               ├──► quality (parallel: lint / prettier / typecheck / knip / i18n) ──► test ──► build
+#   (none)    ──┘
+#
+# - All jobs use Node 22 (eslint-flat-config-utils calls Object.groupBy, Node 21+).
+# - All jobs check out the submodule (vendor/claude-pokemon hosts the shared package).
+# - npm cache via actions/setup-node makes per-job `npm ci` ~5s after the first one.
+#
+# Why we don't share node_modules via artifacts : GitHub Actions cache is already
+# warm enough at our scale, and artifact upload/download would slow us down more
+# than it saves install time.
+
+env:
+  NODE_VERSION: '22'
 
 jobs:
-  lint-typecheck:
-    name: ESLint + TypeScript + Prettier
+  # ─── Stage : security ─────────────────────────────────────────────────────
+  security:
+    name: 🔒 npm audit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -23,46 +34,112 @@ jobs:
           submodules: true
       - uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - name: Install dependencies
         run: npm ci
-      - name: ESLint
-        run: npm run lint
-      - name: TypeScript typecheck
-        run: npm run typecheck
-      - name: Prettier check
-        run: npm run format:check
+      - name: npm audit (prod deps, high+)
+        run: npm run check:audit
 
-  tests:
-    name: Vitest (utils + services + components)
+  # ─── Stage : quality (5 jobs in parallel after security) ──────────────────
+  lint:
+    name: 🐛 ESLint
+    needs: security
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-        with:
-          submodules: true
+        with: { submodules: true }
       - uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-      - name: Install dependencies
-        run: npm ci
-      - name: Run Vitest
-        run: npm test
+      - run: npm ci
+      - run: npm run lint
 
+  prettier:
+    name: 💅 Prettier check
+    needs: security
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with: { submodules: true }
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run format:check
+
+  typecheck:
+    name: 🚨 TypeScript typecheck
+    needs: security
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with: { submodules: true }
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run typecheck
+
+  knip:
+    name: 🔍 Dead code (knip)
+    needs: security
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with: { submodules: true }
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run knip
+
+  i18n-parity:
+    name: 🌍 i18n FR/EN key parity
+    needs: security
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with: { submodules: true }
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run check:i18n
+
+  # ─── Stage : test (after all quality gates) ───────────────────────────────
+  test:
+    name: ✅ Vitest + coverage (threshold 80%)
+    needs: [lint, prettier, typecheck, knip, i18n-parity]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with: { submodules: true }
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run test:coverage
+
+  # ─── Stage : build (after test passes) ────────────────────────────────────
   build:
-    name: Nuxt build (cloudflare-pages preset)
+    name: 📦 Nuxt build (cloudflare-pages preset)
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-        with:
-          submodules: true
+        with: { submodules: true }
       - uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-      - name: Install dependencies
-        run: npm ci
+      - run: npm ci
       - name: Build for Cloudflare Pages
         env:
           NITRO_PRESET: cloudflare-pages

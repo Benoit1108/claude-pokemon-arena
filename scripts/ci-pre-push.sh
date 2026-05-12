@@ -47,7 +47,9 @@ run "Nuxt typecheck" bash -c '
   fi
 '
 
-run "Vitest"         npm run -s test
+run "Dead code (knip)"          npm run -s knip
+run "i18n FR/EN key parity"     npm run -s check:i18n
+run "Vitest"                    npm run -s test
 run "Nuxt build (cloudflare-pages preset)" env NITRO_PRESET=cloudflare-pages npm run -s build
 
 echo
