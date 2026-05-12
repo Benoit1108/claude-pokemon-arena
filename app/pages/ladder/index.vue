@@ -52,9 +52,7 @@ function confirmReset() {
     <div class="card p-4 mb-6">
       <div class="flex items-center justify-between text-sm text-secondary mb-2">
         <span class="font-mono">
-          {{
-            t('ladder.progress', { beaten: ladder.beatenCount.value, total: ladder.totalCount })
-          }}
+          {{ t('ladder.progress', { beaten: ladder.beatenCount.value, total: ladder.totalCount }) }}
         </span>
         <span v-if="ladder.isComplete.value" class="text-accent font-bold">
           {{ t('ladder.trail_conqueror') }}

@@ -36,9 +36,7 @@ const lastRevealedTurn = computed(() => props.turns[props.turns.length - 1]?.tur
           }}</span>
           <span class="text-2xl">
             {{
-              lineageEmoji(
-                turnItem.actor === 'challenger' ? challenger.lineage : defender.lineage,
-              )
+              lineageEmoji(turnItem.actor === 'challenger' ? challenger.lineage : defender.lineage)
             }}
           </span>
           <span class="text-primary">{{ t('battle_log.attacks_for') }}</span>

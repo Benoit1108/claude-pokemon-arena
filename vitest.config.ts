@@ -5,6 +5,7 @@ export default defineVitestConfig({
     globals: true,
     environment: 'happy-dom',
     include: ['tests/**/*.{test,spec}.ts'],
+    setupFiles: ['./tests/setup.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'lcov'],

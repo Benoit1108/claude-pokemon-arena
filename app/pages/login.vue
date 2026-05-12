@@ -35,7 +35,7 @@ const fileInput = ref<HTMLInputElement | null>(null)
 
 // When the user pastes the combined "anon_id.arena_secret" form, auto-split
 // into the two fields so they can verify visually before submitting.
-watch(combinedInput, (v) => {
+watch(combinedInput, v => {
   const trimmed = v.trim()
   if (!trimmed.includes('.')) return
   const [a, s] = trimmed.split('.', 2)

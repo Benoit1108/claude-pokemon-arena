@@ -86,7 +86,9 @@ useHead({
 
     <div v-if="!species" class="card p-12 text-center">
       <div class="text-6xl mb-4" aria-hidden="true">🔍</div>
-      <h1 class="text-2xl font-bold text-primary mb-2">{{ t('pokedex_detail.not_found_title') }}</h1>
+      <h1 class="text-2xl font-bold text-primary mb-2">
+        {{ t('pokedex_detail.not_found_title') }}
+      </h1>
       <p class="text-secondary">
         <i18n-t keypath="pokedex_detail.not_found_body" tag="span">
           <template #id>

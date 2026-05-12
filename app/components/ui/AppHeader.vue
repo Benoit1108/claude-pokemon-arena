@@ -23,8 +23,8 @@ const tabs: Tab[] = [
 
 // Locales available for the FR/EN switch chip. Cast keeps the chip type-safe
 // against the @nuxtjs/i18n LocaleObject shape (code + name).
-const availableLocales = computed(
-  () => (locales.value as { code: string; name: string }[]).filter(l => l.code !== locale.value),
+const availableLocales = computed(() =>
+  (locales.value as { code: string; name: string }[]).filter(l => l.code !== locale.value),
 )
 
 async function switchLocale(code: string): Promise<void> {
@@ -67,7 +67,10 @@ const starsLabel = computed(() => {
           claude-<span class="header-wordmark-accent">pokemon</span>
         </span>
       </NuxtLink>
-      <span class="pill font-mono text-[0.6875rem] text-tertiary" :title="t('header.version_title', { version })">
+      <span
+        class="pill font-mono text-[0.6875rem] text-tertiary"
+        :title="t('header.version_title', { version })"
+      >
         v{{ version }}
       </span>
       <a

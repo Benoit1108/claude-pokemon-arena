@@ -33,7 +33,7 @@ function entry(overrides: Partial<LeaderboardEntry> = {}): LeaderboardEntry {
 describe('<LeaderboardTable />', () => {
   it('renders empty-state row when no entries', () => {
     const wrapper = mount(LeaderboardTable, { props: { entries: [] }, global: { stubs } })
-    expect(wrapper.text()).toContain('No trainer has submitted stats yet')
+    expect(wrapper.text()).toContain('No trainer has shared their stats yet')
   })
 
   it('renders 1 row per entry with rank prefix', () => {

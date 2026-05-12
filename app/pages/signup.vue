@@ -372,7 +372,11 @@ useHead({
                 class="flex-1 px-4 py-2 rounded-md border surface-border surface-card-hover text-sm transition"
                 @click="copyToClipboard(combinedKey, 'combined')"
               >
-                {{ copied === 'combined' ? '✓ ' + t('common.copied') : '📋 ' + t('signup.recovery_copy_both') }}
+                {{
+                  copied === 'combined'
+                    ? '✓ ' + t('common.copied')
+                    : '📋 ' + t('signup.recovery_copy_both')
+                }}
               </button>
               <button
                 type="button"
@@ -387,11 +391,7 @@ useHead({
           <label
             class="flex items-start gap-2 mt-6 p-3 rounded-md surface-card border surface-border cursor-pointer"
           >
-            <input
-              v-model="acknowledged"
-              type="checkbox"
-              class="mt-0.5 flex-shrink-0"
-            />
+            <input v-model="acknowledged" type="checkbox" class="mt-0.5 flex-shrink-0" />
             <span class="text-sm text-primary">{{ t('signup.recovery_acknowledge') }}</span>
           </label>
 

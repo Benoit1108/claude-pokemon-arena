@@ -231,7 +231,10 @@ onBeforeUnmount(() => {
 
           <div class="border-t surface-border my-1" />
 
-          <div v-if="showUnpairConfirm" class="px-3 py-3 surface-card border-t border-b surface-border">
+          <div
+            v-if="showUnpairConfirm"
+            class="px-3 py-3 surface-card border-t border-b surface-border"
+          >
             <p class="text-xs text-primary mb-2">
               <strong>{{ t('user_menu.unpair_confirm_title') }}</strong>
             </p>

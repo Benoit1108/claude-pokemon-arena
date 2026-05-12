@@ -325,7 +325,9 @@ useHead({
           <li v-for="turnItem in recentTurns" :key="turnItem.turn" class="flex justify-between">
             <span class="text-secondary">
               {{ t('live_battle.turn_short', { n: turnItem.turn }) }} ·
-              {{ turnItem.actor === 'challenger' ? t('live_battle.side_c') : t('live_battle.side_d') }}
+              {{
+                turnItem.actor === 'challenger' ? t('live_battle.side_c') : t('live_battle.side_d')
+              }}
               <span v-if="turnItem.critical" class="text-red-400 font-bold">{{
                 t('live_battle.crit')
               }}</span>

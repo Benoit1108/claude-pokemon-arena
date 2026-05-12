@@ -212,7 +212,9 @@ const backdropStyle = computed(() => {
 
 useHead({
   title: () =>
-    zone.value ? t('zones.detail_title_meta', { name: zone.value.name_fr }) : t('zones.title_not_found'),
+    zone.value
+      ? t('zones.detail_title_meta', { name: zone.value.name_fr })
+      : t('zones.title_not_found'),
 })
 </script>
 

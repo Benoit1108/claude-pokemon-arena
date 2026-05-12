@@ -206,7 +206,9 @@ useHead({
 
       <!-- Editable form -->
       <section class="card p-6 mb-6 space-y-5">
-        <h2 class="text-sm uppercase tracking-wider text-muted">{{ t('profile.section_public') }}</h2>
+        <h2 class="text-sm uppercase tracking-wider text-muted">
+          {{ t('profile.section_public') }}
+        </h2>
 
         <!-- Display name -->
         <div>
@@ -349,7 +351,11 @@ useHead({
             <code>/pokemon arena link {{ pairCode }}</code>
           </p>
           <p v-if="pairExpiresAt" class="text-[10px] text-muted">
-            {{ t('profile.pair_cli_expires_at', { time: new Date(pairExpiresAt).toLocaleTimeString() }) }}
+            {{
+              t('profile.pair_cli_expires_at', {
+                time: new Date(pairExpiresAt).toLocaleTimeString(),
+              })
+            }}
           </p>
           <button
             type="button"
@@ -369,7 +375,9 @@ useHead({
 
       <!-- Danger zone -->
       <section class="surface-card border border-red-500/30 rounded-lg p-6 text-center">
-        <h2 class="text-sm uppercase tracking-wider text-red-400 mb-2">{{ t('profile.danger_zone') }}</h2>
+        <h2 class="text-sm uppercase tracking-wider text-red-400 mb-2">
+          {{ t('profile.danger_zone') }}
+        </h2>
         <p class="text-xs text-muted mb-4">{{ t('profile.danger_zone_intro') }}</p>
         <button
           type="button"
