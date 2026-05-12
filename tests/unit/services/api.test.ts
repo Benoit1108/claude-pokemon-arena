@@ -113,7 +113,11 @@ describe('ApiClient', () => {
   })
 
   it('arenaPairRedeem() POSTs the code in body', async () => {
-    const { client, fetchMock } = makeClient({ ok: true, anon_id: 'a'.repeat(8), arena_secret: 'a'.repeat(32) })
+    const { client, fetchMock } = makeClient({
+      ok: true,
+      anon_id: 'a'.repeat(8),
+      arena_secret: 'a'.repeat(32),
+    })
     await client.arenaPairRedeem('ABCDEF')
     expect(fetchMock).toHaveBeenCalledWith('/v1/arena/pair/redeem', {
       method: 'POST',
@@ -152,12 +156,22 @@ describe('ApiClient', () => {
     await client.trainerProfilePatch({
       anonId: 'f'.repeat(8),
       arenaSecret: '1'.repeat(32),
-      patch: { display_name: 'Ash', quote: 'Catch em all', bio: null, pinned_badges: ['fire-master'] },
+      patch: {
+        display_name: 'Ash',
+        quote: 'Catch em all',
+        bio: null,
+        pinned_badges: ['fire-master'],
+      },
     })
     expect(fetchMock).toHaveBeenCalledWith(`/v1/trainer/${'f'.repeat(8)}/profile`, {
       method: 'PATCH',
       baseURL: 'https://example.test',
-      body: { display_name: 'Ash', quote: 'Catch em all', bio: null, pinned_badges: ['fire-master'] },
+      body: {
+        display_name: 'Ash',
+        quote: 'Catch em all',
+        bio: null,
+        pinned_badges: ['fire-master'],
+      },
       headers: { authorization: `Bearer ${'1'.repeat(32)}` },
     })
   })
@@ -168,7 +182,13 @@ describe('ApiClient', () => {
       arena_secret: '2'.repeat(32),
       enabled_at: '2026-05-12T10:00:00Z',
       origin: 'web',
-      team_snapshot: { anon_id: '3'.repeat(8), display_name: 'Ash', lineage: 'fire', level: 1, is_shiny: false },
+      team_snapshot: {
+        anon_id: '3'.repeat(8),
+        display_name: 'Ash',
+        lineage: 'fire',
+        level: 1,
+        is_shiny: false,
+      },
     })
     await client.arenaEnable({
       anon_id: '3'.repeat(8),
@@ -199,7 +219,13 @@ describe('ApiClient', () => {
       enabled_at: '2026-05-12T10:00:00Z',
       updated_at: '2026-05-12T10:00:00Z',
       origin: 'web',
-      team_snapshot: { anon_id: '4'.repeat(8), display_name: 'Ash', lineage: 'fire', level: 1, is_shiny: false },
+      team_snapshot: {
+        anon_id: '4'.repeat(8),
+        display_name: 'Ash',
+        lineage: 'fire',
+        level: 1,
+        is_shiny: false,
+      },
     })
     await client.arenaWhoami({ anonId: '4'.repeat(8), arenaSecret: '5'.repeat(32) })
     expect(fetchMock).toHaveBeenCalledWith(`/v1/arena/whoami?anon_id=${'4'.repeat(8)}`, {
@@ -210,7 +236,12 @@ describe('ApiClient', () => {
   })
 
   it('arenaPairInit() POSTs Bearer-authed with anon_id body', async () => {
-    const { client, fetchMock } = makeClient({ ok: true, code: 'ABCDEF', expires_at: '2026-05-12T10:05:00Z', ttl_s: 300 })
+    const { client, fetchMock } = makeClient({
+      ok: true,
+      code: 'ABCDEF',
+      expires_at: '2026-05-12T10:05:00Z',
+      ttl_s: 300,
+    })
     await client.arenaPairInit({ anonId: '6'.repeat(8), arenaSecret: '7'.repeat(32) })
     expect(fetchMock).toHaveBeenCalledWith('/v1/arena/pair/init', {
       method: 'POST',
@@ -232,7 +263,11 @@ describe('ApiClient', () => {
 
   it('zoneExplore() and zoneFight() include Bearer auth', async () => {
     const { client, fetchMock } = makeClient({ ok: true })
-    await client.zoneExplore({ zoneId: 'forest', anonId: '8'.repeat(8), arenaSecret: '9'.repeat(32) })
+    await client.zoneExplore({
+      zoneId: 'forest',
+      anonId: '8'.repeat(8),
+      arenaSecret: '9'.repeat(32),
+    })
     expect(fetchMock).toHaveBeenCalledWith('/v1/zone/forest/explore', {
       method: 'POST',
       baseURL: 'https://example.test',
