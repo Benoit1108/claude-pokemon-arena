@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LINEAGE_LABELS, lineageAccent } from '~/utils/lineage'
+import { lineageLabel as resolveLineageLabel, lineageAccent } from '~/utils/lineage'
 import { badgeMeta } from '~/utils/badges'
 import type { TrainerResponse } from '~/types/api'
 
@@ -18,7 +18,7 @@ const label = computed(() =>
 const lineage = computed(() => props.trainer.stats.active.lineage)
 const level = computed(() => props.trainer.stats.active.current_level)
 const isShiny = computed(() => props.trainer.stats.active.is_shiny)
-const lineageLabel = computed(() => (lineage.value ? LINEAGE_LABELS[lineage.value] : '—'))
+const lineageLabel = computed(() => resolveLineageLabel(lineage.value))
 
 // Lineage-derived accent color drives the sprite ring + pinned-badge borders
 // to give each profile a distinct flavor without a heavy theme system.

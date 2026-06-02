@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { lineageGradient, LINEAGE_LABELS } from '~/utils/lineage'
+import { lineageGradient, lineageLabel } from '~/utils/lineage'
 import type { BotTrainer } from '~/data/bot-trainers'
 
 const props = defineProps<{
@@ -50,9 +50,7 @@ const tileGradient = computed(() => lineageGradient(props.bot.lineage))
           {{ bot.name }}
           <span v-if="bot.is_shiny" class="text-accent">★</span>
         </div>
-        <div class="text-xs text-muted">
-          {{ LINEAGE_LABELS[bot.lineage] || bot.lineage }} · Lv.{{ bot.level }}
-        </div>
+        <div class="text-xs text-muted">{{ lineageLabel(bot.lineage) }} · Lv.{{ bot.level }}</div>
       </div>
       <div class="flex-shrink-0 text-2xl">
         <span v-if="isBeaten" :title="t('ladder.bot_tile_beaten')" class="text-emerald-500">✓</span>

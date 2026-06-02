@@ -7,7 +7,7 @@
 
 import { useLiveBattle } from '~/composables/useLiveBattle'
 import { useArenaSession } from '~/composables/useArenaSession'
-import { LINEAGE_LABELS, lineageGradient } from '~/utils/lineage'
+import { lineageLabel, lineageGradient } from '~/utils/lineage'
 import { stageFor } from '~/utils/sprites'
 import { movesForStage, type Move } from '~/data/moves'
 import { LINEAGE_TO_TYPE, type CombatType } from '~/utils/battle-engine'
@@ -216,7 +216,7 @@ useHead({
               </div>
               <div class="font-semibold text-primary">{{ fmtSide(live.challenger.anon_id) }}</div>
               <div v-if="live.challenger.snapshot" class="text-xs text-secondary">
-                {{ LINEAGE_LABELS[live.challenger.snapshot.lineage] }} · Lv.{{
+                {{ lineageLabel(live.challenger.snapshot.lineage) }} · Lv.{{
                   live.challenger.snapshot.level
                 }}
               </div>
@@ -254,7 +254,7 @@ useHead({
               </div>
               <div class="font-semibold text-primary">{{ fmtSide(live.defender.anon_id) }}</div>
               <div v-if="live.defender.snapshot" class="text-xs text-secondary">
-                {{ LINEAGE_LABELS[live.defender.snapshot.lineage] }} · Lv.{{
+                {{ lineageLabel(live.defender.snapshot.lineage) }} · Lv.{{
                   live.defender.snapshot.level
                 }}
               </div>

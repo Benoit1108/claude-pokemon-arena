@@ -20,11 +20,24 @@ const emit = defineEmits<{
 const { t } = useI18n()
 
 const TYPE_BG: Record<CombatType, string> = {
+  normal: 'bg-zinc-500/20 border-zinc-500/40 hover:bg-zinc-500/30',
   fire: 'bg-orange-500/20 border-orange-500/40 hover:bg-orange-500/30',
   water: 'bg-blue-500/20 border-blue-500/40 hover:bg-blue-500/30',
-  grass: 'bg-green-500/20 border-green-500/40 hover:bg-green-500/30',
   electric: 'bg-yellow-400/20 border-yellow-400/40 hover:bg-yellow-400/30',
-  normal: 'bg-zinc-500/20 border-zinc-500/40 hover:bg-zinc-500/30',
+  grass: 'bg-green-500/20 border-green-500/40 hover:bg-green-500/30',
+  ice: 'bg-cyan-400/20 border-cyan-400/40 hover:bg-cyan-400/30',
+  fighting: 'bg-red-600/20 border-red-600/40 hover:bg-red-600/30',
+  poison: 'bg-purple-500/20 border-purple-500/40 hover:bg-purple-500/30',
+  ground: 'bg-amber-600/20 border-amber-600/40 hover:bg-amber-600/30',
+  flying: 'bg-indigo-400/20 border-indigo-400/40 hover:bg-indigo-400/30',
+  psychic: 'bg-pink-500/20 border-pink-500/40 hover:bg-pink-500/30',
+  bug: 'bg-lime-500/20 border-lime-500/40 hover:bg-lime-500/30',
+  rock: 'bg-stone-500/20 border-stone-500/40 hover:bg-stone-500/30',
+  ghost: 'bg-violet-600/20 border-violet-600/40 hover:bg-violet-600/30',
+  dragon: 'bg-indigo-600/20 border-indigo-600/40 hover:bg-indigo-600/30',
+  dark: 'bg-neutral-700/20 border-neutral-700/40 hover:bg-neutral-700/30',
+  steel: 'bg-slate-500/20 border-slate-500/40 hover:bg-slate-500/30',
+  fairy: 'bg-fuchsia-400/20 border-fuchsia-400/40 hover:bg-fuchsia-400/30',
 }
 
 const typeLabel = (type: CombatType): string => t(`attack_picker.type_${type}`)
