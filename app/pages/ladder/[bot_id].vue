@@ -7,7 +7,7 @@ import { useManualBattle } from '~/composables/useManualBattle'
 import { useBattleJuice } from '~/composables/useBattleJuice'
 import { useArenaSession } from '~/composables/useArenaSession'
 import { useTrainerProfile } from '~/composables/useTrainerProfile'
-import { resolveBattle, hashSeed, LINEAGE_TO_TYPE } from '~/utils/battle-engine'
+import { resolveBattle, hashSeed, lineageToCombatType } from '~/utils/battle-engine'
 import { lineageGradient } from '~/utils/lineage'
 import type { BattleParticipant, BattleSide, Lineage } from '~/types/api'
 
@@ -128,7 +128,7 @@ watch(
 )
 
 // Defender combat type for super-effective hint in AttackPicker.
-const opponentCombatType = LINEAGE_TO_TYPE[opponentSnapshot.lineage]
+const opponentCombatType = lineageToCombatType(opponentSnapshot.lineage)
 
 // ── JUICE PACK — wired to whichever mode is active ────────────────────────
 const autoWinner = computed<BattleSide | 'draw' | null>(() =>
