@@ -13,6 +13,11 @@ phases. The CLI has its own [CHANGELOG](https://github.com/Benoit1108/claude-pok
 
 ### Added
 
+- **Phase 2.14 — rendu des Pokémon sauvages & échangés** (suit la PR CLI du même nom). L'arène héberge désormais n'importe quel Pokémon (sauvage, échangé `trade-*`), plus seulement les 8 starters → le rendu lignée gère tous les types.
+  - `app/utils/lineage.ts` : nouvelle couche **par type canonique** (18) — emoji, label, accent, gradient — résolue via `lineageToCombatType()` du package shared. Les starters gardent leur branding curaté ; tout le reste (ex: `trade-psyduck` → 💧 Water) rend proprement au lieu du fallback ❓/gris.
+  - Nouvelle fonction `lineageLabel()` ; les accès directs `LINEAGE_LABELS[lineage]` (qui affichaient `undefined` pour un wild) migrés vers elle dans `OpponentRow`, `UserMenu`, `BotTrainerTile`, `TrainerHero`, `profile`, `live/[id]`.
+  - Submodule `vendor/claude-pokemon` bumpé sur le moteur 18 types.
+
 - **Sprint 5 — design pass + recovery-key sign-in + i18n FR/EN** (commits `0d164f5` → `df9ecdb`) :
   - Chrome v2 : 56 px sticky `AppHeader` with brand + version + GitHub-stars pills, 4 nav tabs, segmented light/dark/system theme toggle + lang switch chip, user pill. Mobile `BottomNav` (md:hidden, fixed, 5 SVG-icon entries).
   - Landing redesign : hero with decorative pokéballs, eyebrow pill, accented wordmark, 4 featured section tiles (lineage-tinted radial gradient backgrounds + slide-in CTA on hover), below-the-fold strips (global stats / leaderboard / lineage distribution).

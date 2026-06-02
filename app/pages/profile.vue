@@ -12,7 +12,7 @@
 // When NOT paired, redirects to /pair so the visitor knows how to log in.
 
 import { badgeMeta } from '~/utils/badges'
-import { LINEAGE_LABELS, lineageAccent } from '~/utils/lineage'
+import { lineageLabel, lineageAccent } from '~/utils/lineage'
 
 const router = useRouter()
 const api = useApi()
@@ -198,7 +198,7 @@ useHead({
           </div>
         </div>
         <p class="text-secondary">
-          {{ trainer.stats.active.lineage ? LINEAGE_LABELS[trainer.stats.active.lineage] : '—' }}
+          {{ lineageLabel(trainer.stats.active.lineage) }}
           · Lv.{{ trainer.stats.active.current_level }}
           <span v-if="trainer.stats.active.is_shiny" class="text-accent" title="Shiny">✦</span>
         </p>

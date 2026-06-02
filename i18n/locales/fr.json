@@ -603,7 +603,20 @@
     "type_water": "Eau",
     "type_grass": "Plante",
     "type_electric": "Élec",
-    "type_normal": "Normal"
+    "type_normal": "Normal",
+    "type_ice": "Glace",
+    "type_fighting": "Combat",
+    "type_poison": "Poison",
+    "type_ground": "Sol",
+    "type_flying": "Vol",
+    "type_psychic": "Psy",
+    "type_bug": "Insecte",
+    "type_rock": "Roche",
+    "type_ghost": "Spectre",
+    "type_dragon": "Dragon",
+    "type_dark": "Ténèbres",
+    "type_steel": "Acier",
+    "type_fairy": "Fée"
   },
   "floating_damage": {
     "crit": "CRIT !"

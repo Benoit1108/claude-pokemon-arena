@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LINEAGE_LABELS } from '~/utils/lineage'
+import { lineageLabel } from '~/utils/lineage'
 import { trainerLabel } from '~/utils/format'
 import type { ArenaOpponent } from '~/types/api'
 
@@ -28,7 +28,7 @@ defineProps<{
           <span v-if="opponent.is_shiny" class="text-accent">★</span>
         </div>
         <div class="text-xs text-secondary">
-          {{ LINEAGE_LABELS[opponent.lineage] || opponent.lineage }}
+          {{ lineageLabel(opponent.lineage) }}
         </div>
       </div>
       <div class="text-right">

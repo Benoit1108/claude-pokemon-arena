@@ -15,7 +15,7 @@
 
 import { useArenaSession } from '~/composables/useArenaSession'
 import { useTrainerProfile } from '~/composables/useTrainerProfile'
-import { LINEAGE_LABELS, lineageAccent, lineageEmoji } from '~/utils/lineage'
+import { lineageLabel, lineageAccent, lineageEmoji } from '~/utils/lineage'
 
 const { t } = useI18n()
 const { session, isPaired, clear } = useArenaSession()
@@ -188,7 +188,7 @@ onBeforeUnmount(() => {
               <code class="font-mono text-muted">{{ session?.anon_id }}</code>
             </div>
             <div v-if="lineage" class="text-xs text-secondary mt-1">
-              {{ lineageEmoji(lineage) }} {{ LINEAGE_LABELS[lineage] }} ·
+              {{ lineageEmoji(lineage) }} {{ lineageLabel(lineage) }} ·
               {{ level === 0 ? '🥚 Egg' : `Lv.${level}` }}
               <span v-if="isShiny" class="text-accent">✦</span>
             </div>

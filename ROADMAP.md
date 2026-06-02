@@ -11,6 +11,7 @@ authoritative roadmap (Phases 1 → 4 + decisions log) lives in the CLI repo :
 - Phase 2.11 (pokédex-driven achievements) + 2.12 (sound theme switcher, easter eggs, QR sync) : **not started**
 - Phase 2.13+ stretch — partial : **i18n FR/EN web** done (Sprint 5)
 - Sprint 5 polish + recovery-key sign-in : **shipped** (see [CHANGELOG.md](./CHANGELOG.md))
+- Phase 2.14 (wild & traded Pokémon en arène, chart 18 types) — web side **shipped** : per-type rendering for non-starter lineages (`app/utils/lineage.ts`). Engine/worker side in the CLI repo.
 
 ## What's next for this repo
 
