@@ -9,6 +9,7 @@
 export {
   ARENA_MAX_TURNS,
   LINEAGE_TO_TYPE,
+  lineageToCombatType,
   TYPE_CHART,
   attackPower,
   deriveHpFromTurns,

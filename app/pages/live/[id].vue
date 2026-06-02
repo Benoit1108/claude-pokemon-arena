@@ -10,7 +10,7 @@ import { useArenaSession } from '~/composables/useArenaSession'
 import { lineageLabel, lineageGradient } from '~/utils/lineage'
 import { stageFor } from '~/utils/sprites'
 import { movesForStage, type Move } from '~/data/moves'
-import { LINEAGE_TO_TYPE, type CombatType } from '~/utils/battle-engine'
+import { lineageToCombatType, type CombatType } from '~/utils/battle-engine'
 import type { BattleSide, BattleTurn } from '~/types/api'
 
 const route = useRoute()
@@ -53,7 +53,7 @@ const opponentType = computed<CombatType>(() => {
   const opp =
     mySide.value === 'challenger' ? live.value.defender.snapshot : live.value.challenger.snapshot
   if (!opp) return 'normal'
-  return LINEAGE_TO_TYPE[opp.lineage] ?? 'normal'
+  return lineageToCombatType(opp.lineage)
 })
 
 const myHasPendingAction = computed(() => {

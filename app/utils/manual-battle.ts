@@ -19,14 +19,13 @@ import {
   ARENA_MAX_TURNS,
   attackPower,
   hashSeed,
-  LINEAGE_TO_TYPE,
+  lineageToCombatType,
   maxHp,
   mulberry32,
   TYPE_CHART,
   type CombatType,
 } from '~/utils/battle-engine'
-import { stageFor } from '~/utils/sprites'
-import { movesForStage, type Move } from '~/data/moves'
+import { movesForParticipant, type Move } from '~/data/moves'
 import type { BattleParticipant, BattleResult, BattleSide, BattleTurn } from '~/types/api'
 
 export interface ManualCombatant {
@@ -56,15 +55,14 @@ export interface ManualBattleState {
 export type AiDifficulty = 'easy' | 'normal' | 'hard'
 
 function buildCombatant(side: BattleSide, p: BattleParticipant): ManualCombatant {
-  const stage = stageFor(p.lineage, p.level)
   return {
     side,
     participant: p,
     hp: maxHp(p.level, p.is_shiny),
     maxHp: maxHp(p.level, p.is_shiny),
     attack: attackPower(p.level, p.is_shiny),
-    type: LINEAGE_TO_TYPE[p.lineage],
-    moves: movesForStage(stage.showdown_id),
+    type: lineageToCombatType(p.lineage),
+    moves: movesForParticipant(p.lineage, p.level),
   }
 }
 
