@@ -13,8 +13,8 @@ describe('resolveScene', () => {
   it('derives the environment from the defender combat type', () => {
     expect(resolveScene({ defenderLineage: 'water' }).env).toBe('plage')
     expect(resolveScene({ defenderLineage: 'fire' }).env).toBe('volcan')
-    expect(resolveScene({ defenderLineage: 'trade-dratini' }).env).toBe('montagne') // dragon
-    expect(resolveScene({ defenderLineage: 'gengar' }).env).toBe('ruines') // ghost
+    expect(resolveScene({ defenderLineage: 'trade-dratini' }).env).toBe('canyon') // dragon
+    expect(resolveScene({ defenderLineage: 'gengar' }).env).toBe('ville') // ghost
   })
 
   it('builds a /battle-bg/<env>.png url and always provides anchors', () => {
