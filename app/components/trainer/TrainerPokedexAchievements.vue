@@ -2,14 +2,18 @@
 // Phase 2.11 — "Pokédex achievements" section on the public trainer card.
 // Pure client-side derivation from the trainer's seen species ids.
 import { computePokedexAchievements } from '~/utils/pokedex-achievements'
+import type { WildPokemon } from '~/types/pokedex'
 
 const props = defineProps<{
   seenIds?: string[]
 }>()
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const ach = computed(() => computePokedexAchievements(props.seenIds))
+
+// Species name in the active locale (the WildPokemon data carries both).
+const legName = (leg: WildPokemon) => (locale.value === 'en' ? leg.name_en : leg.name_fr)
 
 // Milestone emoji (label comes from i18n `trainer.pokedex_ms_<key>`).
 const MILESTONE_EMOJI: Record<string, string> = {
@@ -76,11 +80,11 @@ const MILESTONE_EMOJI: Record<string, string> = {
             v-for="leg in ach.legendariesSeen"
             :key="leg.id"
             class="flex flex-col items-center w-16"
-            :title="leg.name_fr"
+            :title="legName(leg)"
           >
             <PokemonSprite :lineage="leg.id" :level="50" size="md" />
             <span class="text-[0.6rem] text-muted truncate w-full text-center">{{
-              leg.name_fr
+              legName(leg)
             }}</span>
           </div>
         </div>
