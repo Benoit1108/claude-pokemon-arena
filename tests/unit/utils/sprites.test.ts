@@ -122,6 +122,18 @@ describe('spriteUrl', () => {
     expect(spriteUrl({ lineage: 'fire', level: 36 })).toContain('charizard.png')
     expect(spriteUrl({ lineage: 'fire', level: 55 })).toContain('charizard-megax')
   })
+
+  it('resolves wild / traded species to their own Showdown sprite (Phase 2.15)', () => {
+    expect(spriteUrl({ lineage: 'trade-psyduck', level: 12 })).toBe(
+      'https://play.pokemonshowdown.com/sprites/gen5/psyduck.png',
+    )
+    expect(spriteUrl({ lineage: 'psyduck', level: 12, back: true })).toBe(
+      'https://play.pokemonshowdown.com/sprites/gen5-back/psyduck.png',
+    )
+    expect(spriteUrl({ lineage: 'trade-lapras', level: 41, animated: true })).toBe(
+      'https://play.pokemonshowdown.com/sprites/ani/lapras.gif',
+    )
+  })
 })
 
 describe('stageNameFor', () => {
@@ -135,5 +147,10 @@ describe('stageNameFor', () => {
   it('returns "Œuf" at level 0', () => {
     expect(stageNameFor('fire', 0)).toBe('Œuf')
     expect(stageNameFor('water', 0)).toBe('Œuf')
+  })
+
+  it('uses the species FR name for wild / traded Pokémon (Phase 2.15)', () => {
+    expect(stageNameFor('trade-psyduck', 12)).toBe('Psykokwak')
+    expect(stageNameFor('gengar', 30)).toBe('Ectoplasma')
   })
 })
