@@ -1,22 +1,19 @@
 <script setup lang="ts">
-// Pokémon Black/White-inspired battle stage (Sprint 2.13 UA1, polish 2.14).
-// Renders a single arena scene :
-//   - sky gradient backdrop tinted by the active winner's lineage
-//   - two combatants : challenger bottom-left (back-view), defender top-right
-//     (face-view)
-//   - concentric battle circles under each sprite, tinted by lineage accent,
-//     spinning when that side attacks
-//   - HP pills (BattleHpPill) above each combatant — replay mode derives
-//     current HP from `visibleTurns` via deriveHpFromTurns()
-//   - intro banner ("Un combat est lancé par X !") fades in on mount and
-//     auto-dismisses after ~2.4s (suppressed via :show-intro="false")
-//
-// Wraps PokemonSprite (with the `back` prop) so we don't reinvent the
-// fallback / shiny / animated handling. Floating damages + critical-hit
-// shake hooks reuse the existing BattleJuice composable.
+// Battle stage (Phase 2.15) — pixel-art background scene.
+//   - background : a hot pixel-art image (/battle-bg/<env>.png) chosen by the
+//     `scene` prop ("arena" for PvP) or derived from the opponent's type for
+//     wild / ladder battles (water → beach, fire → volcano, …). Painted
+//     platforms come with the image ; the combatants are posed on them.
+//   - challenger : back-view sprite on the foreground (lower-left) platform.
+//   - defender : face-view sprite on the further (mid-right) platform.
+//   - HP pills (BattleHpPill) in the corners (foe top-left, you bottom-right).
+//   - attack lunges / recoil / victory / defeat / crit-flash + floating damages
+//     reuse the existing animation hooks. Replay mode derives HP from
+//     `visibleTurns` via deriveHpFromTurns().
 
 import { deriveHpFromTurns } from '~/utils/battle-engine'
-import { lineageAccent, lineageGradient } from '~/utils/lineage'
+import { lineageAccent } from '~/utils/lineage'
+import { resolveScene } from '~/utils/battle-scene'
 import { stageNameFor } from '~/utils/sprites'
 import type { BattleParticipant, BattleSide, BattleTurn } from '~/types/api'
 import type { FloatingDamage } from '~/composables/useBattleJuice'
@@ -26,21 +23,25 @@ const { t } = useI18n()
 const props = defineProps<{
   challenger: BattleParticipant
   defender: BattleParticipant
-  /** Current HP for each side. Manual mode passes these directly. */
   challengerHp?: number
   challengerMaxHp?: number
   defenderHp?: number
   defenderMaxHp?: number
-  /** Replay mode : pass the visible turn slice and we'll derive each side's
-   * current HP by reducing through `defender_hp_after`. Sprint 2.14 fix. */
   visibleTurns?: BattleTurn[]
   winner: BattleSide | 'draw'
   currentTurn?: BattleTurn | null
   showFinalState?: boolean
   floatingDamages?: FloatingDamage[]
-  /** When false, suppresses the BW intro banner (e.g. instant battle pages). */
   showIntro?: boolean
+  /** Scene hint. "arena" → PvP stadium. Omitted → derived from the defender's
+   * combat type (wild / ladder battles get a fitting environment). */
+  scene?: string
 }>()
+
+const scene = computed(() =>
+  resolveScene({ scene: props.scene, defenderLineage: props.defender.lineage }),
+)
+const bgStyle = computed(() => ({ backgroundImage: `url(${scene.value.bg})` }))
 
 const challengerAttacking = computed(() => props.currentTurn?.actor === 'challenger')
 const defenderAttacking = computed(() => props.currentTurn?.actor === 'defender')
@@ -52,25 +53,10 @@ const challengerName = computed(
 const defenderName = computed(
   () => props.defender.display_name || props.defender.anon_id.slice(0, 8),
 )
-
 const challengerStageName = computed(() =>
   stageNameFor(props.challenger.lineage, props.challenger.level),
 )
 const defenderStageName = computed(() => stageNameFor(props.defender.lineage, props.defender.level))
-
-// Backdrop is a soft gradient using the winning side's lineage tint when the
-// battle is finished, otherwise the challenger's lineage as a neutral base.
-const backdropStyle = computed(() => {
-  const tintLineage =
-    props.showFinalState && props.winner !== 'draw'
-      ? props.winner === 'defender'
-        ? props.defender.lineage
-        : props.challenger.lineage
-      : props.challenger.lineage
-  return {
-    backgroundImage: lineageGradient(tintLineage),
-  }
-})
 
 const challengerWinner = computed(() => props.showFinalState && props.winner === 'challenger')
 const defenderWinner = computed(() => props.showFinalState && props.winner === 'defender')
@@ -84,16 +70,11 @@ const defenderFloats = computed(
   () => props.floatingDamages?.filter(f => f.side === 'defender') ?? [],
 )
 
-// HP pill resolves max from props or derives the canonical maxHp (50 + 2×lvl).
 function maxHpFor(level: number, override?: number): number {
   return override ?? 50 + level * 2
 }
 const cMax = computed(() => maxHpFor(props.challenger.level, props.challengerMaxHp))
 const dMax = computed(() => maxHpFor(props.defender.level, props.defenderMaxHp))
-
-// Sprint 2.14 fix — replay/auto mode doesn't pass hp directly ; we reduce
-// through the visible turn log via deriveHpFromTurns (extracted to utils
-// for unit testing).
 const cHp = computed(() =>
   props.challengerHp !== undefined
     ? props.challengerHp
@@ -105,8 +86,6 @@ const dHp = computed(() =>
     : deriveHpFromTurns('defender', props.visibleTurns, dMax.value),
 )
 
-// Sprint 2.14 polish — type-colored accent under each sprite (concentric
-// circles + glow).
 const challengerAccent = computed(() => lineageAccent(props.challenger.lineage))
 const defenderAccent = computed(() => lineageAccent(props.defender.lineage))
 
@@ -118,49 +97,25 @@ function dismissIntro() {
 
 <template>
   <div
-    class="relative isolate w-full rounded-xl border surface-border overflow-hidden mb-6 stage-shadow"
-    :style="backdropStyle"
+    class="battle-stage relative isolate w-full rounded-xl border surface-border overflow-hidden mb-6"
+    :style="bgStyle"
     :class="{ 'crit-flash': isCritical }"
   >
-    <!-- Sky / horizon backdrop layer (subtle decorative gradient). -->
-    <div class="absolute inset-0 stage-sky pointer-events-none" aria-hidden="true" />
-
-    <!-- Stage container. Aspect kept tight on mobile, wider on md+. -->
-    <div class="relative h-[22rem] md:h-[26rem] grid grid-cols-2 grid-rows-2">
-      <!-- Defender (top right, face-view). -->
-      <div class="col-start-2 row-start-1 relative flex items-end justify-center pb-1">
-        <div class="absolute -top-1 right-3 z-20">
-          <BattleHpPill
-            :name="defenderStageName"
-            :level="defender.level"
-            :is-shiny="defender.is_shiny"
-            :hp="dHp"
-            :max-hp="dMax"
-            side="defender"
-          />
-        </div>
-        <!-- Sprint 2.14 — concentric battle circles under the defender,
-             tinted by their lineage type. The outer + middle ring slowly
-             rotate when the defender is attacking. -->
+    <!-- Defender — face-view, posed on the mid-right platform. -->
+    <div class="battler" :style="{ left: scene.anchors.foe.x, top: scene.anchors.foe.y }">
+      <span class="contact contact-foe" aria-hidden="true" />
+      <div class="sprite-anchor sprite-anchor-foe">
         <div
-          class="absolute bottom-3 right-10 battle-circle defender-circle pointer-events-none"
-          :class="defenderAttacking ? 'circle-spin' : ''"
-          :style="{ '--accent': defenderAccent }"
-          aria-hidden="true"
-        >
-          <span class="circle-outer" />
-          <span class="circle-middle" />
-          <span class="circle-inner" />
-        </div>
-        <div
-          class="relative z-10"
+          class="sprite-anim"
           :class="[
             defenderAttacking ? 'sprite-bump-defender' : '',
             challengerAttacking ? 'sprite-recoil' : '',
             defenderWinner ? 'sprite-victory' : '',
             defenderLoser ? 'sprite-defeat' : '',
           ]"
-          :style="{ filter: `drop-shadow(0 0 14px ${defenderAccent}66)` }"
+          :style="{
+            filter: `drop-shadow(0 5px 6px rgba(0,0,0,.45)) drop-shadow(0 0 12px ${defenderAccent}55)`,
+          }"
         >
           <PokemonSprite
             :lineage="defender.lineage"
@@ -170,10 +125,7 @@ function dismissIntro() {
             animated
           />
         </div>
-        <div
-          class="absolute inset-0 pointer-events-none flex items-start justify-center pt-6"
-          aria-hidden="true"
-        >
+        <div class="floats" aria-hidden="true">
           <FloatingDamage
             v-for="f in defenderFloats"
             :key="f.id"
@@ -183,39 +135,23 @@ function dismissIntro() {
           />
         </div>
       </div>
+    </div>
 
-      <!-- Challenger (bottom left, back-view). -->
-      <div class="col-start-1 row-start-2 relative flex items-end justify-center pb-1">
-        <div class="absolute -bottom-2 left-3 z-20">
-          <BattleHpPill
-            :name="challengerStageName"
-            :level="challenger.level"
-            :is-shiny="challenger.is_shiny"
-            :hp="cHp"
-            :max-hp="cMax"
-            side="challenger"
-          />
-        </div>
-        <!-- Concentric battle circles for the challenger (a tad larger). -->
+    <!-- Challenger — back-view, posed on the foreground (lower-left) platform. -->
+    <div class="battler" :style="{ left: scene.anchors.ally.x, top: scene.anchors.ally.y }">
+      <span class="contact contact-ally" aria-hidden="true" />
+      <div class="sprite-anchor sprite-anchor-ally">
         <div
-          class="absolute bottom-3 left-10 battle-circle challenger-circle pointer-events-none"
-          :class="challengerAttacking ? 'circle-spin' : ''"
-          :style="{ '--accent': challengerAccent }"
-          aria-hidden="true"
-        >
-          <span class="circle-outer" />
-          <span class="circle-middle" />
-          <span class="circle-inner" />
-        </div>
-        <div
-          class="relative z-10"
+          class="sprite-anim"
           :class="[
             challengerAttacking ? 'sprite-bump-challenger' : '',
             defenderAttacking ? 'sprite-recoil' : '',
             challengerWinner ? 'sprite-victory' : '',
             challengerLoser ? 'sprite-defeat' : '',
           ]"
-          :style="{ filter: `drop-shadow(0 0 18px ${challengerAccent}88)` }"
+          :style="{
+            filter: `drop-shadow(0 6px 7px rgba(0,0,0,.5)) drop-shadow(0 0 16px ${challengerAccent}77)`,
+          }"
         >
           <PokemonSprite
             :lineage="challenger.lineage"
@@ -226,10 +162,7 @@ function dismissIntro() {
             back
           />
         </div>
-        <div
-          class="absolute inset-0 pointer-events-none flex items-start justify-center pt-10"
-          aria-hidden="true"
-        >
+        <div class="floats" aria-hidden="true">
           <FloatingDamage
             v-for="f in challengerFloats"
             :key="f.id"
@@ -241,24 +174,46 @@ function dismissIntro() {
       </div>
     </div>
 
+    <!-- HP pills : opponent top-left, you bottom-right (Pokémon convention). -->
+    <div class="absolute top-3 left-3 z-20">
+      <BattleHpPill
+        :name="defenderStageName"
+        :level="defender.level"
+        :is-shiny="defender.is_shiny"
+        :hp="dHp"
+        :max-hp="dMax"
+        side="defender"
+      />
+    </div>
+    <div class="absolute bottom-3 right-3 z-20">
+      <BattleHpPill
+        :name="challengerStageName"
+        :level="challenger.level"
+        :is-shiny="challenger.is_shiny"
+        :hp="cHp"
+        :max-hp="cMax"
+        side="challenger"
+      />
+    </div>
+
     <BattleIntroBanner
       v-if="showIntroBanner"
       :challenger-name="challengerName"
       @done="dismissIntro"
     />
 
-    <!-- Names ribbon (always shown ; the BW intro overlays this for ~2.4s). -->
+    <!-- Trainer name tags (small). -->
     <div
-      class="absolute top-2 left-2 right-2 flex justify-between text-xs uppercase tracking-widest text-muted pointer-events-none"
+      class="absolute top-1 right-2 text-[0.65rem] uppercase tracking-widest text-white/70 bg-black/35 backdrop-blur px-2 py-0.5 rounded pointer-events-none"
     >
-      <span class="bg-black/40 backdrop-blur px-2 py-0.5 rounded">{{ defenderName }}</span>
-      <span class="bg-black/40 backdrop-blur px-2 py-0.5 rounded"
-        >{{ challengerName }} {{ t('battle_stage.you_suffix') }}</span
-      >
+      {{ defenderName }}
+    </div>
+    <div
+      class="absolute bottom-1 left-2 text-[0.65rem] uppercase tracking-widest text-white/70 bg-black/35 backdrop-blur px-2 py-0.5 rounded pointer-events-none"
+    >
+      {{ challengerName }} {{ t('battle_stage.you_suffix') }}
     </div>
 
-    <!-- Draw banner. Win/loss tinting handled by the sprite-victory/defeat
-         CSS classes + the backdrop gradient ; an explicit DRAW callout helps. -->
     <div
       v-if="showFinalState && winner === 'draw'"
       class="absolute inset-0 flex items-center justify-center pointer-events-none"
@@ -271,125 +226,68 @@ function dismissIntro() {
 </template>
 
 <style scoped>
-.stage-shadow {
-  box-shadow: inset 0 0 60px -10px rgba(0, 0, 0, 0.3);
+.battle-stage {
+  height: 22rem;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  box-shadow: inset 0 0 60px -8px rgba(0, 0, 0, 0.35);
 }
-.stage-sky {
-  background:
-    /* sky horizon */
-    linear-gradient(
-      to bottom,
-      rgba(135, 206, 250, 0.12) 0%,
-      rgba(135, 206, 250, 0.04) 35%,
-      rgba(0, 0, 0, 0) 60%
-    ),
-    /* ground glow */
-    radial-gradient(ellipse at 50% 105%, rgba(255, 200, 120, 0.18) 0%, transparent 55%),
-    /* subtle scanline-ish hex pattern (BW-style stadium floor). The two
-     * radial-gradient stops give a faint dotted texture without an SVG. */
-    radial-gradient(circle at 25% 80%, rgba(255, 255, 255, 0.05) 0 1px, transparent 1.5px),
-    radial-gradient(circle at 75% 90%, rgba(255, 255, 255, 0.05) 0 1px, transparent 1.5px);
-  background-size:
-    100% 100%,
-    100% 100%,
-    32px 32px,
-    32px 32px;
-}
-/* Bottom-of-stage horizon line — a soft luminous band that suggests the
- * arena floor edge in BW battles. */
-.stage-sky::before {
-  content: '';
-  position: absolute;
-  inset: auto 0 38% 0;
-  height: 2px;
-  background: linear-gradient(
-    to right,
-    transparent 0%,
-    rgba(255, 255, 255, 0.15) 50%,
-    transparent 100%
-  );
+@media (min-width: 768px) {
+  .battle-stage {
+    height: 26rem;
+  }
 }
 
-/* Sprint 2.14 — concentric battle circles under each combatant, tinted by
- * the lineage accent color (passed in via the --accent CSS var on the
- * .battle-circle host element).
- * Three rings : outer (faint, large), middle (visible), inner (compact +
- * brighter). Outer + middle subtly rotate when the side is attacking. */
-.battle-circle {
+.battler {
   position: absolute;
-  pointer-events: none;
-  display: grid;
-  place-items: center;
+  width: 0;
+  height: 0;
+  z-index: 3;
 }
-.defender-circle {
-  width: 11rem;
-  height: 11rem;
-  bottom: -0.5rem;
-  right: 1rem;
-  transform: translate(0, 35%);
-}
-.challenger-circle {
-  width: 14rem;
-  height: 14rem;
-  bottom: -0.75rem;
-  left: 1rem;
-  transform: translate(0, 30%);
-}
-.battle-circle .circle-outer,
-.battle-circle .circle-middle,
-.battle-circle .circle-inner {
+
+/* Contact shadow under the feet — grounds the sprite on the platform. */
+.contact {
   position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -40%);
   border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.45), transparent 72%);
+  filter: blur(2px);
   pointer-events: none;
 }
-.battle-circle .circle-outer {
+.contact-foe {
+  width: 5.5rem;
+  height: 1.4rem;
+}
+.contact-ally {
+  width: 8rem;
+  height: 2rem;
+}
+
+/* Centers the sprite on the anchor and sinks it down so the visible feet
+ * (Showdown sprites have transparent padding below) land on the platform. */
+.sprite-anchor {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+}
+.sprite-anchor-foe {
+  transform: translate(-50%, 22%);
+}
+.sprite-anchor-ally {
+  transform: translate(-50%, 20%);
+}
+
+.floats {
+  position: absolute;
   inset: 0;
-  border: 2px dashed var(--accent, #fbbf24);
-  opacity: 0.35;
-  animation: ring-pulse 5s ease-in-out infinite;
-}
-.battle-circle .circle-middle {
-  inset: 12%;
-  border: 1px solid var(--accent, #fbbf24);
-  opacity: 0.55;
-  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.04) 0%, transparent 70%);
-}
-.battle-circle .circle-inner {
-  inset: 28%;
-  background: radial-gradient(
-    ellipse at center,
-    color-mix(in srgb, var(--accent, #fbbf24) 35%, transparent) 0%,
-    color-mix(in srgb, var(--accent, #fbbf24) 10%, transparent) 50%,
-    transparent 80%
-  );
-  filter: blur(2px);
-}
-@keyframes ring-pulse {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 0.35;
-  }
-  50% {
-    transform: scale(1.04);
-    opacity: 0.55;
-  }
-}
-@keyframes ring-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-.circle-spin .circle-outer {
-  animation:
-    ring-pulse 1.2s ease-in-out infinite,
-    ring-spin 1.5s linear infinite;
-}
-.circle-spin .circle-middle {
-  animation: ring-spin 2.5s linear infinite reverse;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  pointer-events: none;
 }
 
 @keyframes sprite-bump-c {
@@ -443,9 +341,6 @@ function dismissIntro() {
     filter: grayscale(0.85);
   }
 }
-/* Sprint 2.14 — crit pulse upgraded from a flat overlay to a radial
- * burst : starts from the screen center, scales out, fades to transparent.
- * Reads better as "BAM!" than the old yellow tint. */
 @keyframes crit-flash {
   0% {
     background: radial-gradient(
@@ -463,7 +358,6 @@ function dismissIntro() {
     opacity: 0;
   }
 }
-
 .sprite-bump-challenger {
   animation: sprite-bump-c 600ms ease-out;
 }

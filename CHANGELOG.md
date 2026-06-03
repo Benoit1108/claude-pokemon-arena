@@ -13,6 +13,11 @@ phases. The CLI has its own [CHANGELOG](https://github.com/Benoit1108/claude-pok
 
 ### Added
 
+- **Phase 2.15 — refonte de la scène de combat (fonds pixel-art)**. `BattleStage` passe du backdrop en dégradé CSS à de **vrais décors pixel-art** par environnement (`/public/battle-bg/<env>.png`), avec les Pokémon **posés** sur les plateaux peints (ombre de contact, sprite descendu pour compenser le vide transparent des sprites Showdown).
+  - Nouveau `app/utils/battle-scene.ts` : `resolveScene()` choisit le fond + les ancres de placement. `scene="arena"` force le stade PvP ; sinon le décor est dérivé du **type de l'adversaire** (water→plage, fire→volcan, dragon→montagne, ghost→ruines…). Combats wild/ladder → décor adapté automatiquement.
+  - `BattleStage` réécrit : fond image (cover, `image-rendering: pixelated`), sprites ancrés sur les plateaux, HP-pills aux coins (adversaire haut-gauche, joueur bas-droite). Anims d'attaque/recul/victoire/défaite/crit + dégâts flottants + intro conservés ; cercles concentriques CSS retirés (remplacés par les plateaux peints).
+  - 11 fonds livrés dans `public/battle-bg/` (arène, prairie, plage, volcan, orage, ruines, montagne, canyon, neige, marais, dojo). Première passe ; arène/prairie/dojo sont ultra-larges (recadrés en `cover`) à régénérer en 16:10 plus tard.
+
 - **Phase 2.14 — rendu des Pokémon sauvages & échangés** (suit la PR CLI du même nom). L'arène héberge désormais n'importe quel Pokémon (sauvage, échangé `trade-*`), plus seulement les 8 starters → le rendu lignée gère tous les types.
   - `app/utils/lineage.ts` : nouvelle couche **par type canonique** (18) — emoji, label, accent, gradient — résolue via `lineageToCombatType()` du package shared. Les starters gardent leur branding curaté ; tout le reste (ex: `trade-psyduck` → 💧 Water) rend proprement au lieu du fallback ❓/gris.
   - Nouvelle fonction `lineageLabel()` ; les accès directs `LINEAGE_LABELS[lineage]` (qui affichaient `undefined` pour un wild) migrés vers elle dans `OpponentRow`, `UserMenu`, `BotTrainerTile`, `TrainerHero`, `profile`, `live/[id]`.
