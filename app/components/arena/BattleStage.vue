@@ -204,12 +204,12 @@ function dismissIntro() {
 
     <!-- Trainer name tags (small). -->
     <div
-      class="absolute top-1 right-2 text-[0.65rem] uppercase tracking-widest text-white/70 bg-black/35 backdrop-blur px-2 py-0.5 rounded pointer-events-none"
+      class="absolute top-1 right-2 max-w-[40%] truncate text-[0.65rem] uppercase tracking-widest text-white/70 bg-black/35 backdrop-blur px-2 py-0.5 rounded pointer-events-none"
     >
       {{ defenderName }}
     </div>
     <div
-      class="absolute bottom-1 left-2 text-[0.65rem] uppercase tracking-widest text-white/70 bg-black/35 backdrop-blur px-2 py-0.5 rounded pointer-events-none"
+      class="absolute bottom-1 left-2 max-w-[40%] truncate text-[0.65rem] uppercase tracking-widest text-white/70 bg-black/35 backdrop-blur px-2 py-0.5 rounded pointer-events-none"
     >
       {{ challengerName }} {{ t('battle_stage.you_suffix') }}
     </div>
