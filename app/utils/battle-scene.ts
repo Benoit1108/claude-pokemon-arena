@@ -69,14 +69,16 @@ const ANCHORS: Record<string, SceneAnchors> = {
 
 /**
  * Resolve the battle scene from an explicit `scene` hint or the opponent's
- * lineage. Unknown values fall back to the prairie so we never render a
- * missing image.
+ * lineage. A recognized `scene` wins ; otherwise the environment is derived
+ * from the defender's combat type (no defender → 'normal' → dojo). The final
+ * `prairie` guard is a defensive net — every type maps to an available env, so
+ * it only fires if `scene`/data is corrupt — preventing a missing image.
  */
 export function resolveScene(opts: { scene?: string; defenderLineage?: string }): BattleScene {
   let env =
     opts.scene && AVAILABLE.has(opts.scene)
       ? opts.scene
-      : (TYPE_TO_ENV[lineageToCombatType(opts.defenderLineage)] ?? 'prairie')
-  if (!AVAILABLE.has(env)) env = 'prairie'
+      : TYPE_TO_ENV[lineageToCombatType(opts.defenderLineage)]
+  if (!env || !AVAILABLE.has(env)) env = 'prairie'
   return { env, bg: `/battle-bg/${env}.png`, anchors: ANCHORS[env] ?? DEFAULT_ANCHORS }
 }
