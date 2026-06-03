@@ -12,7 +12,7 @@ authoritative roadmap (Phases 1 → 4 + decisions log) lives in the CLI repo :
 - Phase 2.13+ stretch — partial : **i18n FR/EN web** done (Sprint 5)
 - Sprint 5 polish + recovery-key sign-in : **shipped** (see [CHANGELOG.md](./CHANGELOG.md))
 - Phase 2.14 (wild & traded Pokémon en arène, chart 18 types) — web side **shipped** : per-type rendering for non-starter lineages (`app/utils/lineage.ts`). Engine/worker side in the CLI repo.
-- Phase 2.15 (refonte scène de combat) — **shipped** : `BattleStage` sur fonds pixel-art par environnement (dérivés du type adverse / `scene="arena"`), Pokémon posés sur les plateaux peints. Suite : régénérer arène/prairie/dojo en 16:10, sprites corrects pour les wilds (`trade-*` → species sprite au lieu du fallback starter), fine-tuning des ancres par fond.
+- Phase 2.15 (refonte scène de combat) — **shipped** : `BattleStage` sur 9 décors anime-style par environnement (dérivés du type adverse / `scene="arena"`), Pokémon posés en diagonale sur le cercle de combat central (ancres communes, cohérentes sur tous les fonds). Suite : sprites corrects pour les wilds (`trade-*` → species sprite au lieu du fallback starter via `stageFor`), éventuels plateaux surélevés en CSS sous les Pokémon.
 
 ## What's next for this repo
 
