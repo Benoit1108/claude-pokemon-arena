@@ -136,6 +136,7 @@ useHead({
       </header>
 
       <BattleStage
+        scene="arena"
         :challenger="battle.challenger"
         :defender="battle.defender"
         :winner="battle.winner"
