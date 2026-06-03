@@ -598,8 +598,9 @@
     "play": "▶ Play",
     "skip": "⏭ Skip",
     "restart": "⏮ Restart",
-    "sound_on_title": "Sound on (click to mute)",
-    "sound_off_title": "Sound off (click to enable)",
+    "sound_silent_title": "Sound off (click for 8-bit)",
+    "sound_8bit_title": "8-bit sound (click for orchestral)",
+    "sound_orchestral_title": "Orchestral sound (click to mute)",
     "speed_label": "Speed",
     "turn_progress": "Turn {current} / {total}"
   },

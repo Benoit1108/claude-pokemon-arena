@@ -153,12 +153,12 @@ useHead({
         :progress="player.progress.value"
         :current-turn-idx="player.currentTurnIdx.value"
         :total-turns="player.totalTurns"
-        :sound-enabled="sfx.enabled.value"
+        :sound-theme="sfx.theme.value"
         @toggle="player.toggle()"
         @skip-to-end="player.skipToEnd()"
         @restart="player.restart()"
         @set-speed="s => player.setSpeed(s)"
-        @toggle-sound="sfx.toggle()"
+        @toggle-sound="sfx.cycleSound()"
       />
 
       <BattleResultBanner

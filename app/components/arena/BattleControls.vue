@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { PlaybackSpeed } from '~/composables/useBattlePlayer'
+import type { SoundTheme } from '~/composables/useSoundEffects'
 
 defineProps<{
   isPlaying: boolean
@@ -8,7 +9,7 @@ defineProps<{
   progress: number
   totalTurns: number
   currentTurnIdx: number
-  soundEnabled: boolean
+  soundTheme: SoundTheme
 }>()
 
 const emit = defineEmits<{
@@ -22,6 +23,9 @@ const emit = defineEmits<{
 const { t } = useI18n()
 
 const speeds: PlaybackSpeed[] = [0.5, 1, 2, 4]
+
+// 🔊 button cycles silent → 8-bit → orchestral.
+const SOUND_ICON: Record<SoundTheme, string> = { silent: '🔇', '8bit': '🔊', orchestral: '🎻' }
 </script>
 
 <template>
@@ -58,13 +62,11 @@ const speeds: PlaybackSpeed[] = [0.5, 1, 2, 4]
       <button
         type="button"
         class="px-3 py-1.5 text-sm border surface-border rounded-md surface-card-hover transition"
-        :class="soundEnabled ? 'text-accent' : 'text-muted'"
-        :title="
-          soundEnabled ? t('battle_controls.sound_on_title') : t('battle_controls.sound_off_title')
-        "
+        :class="soundTheme === 'silent' ? 'text-muted' : 'text-accent'"
+        :title="t(`battle_controls.sound_${soundTheme}_title`)"
         @click="emit('toggleSound')"
       >
-        {{ soundEnabled ? '🔊' : '🔇' }}
+        {{ SOUND_ICON[soundTheme] }}
       </button>
 
       <div class="flex items-center gap-1.5 ml-auto">
