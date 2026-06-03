@@ -35,6 +35,7 @@ interface NoteOptions {
 }
 
 let _ctx: AudioContext | null = null
+let _master: GainNode | null = null
 
 function getContext(): AudioContext | null {
   if (typeof window === 'undefined') return null
@@ -45,6 +46,16 @@ function getContext(): AudioContext | null {
   if (!Ctor) return null
   _ctx = new Ctor()
   return _ctx
+}
+
+// Single master bus so overlapping notes (esp. orchestral's doubled voices +
+// sustained chords) stay well under clipping and match the "not painful" intent.
+function getMaster(ctx: AudioContext): GainNode {
+  if (_master) return _master
+  _master = ctx.createGain()
+  _master.gain.value = 0.6
+  _master.connect(ctx.destination)
+  return _master
 }
 
 function voice(ctx: AudioContext, opts: NoteOptions, detuneCents: number): void {
@@ -62,7 +73,7 @@ function voice(ctx: AudioContext, opts: NoteOptions, detuneCents: number): void 
   gain.gain.setValueAtTime(0.0001, startAt)
   gain.gain.exponentialRampToValueAtTime(peak, startAt + attack)
   gain.gain.exponentialRampToValueAtTime(0.0001, startAt + opts.duration)
-  osc.connect(gain).connect(ctx.destination)
+  osc.connect(gain).connect(getMaster(ctx))
   osc.start(startAt)
   osc.stop(startAt + opts.duration)
 }
