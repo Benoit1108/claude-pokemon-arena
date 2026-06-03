@@ -33,3 +33,6 @@ node_modules/
 # Build outputs from the vendored submodule's nested workspaces. The shared
 # package's dist/ IS committed in its own repo (intentional) ; everything
 # else in vendor/ is read-only from this repo.
+
+# Local design scratch (mockups, screenshots) — not shipped
+.design/
