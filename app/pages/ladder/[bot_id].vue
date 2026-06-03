@@ -238,12 +238,12 @@ useHead({
         :progress="autoPlayer.progress.value"
         :current-turn-idx="autoPlayer.currentTurnIdx.value"
         :total-turns="autoPlayer.totalTurns"
-        :sound-enabled="sfx.enabled.value"
+        :sound-theme="sfx.theme.value"
         @toggle="autoPlayer.toggle()"
         @skip-to-end="autoPlayer.skipToEnd()"
         @restart="autoPlayer.restart()"
         @set-speed="s => autoPlayer.setSpeed(s)"
-        @toggle-sound="sfx.toggle()"
+        @toggle-sound="sfx.cycleSound()"
       />
 
       <BattleResultBanner

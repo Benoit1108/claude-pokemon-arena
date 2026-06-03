@@ -30,57 +30,73 @@ describe('useSoundEffects', () => {
     vi.restoreAllMocks()
   })
 
-  it('exposes the expected play methods + enabled state', () => {
+  it('exposes the play methods + theme/enabled/cycleSound', () => {
     const { sfx } = mountSfx()
-    expect(typeof sfx.playHit).toBe('function')
-    expect(typeof sfx.playSuperEffective).toBe('function')
-    expect(typeof sfx.playCritical).toBe('function')
-    expect(typeof sfx.playWin).toBe('function')
-    expect(typeof sfx.playDefeat).toBe('function')
-    expect(typeof sfx.playDraw).toBe('function')
-    expect(typeof sfx.toggle).toBe('function')
+    for (const m of [
+      'playHit',
+      'playSuperEffective',
+      'playCritical',
+      'playWin',
+      'playDefeat',
+      'playDraw',
+      'cycleSound',
+    ] as const) {
+      expect(typeof sfx[m]).toBe('function')
+    }
     expect(typeof sfx.enabled.value).toBe('boolean')
+    expect(sfx.theme.value).toBe('silent')
   })
 
-  it('starts disabled by default (no localStorage entry)', () => {
+  it('starts silent / disabled by default (no localStorage entry)', () => {
     const { sfx } = mountSfx()
+    expect(sfx.theme.value).toBe('silent')
     expect(sfx.enabled.value).toBe(false)
   })
 
-  it('toggle flips enabled state and persists to localStorage', () => {
+  it('cycleSound goes silent → 8bit → orchestral → silent and persists', () => {
     const { sfx } = mountSfx()
-    expect(sfx.enabled.value).toBe(false)
-    sfx.toggle()
+    sfx.cycleSound()
+    expect(sfx.theme.value).toBe('8bit')
     expect(sfx.enabled.value).toBe(true)
-    expect(localStorage.getItem('arena-sound-enabled')).toBe('1')
-    sfx.toggle()
+    expect(localStorage.getItem('arena-sound-theme')).toBe('8bit')
+    sfx.cycleSound()
+    expect(sfx.theme.value).toBe('orchestral')
+    expect(sfx.enabled.value).toBe(true)
+    sfx.cycleSound()
+    expect(sfx.theme.value).toBe('silent')
     expect(sfx.enabled.value).toBe(false)
-    expect(localStorage.getItem('arena-sound-enabled')).toBe('0')
+    expect(localStorage.getItem('arena-sound-theme')).toBe('silent')
   })
 
-  it('reads stored "1" on mount and starts enabled', () => {
+  it('reads a stored theme on mount', () => {
+    localStorage.setItem('arena-sound-theme', 'orchestral')
+    const { sfx } = mountSfx()
+    expect(sfx.theme.value).toBe('orchestral')
+    expect(sfx.enabled.value).toBe(true)
+  })
+
+  it('migrates the pre-2.12 boolean toggle (arena-sound-enabled=1 → 8bit)', () => {
     localStorage.setItem('arena-sound-enabled', '1')
     const { sfx } = mountSfx()
-    expect(sfx.enabled.value).toBe(true)
+    expect(sfx.theme.value).toBe('8bit')
   })
 
-  it('play methods are no-ops when disabled (no throw)', () => {
+  it('play methods are no-ops when silent (no throw)', () => {
     const { sfx } = mountSfx()
-    expect(sfx.enabled.value).toBe(false)
+    expect(sfx.theme.value).toBe('silent')
     expect(() => sfx.playHit()).not.toThrow()
     expect(() => sfx.playCritical()).not.toThrow()
     expect(() => sfx.playWin()).not.toThrow()
-    expect(() => sfx.playDefeat()).not.toThrow()
   })
 
   it('play methods do not throw when enabled, even if AudioContext is unavailable', () => {
     const { sfx } = mountSfx()
-    sfx.toggle() // enable
-    // happy-dom may stub AudioContext — the composable must defend against
-    // missing API and not crash.
+    sfx.cycleSound() // → 8bit
     expect(() => sfx.playHit()).not.toThrow()
     expect(() => sfx.playSuperEffective()).not.toThrow()
-    expect(() => sfx.playDraw()).not.toThrow()
+    sfx.cycleSound() // → orchestral (detuned 2-voice path)
+    expect(() => sfx.playCritical()).not.toThrow()
+    expect(() => sfx.playDefeat()).not.toThrow()
   })
 
   it('survives localStorage write failure (private browsing)', () => {
@@ -88,8 +104,8 @@ describe('useSoundEffects', () => {
     const spy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
       throw new Error('quota exceeded')
     })
-    expect(() => sfx.toggle()).not.toThrow()
-    expect(sfx.enabled.value).toBe(true) // state still toggled in memory
+    expect(() => sfx.cycleSound()).not.toThrow()
+    expect(sfx.theme.value).toBe('8bit') // state still changed in memory
     spy.mockRestore()
   })
 })

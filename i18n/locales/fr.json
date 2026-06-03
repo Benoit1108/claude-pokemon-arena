@@ -598,8 +598,9 @@
     "play": "▶ Play",
     "skip": "⏭ Skip",
     "restart": "⏮ Restart",
-    "sound_on_title": "Son activé (clique pour couper)",
-    "sound_off_title": "Son coupé (clique pour activer)",
+    "sound_silent_title": "Son coupé (clique pour le 8-bit)",
+    "sound_8bit_title": "Son 8-bit (clique pour l'orchestral)",
+    "sound_orchestral_title": "Son orchestral (clique pour couper)",
     "speed_label": "Vitesse",
     "turn_progress": "Tour {current} / {total}"
   },
