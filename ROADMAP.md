@@ -18,7 +18,7 @@ authoritative roadmap (Phases 1 → 4 + decisions log) lives in the CLI repo :
 
 In rough order :
 
-1. **Phase 2.11** — Pokédex-driven achievements. Cross-cutting badges tied to wild encounter data, surfaced on `/trainer/[anonId]`. Touches CLI (badge conditions) + worker (bitmap field on submit payload) + web (new section on the public trainer card).
+1. **Phase 2.11** — Pokédex-driven achievements. **Web side shipped** : "Pokédex achievements" section on `/trainer/[anonId]` (completion bars per gen, milestones, legendaries-seen grid), computed client-side from the already-served `pokedex_seen_ids` — no worker/CLI change needed. (Optional later : dedicated earned _badges_ for these in the CLI `pokemon_check_badges()`.)
 2. **Phase 2.12** — Easter eggs + sound themes + CLI ↔ web QR sync. Partial : Konami code already in `app/pages/index.vue`. Remaining : 3-state sound theme cycle (8-bit / orchestral / silent), 10× logo click animation, `?secret=` URL param, QR pairing flow.
 3. **Phase 3** — Discord bot (new repo `claude-pokemon-bot`, Cloudflare Workers + HTTP Interactions). Not started.
 

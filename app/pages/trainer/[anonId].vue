@@ -63,6 +63,10 @@ useHead({
           {{ t('trainer.view_pokedex') }}
         </NuxtLink>
       </p>
+      <TrainerPokedexAchievements
+        v-if="trainer.stats.pokedex_seen_ids?.length"
+        :seen-ids="trainer.stats.pokedex_seen_ids"
+      />
       <TrainerBadges :earned="trainer.stats.badges" />
 
       <footer class="text-center text-muted text-sm mt-12 pt-8 border-t surface-border">
