@@ -18,6 +18,10 @@ phases. The CLI has its own [CHANGELOG](https://github.com/Benoit1108/claude-pok
   - `BattleStage` réécrit : fond image (cover, `image-rendering: pixelated`), sprites posés en diagonale sur le **cercle central** (joueur devant-gauche de dos, adversaire derrière-droite de face), HP-pills aux coins. Anims d'attaque/recul/victoire/défaite/crit + dégâts flottants + intro conservés ; cercles concentriques CSS retirés (remplacés par le marquage peint).
   - **9 décors** dans `public/battle-bg/` (arène, neige, plage, volcan, dojo, prairie, usine, ville, canyon), composition cohérente (cercle de combat centré) → **un seul jeu d'ancres** pour tous, pas de calage par fond.
 
+### Fixed
+
+- **Sprites des Pokémon sauvages / échangés** (`app/utils/sprites.ts`). Une lignée non-starter (`psyduck`, `trade-gengar`, …) tombait sur le sprite du starter (Salamèche) via `stageFor`. Désormais `spriteUrl()` et `stageNameFor()` résolvent le **sprite Showdown de l'espèce** (le species id du `wild_pool` = l'id Showdown) et son **nom FR** depuis le pokédex (Psykokwak, Ectoplasma…). Corrige le rendu partout (scène de combat, leaderboard, opponents, trainer-card, pokédex).
+
 - **Phase 2.14 — rendu des Pokémon sauvages & échangés** (suit la PR CLI du même nom). L'arène héberge désormais n'importe quel Pokémon (sauvage, échangé `trade-*`), plus seulement les 8 starters → le rendu lignée gère tous les types.
   - `app/utils/lineage.ts` : nouvelle couche **par type canonique** (18) — emoji, label, accent, gradient — résolue via `lineageToCombatType()` du package shared. Les starters gardent leur branding curaté ; tout le reste (ex: `trade-psyduck` → 💧 Water) rend proprement au lieu du fallback ❓/gris.
   - Nouvelle fonction `lineageLabel()` ; les accès directs `LINEAGE_LABELS[lineage]` (qui affichaient `undefined` pour un wild) migrés vers elle dans `OpponentRow`, `UserMenu`, `BotTrainerTile`, `TrainerHero`, `profile`, `live/[id]`.

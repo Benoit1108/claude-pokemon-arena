@@ -8,11 +8,31 @@
 // We re-export `stageFor` and the LineageStage type so existing callers
 // (`from '~/utils/sprites'`) keep working without churn.
 
-import { stageFor, type LineageStage } from 'claude-pokemon-shared/stages'
+import { LINEAGE_STAGES, stageFor, type LineageStage } from 'claude-pokemon-shared/stages'
+import { WILD_POKEMON } from '~/utils/pokedex'
 
 export { stageFor, type LineageStage }
 
 const SHOWDOWN_BASE = 'https://play.pokemonshowdown.com/sprites'
+
+// Species id → FR name, for wild / traded Pokémon (their species id is also
+// their Showdown sprite id : psyduck, nidoranf, mrmime, …).
+const WILD_NAME_FR = new Map(WILD_POKEMON.map(p => [p.id, p.name_fr]))
+
+function isStarterLineage(lineage: string): boolean {
+  return lineage in LINEAGE_STAGES
+}
+
+/**
+ * Showdown sprite id for any lineage. Starters follow their level-gated stage
+ * (charmander → charmeleon → charizard…) ; everything else is a wild / traded
+ * species whose lineage IS the Showdown id (with an optional `trade-` prefix).
+ * Phase 2.15 — fixes wild Pokémon rendering as a starter sprite.
+ */
+function showdownIdFor(lineage: string, level: number): string {
+  if (isStarterLineage(lineage)) return stageFor(lineage, level).showdown_id
+  return lineage.replace(/^trade-/, '')
+}
 
 /** Localized French names for every catalogued stage. Keep this in sync with
  * the CLI's lib/data/lineages/*.json display labels. */
@@ -70,22 +90,24 @@ export function spriteUrl(opts: {
   animated?: boolean
   back?: boolean
 }): string {
-  const stage = stageFor(opts.lineage, opts.level)
+  const id = showdownIdFor(opts.lineage, opts.level)
   const variant = opts.isShiny ? '-shiny' : ''
   if (opts.back) {
     if (opts.animated) {
-      return `${SHOWDOWN_BASE}/ani-back${variant}/${stage.showdown_id}.gif`
+      return `${SHOWDOWN_BASE}/ani-back${variant}/${id}.gif`
     }
-    return `${SHOWDOWN_BASE}/gen5-back${variant}/${stage.showdown_id}.png`
+    return `${SHOWDOWN_BASE}/gen5-back${variant}/${id}.png`
   }
   if (opts.animated) {
-    return `${SHOWDOWN_BASE}/ani${variant}/${stage.showdown_id}.gif`
+    return `${SHOWDOWN_BASE}/ani${variant}/${id}.gif`
   }
-  return `${SHOWDOWN_BASE}/gen5${variant}/${stage.showdown_id}.png`
+  return `${SHOWDOWN_BASE}/gen5${variant}/${id}.png`
 }
 
-/** Localized stage name (Salamèche / Reptincel / Dracaufeu / …). */
+/** Localized name for the HP pill. Starters use their stage name (Salamèche /
+ * Reptincel / …) ; wild / traded Pokémon use their species FR name from the
+ * pokédex (Psykokwak, Nidoran♀, …). */
 export function stageNameFor(lineage: string, level: number): string {
-  const stage = stageFor(lineage, level)
-  return STAGE_NAME_FR[stage.showdown_id] ?? stage.showdown_id
+  const id = showdownIdFor(lineage, level)
+  return STAGE_NAME_FR[id] ?? WILD_NAME_FR.get(id) ?? id
 }
